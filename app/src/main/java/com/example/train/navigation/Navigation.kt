@@ -1,21 +1,14 @@
 package com.example.train.navigation
 
-import android.widget.Toast
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.train.ui.HomeScreen
-import com.example.train.ui.MainRoutes
 import com.example.train.ui.MainScreen
-import com.example.train.ui.WorkoutsScreen
 import com.example.train.view.LoginScreen
 import com.example.train.view.RegistrationScreen
 import com.example.train.viewmodel.LoginViewModel
-import com.example.train.viewmodel.RegistrationViewModel
 
 object Routes {
     const val LOGIN = "login"

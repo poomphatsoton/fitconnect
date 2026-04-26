@@ -1,6 +1,6 @@
 package com.example.train.ui
 
-import CreateExerciseDialog
+import com.example.train.ui.components.CreateExerciseDialog
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

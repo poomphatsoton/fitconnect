@@ -39,6 +39,7 @@ import com.example.train.viewmodel.WorkoutsViewModel
 @Composable
 fun CreateWorkoutDialogHost(
     viewModel: WorkoutsViewModel,
+    onCreated: () -> Unit = {},
     content: @Composable (
         openCreateWorkoutDialog: () -> Unit
     ) -> Unit
@@ -78,6 +79,7 @@ fun CreateWorkoutDialogHost(
 
                     showDialog = false
                     viewModel.loadWorkouts()
+                    onCreated()
                 } else {
                     Toast.makeText(
                         context,
@@ -89,7 +91,6 @@ fun CreateWorkoutDialogHost(
         )
     }
 }
-
 @Composable
 fun CreateWorkoutDialog(
     exercises: List<ExerciseSelectUiItem>,

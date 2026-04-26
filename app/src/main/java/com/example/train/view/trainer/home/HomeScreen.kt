@@ -1,5 +1,6 @@
 package com.example.train.ui
 
+import com.example.train.ui.components.CreateExerciseDialog
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +14,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -21,21 +25,27 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.train.ui.components.NavigationBar
 import com.example.train.ui.components.CreateButtons
+import com.example.train.ui.components.CreateWorkoutDialogHost
+import com.example.train.ui.components.NavigationBar
 import com.example.train.ui.components.NoTraineesCard
 import com.example.train.ui.components.OverviewCard
 import com.example.train.ui.components.TrainerProfileCard
-import com.example.train.utils.CreateDialogUtil
+import com.example.train.viewmodel.ExercisesViewModel
 import com.example.train.viewmodel.TrainerHomeViewModel
+import com.example.train.viewmodel.WorkoutsViewModel
 
 @Composable
 fun HomeScreen(
     onLogout: () -> Unit,
-    viewModel: TrainerHomeViewModel = viewModel()
+    viewModel: TrainerHomeViewModel = viewModel(),
+    exercisesViewModel: ExercisesViewModel = viewModel(),
+    workoutsViewModel: WorkoutsViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState
+
+    var showCreateExerciseDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.loadHomeData()
@@ -59,7 +69,7 @@ fun HomeScreen(
 
     Scaffold(
         topBar = {
-            NavigationBar (
+            NavigationBar(
                 title = "FitConnect",
                 onLogout = onLogout
             )
@@ -81,18 +91,22 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            CreateButtons(
-                onCreateExercise = {
-                    CreateDialogUtil.showCreateExerciseDialog(context) {
-                        viewModel.loadOverviewData()
-                    }
-                },
-                onCreateWorkout = {
-                    CreateDialogUtil.showCreateWorkoutDialog(context) {
-                        viewModel.loadOverviewData()
-                    }
+            CreateWorkoutDialogHost(
+                viewModel = workoutsViewModel,
+                onCreated = {
+                    viewModel.loadOverviewData()
                 }
-            )
+            ) { openCreateWorkoutDialog ->
+
+                CreateButtons(
+                    onCreateExercise = {
+                        showCreateExerciseDialog = true
+                    },
+                    onCreateWorkout = {
+                        openCreateWorkoutDialog()
+                    }
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -114,5 +128,39 @@ fun HomeScreen(
 
             NoTraineesCard()
         }
+    }
+
+    if (showCreateExerciseDialog) {
+        CreateExerciseDialog(
+            onDismiss = {
+                showCreateExerciseDialog = false
+            },
+            onConfirm = { name, description, category1, category2, time ->
+                val error = exercisesViewModel.createExercise(
+                    name = name,
+                    description = description,
+                    category1 = category1,
+                    category2 = category2,
+                    timePerRepText = time
+                )
+
+                if (error == null) {
+                    Toast.makeText(
+                        context,
+                        "Created successfully",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    showCreateExerciseDialog = false
+                    viewModel.loadOverviewData()
+                } else {
+                    Toast.makeText(
+                        context,
+                        error,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        )
     }
 }
