@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">train</string>
+    <string name="fit_connect">FitConnect</string>
+    <string name="connect_trainers_and_trainees">Connect trainers and trainees</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="create_account">Create Account</string>
+</resources>

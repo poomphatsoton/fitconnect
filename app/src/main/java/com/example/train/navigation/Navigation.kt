@@ -1,0 +1,81 @@
+package com.example.train.navigation
+
+import android.widget.Toast
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.train.ui.HomeScreen
+import com.example.train.ui.MainRoutes
+import com.example.train.ui.MainScreen
+import com.example.train.ui.WorkoutsScreen
+import com.example.train.view.LoginScreen
+import com.example.train.view.RegistrationScreen
+import com.example.train.viewmodel.LoginViewModel
+import com.example.train.viewmodel.RegistrationViewModel
+
+object Routes {
+    const val LOGIN = "login"
+    const val HOME = "home"
+    const val CREATE_ACCOUNT = "create_account"
+}
+
+@Composable
+fun AppNavigation() {
+    val navController = rememberNavController()
+    val loginViewModel: LoginViewModel = viewModel()
+
+    val startDestination =
+        if (loginViewModel.isLoggedIn()) Routes.HOME else Routes.LOGIN
+
+    NavHost(
+        navController = navController,
+        startDestination = startDestination
+    ) {
+        composable(Routes.LOGIN) {
+            LoginScreen(
+                onLoginClick = { username, password ->
+                    loginViewModel.login(username, password) {
+                        navController.navigate(Routes.HOME) {
+                            popUpTo(Routes.LOGIN) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                },
+                onCreateAccountClick = {
+                    navController.navigate(Routes.CREATE_ACCOUNT)
+                }
+            )
+        }
+
+        composable(Routes.CREATE_ACCOUNT) {
+            RegistrationScreen(
+                onRegisterSuccess = {
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(Routes.CREATE_ACCOUNT) {
+                            inclusive = true
+                        }
+                    }
+                }
+            )
+        }
+        composable(Routes.HOME) {
+            MainScreen(
+                onLogout = {
+                    loginViewModel.logout()
+
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(Routes.HOME) {
+                            inclusive = true
+                        }
+                    }
+                }
+            )
+        }
+
+    }
+}

@@ -1,0 +1,104 @@
+package com.example.train.ui
+
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.train.R
+import com.example.train.ui.components.BottomNavigationBar
+
+object MainRoutes {
+    const val HOME = "home"
+    const val EXERCISES = "exercises"
+    const val WORKOUTS = "workouts"
+    const val CALENDAR = "calendar"
+    const val TRAINEES = "trainees"
+}
+
+data class BottomNavItem(
+    val route: String,
+    val label: String,
+    @DrawableRes val icon: Int
+)
+
+@Composable
+fun MainScreen(
+    onLogout: () -> Unit
+) {
+    val navController = rememberNavController()
+
+    val bottomNavItems = listOf(
+        BottomNavItem(
+            route = MainRoutes.HOME,
+            label = "Home",
+            icon = R.drawable.ic_home
+        ),
+        BottomNavItem(
+            route = MainRoutes.EXERCISES,
+            label = "Exercises",
+            icon = R.drawable.ic_fitness
+        ),
+        BottomNavItem(
+            route = MainRoutes.WORKOUTS,
+            label = "Workouts",
+            icon = R.drawable.ic_list
+        ),
+        BottomNavItem(
+            route = MainRoutes.CALENDAR,
+            label = "Calendar",
+            icon = R.drawable.ic_calendar
+        ),
+        BottomNavItem(
+            route = MainRoutes.TRAINEES,
+            label = "Trainees",
+            icon = R.drawable.ic_group
+        )
+    )
+
+    Scaffold(
+        containerColor = Color(0xFFF5F5F5),
+        bottomBar = {
+            BottomNavigationBar(
+                items = bottomNavItems,
+                navController = navController
+            )
+        }
+    ) { innerPadding ->
+
+        NavHost(
+            navController = navController,
+            startDestination = MainRoutes.HOME,
+            modifier = Modifier
+                .padding(innerPadding)
+                .background(Color(0xFFF5F5F5))
+        ) {
+            composable(MainRoutes.HOME) {
+                HomeScreen(
+                    onLogout = onLogout
+                )
+            }
+
+            composable(MainRoutes.EXERCISES) {
+                ExercisesScreen()
+            }
+
+            composable(MainRoutes.WORKOUTS) {
+                WorkoutsScreen()
+            }
+
+            composable(MainRoutes.CALENDAR) {
+                CalendarScreen()
+            }
+
+            composable(MainRoutes.TRAINEES) {
+                TraineesScreen()
+            }
+        }
+    }
+}
