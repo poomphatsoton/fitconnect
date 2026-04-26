@@ -6,9 +6,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.train.ui.MainScreen
-import com.example.train.view.LoginScreen
-import com.example.train.view.RegistrationScreen
-import com.example.train.viewmodel.LoginViewModel
+import com.example.train.view.authentication.LoginScreen
+import com.example.train.view.authentication.RegistrationScreen
+import com.example.train.viewmodel.authentication.LoginViewModel
 
 object Routes {
     const val LOGIN = "login"

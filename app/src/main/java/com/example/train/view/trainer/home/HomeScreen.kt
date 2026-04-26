@@ -31,9 +31,9 @@ import com.example.train.ui.components.NavigationBar
 import com.example.train.ui.components.NoTraineesCard
 import com.example.train.ui.components.OverviewCard
 import com.example.train.ui.components.TrainerProfileCard
-import com.example.train.viewmodel.ExercisesViewModel
-import com.example.train.viewmodel.TrainerHomeViewModel
-import com.example.train.viewmodel.WorkoutsViewModel
+import com.example.train.viewmodel.trainer.ExercisesViewModel
+import com.example.train.viewmodel.trainer.TrainerHomeViewModel
+import com.example.train.viewmodel.trainer.WorkoutsViewModel
 
 @Composable
 fun HomeScreen(

@@ -19,7 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.train.viewmodel.TraineesViewModel
+import com.example.train.viewmodel.trainer.TraineesViewModel
 
 @Composable
 fun TraineesScreen(
