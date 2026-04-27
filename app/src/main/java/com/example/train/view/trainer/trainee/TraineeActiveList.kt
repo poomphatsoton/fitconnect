@@ -13,6 +13,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.train.R
+import com.example.train.model.trainer.Trainee
 
 @Composable
 fun TraineeActiveList(

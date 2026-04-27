@@ -1,6 +1,8 @@
 package com.example.train.ui
 
+import android.os.Build
 import androidx.annotation.DrawableRes
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -27,6 +29,7 @@ data class BottomNavItem(
     @DrawableRes val icon: Int
 )
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MainScreen(
     onLogout: () -> Unit

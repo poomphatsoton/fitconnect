@@ -12,16 +12,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.train.R
+import com.example.train.model.trainer.Trainee
 import com.example.train.viewmodel.trainer.TraineesViewModel
-
-data class Trainee(
-    val id: Int,
-    val name: String,
-    val bio: String,
-    val tags: List<String>,
-    val completionRate: Float = 0f,
-    val imageRes: Int? = null
-)
 
 @Composable
 fun TraineesScreen(
@@ -39,6 +31,7 @@ fun TraineesScreen(
         modifier = modifier,
         activeCount = uiState.activeCount,
         requestCount = uiState.requestCount,
+        activeTrainees = uiState.allActiveTrainees,
         onCalendarClick = onCalendarClick
     )
 }
@@ -47,28 +40,12 @@ fun TraineesScreen(
 fun TraineesScreenContent(
     activeCount: Int,
     requestCount: Int,
+    activeTrainees: List<Trainee>,
     modifier: Modifier = Modifier,
     initialTab: String = "Active",
     onCalendarClick: (Int) -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf(initialTab) }
-
-    val sampleActiveTrainees = listOf(
-        Trainee(
-            id = 1,
-            name = "Sarah Johnson",
-            bio = "Looking to build strength and improve fitness. Love trying new workouts!",
-            tags = listOf("strength", "weight-loss", "endurance"),
-            imageRes = R.drawable.ic_person
-        ),
-        Trainee(
-            id = 2,
-            name = "Mike Wilson",
-            bio = "Former athlete getting back into shape. Focused on building muscle and endurance.",
-            tags = listOf("muscle-gain", "strength", "endurance"),
-            imageRes = R.drawable.ic_person
-        )
-    )
 
     val sampleRequests = listOf(
         Trainee(
@@ -107,7 +84,7 @@ fun TraineesScreenContent(
 
         if (selectedTab == "Active") {
             TraineeActiveList(
-                trainees = sampleActiveTrainees,
+                trainees = activeTrainees,
                 onCalendarClick = onCalendarClick
             )
         } else {

@@ -1,12 +1,17 @@
 package com.example.train.viewmodel.trainer
 
 import android.app.Application
+import android.database.Cursor
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import com.example.train.database.DatabaseHelper
 import com.example.train.model.trainer.CalendarUiState
 import com.example.train.model.trainer.TraineeSlot
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.LocalTime
 import java.util.Calendar
 import java.util.Locale
 
@@ -54,36 +59,18 @@ class CalendarViewModel(
         }
     }
 
-    fun loadTraineeSlots(traineeId: Int) {
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun loadTraineeSlots(traineeId: Int, date: LocalDate) {
         val slots = mutableListOf<TraineeSlot>()
-        val cursor = dbHelper.getTraineeSlots(traineeId)
 
-        if (cursor.moveToFirst()) {
-            do {
-                val slotId = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_ID))
-                val workoutIdIndex = cursor.getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_ID)
-                val workoutId = if (cursor.isNull(workoutIdIndex)) null else cursor.getInt(workoutIdIndex)
-                
-                val status = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_STATUS))
-                val startTime = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_START_TIME))
-                val endTime = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_END_TIME))
-                val workoutName = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_NAME))
-
-                slots.add(
-                    TraineeSlot(
-                        slotId = slotId,
-                        workoutId = workoutId,
-                        workoutName = if (workoutId != null) workoutName else null,
-                        status = status,
-                        startTime = startTime,
-                        endTime = endTime
-                    )
-                )
-            } while (cursor.moveToNext())
+        dbHelper.getTraineeSlots(traineeId, date).use { cursor ->
+            while (cursor.moveToNext()) {
+                slots.add(cursor.toTraineeSlot())
+            }
         }
-        cursor.close()
-        
-        uiState.value = uiState.value.copy(traineeSlots = slots)
+        uiState.value = uiState.value.copy(
+            traineeSlots = slots
+        )
     }
 
     fun formatDateFromCalendar(
@@ -95,5 +82,21 @@ class CalendarViewModel(
         calendar.set(year, month, day)
 
         return dateFormat.format(calendar.time)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun Cursor.toTraineeSlot(): TraineeSlot {
+        val workoutIdIndex = getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_ID)
+        val workoutNameIndex = getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_NAME)
+
+        return TraineeSlot(
+            slotId = getInt(getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_ID)),
+            workoutId = if (isNull(workoutIdIndex)) null else getInt(workoutIdIndex),
+            workoutName = if (isNull(workoutNameIndex)) null else getString(workoutNameIndex),
+            status = getInt(getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_STATUS)),
+            startTime = LocalTime.parse(getString(getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_START_TIME))),
+            endTime = LocalTime.parse(getString(getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_END_TIME))),
+            date = LocalDate.parse(getString(getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_DATE)))
+        )
     }
 }

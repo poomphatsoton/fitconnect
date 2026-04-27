@@ -1,5 +1,9 @@
 package com.example.train.model.trainer
 
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+
 data class CalendarUiState(
     val selectedDate: String = "",
     val displayDate: String = "",
@@ -12,13 +16,16 @@ data class TraineeSlot(
     val workoutId: Int?,
     val workoutName: String?,
     val status: Int, // 0: IDEAL, 1: MAYBE, 2: BUSY
-    val startTime: String,
-    val endTime: String
+    val startTime: LocalTime,
+    val endTime: LocalTime,
+    val date: LocalDate
 )
 
 data class AssignedWorkout(
     val name: String,
     val startTime: String,
     val endTime: String,
-    val tag: String
+    val tag: String,
+    val datetime: LocalDateTime
 )
+

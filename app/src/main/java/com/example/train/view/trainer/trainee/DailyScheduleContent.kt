@@ -14,6 +14,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.train.R
 import com.example.train.model.trainer.TraineeSlot
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun DailyScheduleContent(
@@ -21,7 +23,7 @@ fun DailyScheduleContent(
     onAddClick: () -> Unit,
     onEditClick: (TraineeSlot) -> Unit,
     onDeleteClick: (TraineeSlot) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier,

@@ -1,5 +1,7 @@
 package com.example.train.ui
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -19,20 +21,26 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.train.R
 import com.example.train.model.trainer.AssignedWorkout
 import com.example.train.viewmodel.trainer.CalendarViewModel
+import java.time.LocalDate
+import java.time.LocalDate.*
+import java.time.LocalDateTime
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun TraineeCalendarScreen(
-    traineeId: Int = -1,
+    traineeId: Int = 2,
     onBackClick: () -> Unit = {},
-    viewModel: CalendarViewModel = viewModel()
+    viewModel: CalendarViewModel = viewModel(),
+    calendarDate: LocalDate = now()
 ) {
     val uiState by viewModel.uiState
+    var selectedDate by remember { mutableStateOf(calendarDate) }
     var showAssignDialog by remember { mutableStateOf(false) }
     var editingWorkout by remember { mutableStateOf<AssignedWorkout?>(null) }
 
-    LaunchedEffect(traineeId) {
+    LaunchedEffect(traineeId, selectedDate) {
         if (traineeId != -1) {
-            viewModel.loadTraineeSlots(traineeId)
+            viewModel.loadTraineeSlots(traineeId, selectedDate)
         }
     }
 
@@ -49,7 +57,12 @@ fun TraineeCalendarScreen(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            TraineeCalendarView()
+            TraineeCalendarView(
+                selectedDate = selectedDate,
+                onSelectedDate = { newDate ->
+                    selectedDate = newDate
+                }
+            )
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -67,9 +80,10 @@ fun TraineeCalendarScreen(
                 onEditClick = { slot ->
                     editingWorkout = AssignedWorkout(
                         name = slot.workoutName ?: "",
-                        startTime = slot.startTime,
-                        endTime = slot.endTime,
-                        tag = ""
+                        startTime = slot.startTime.toString(),
+                        endTime = slot.endTime.toString(),
+                        tag = "",
+                        datetime = LocalDateTime.now()
                     )
                 },
                 onDeleteClick = { /* Handle Delete */ }
