@@ -1,14 +1,15 @@
 package com.example.train.ui.components
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -16,7 +17,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 
 @Composable
 fun CreateExerciseDialog(
@@ -35,80 +40,93 @@ fun CreateExerciseDialog(
     var category2 by remember { mutableStateOf("") }
     var timePerRep by remember { mutableStateOf("") }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(text = "Create Exercise")
-        },
-        text = {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+    Dialog(
+        onDismissRequest = onDismiss
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = Color.White,
+                    shape = RoundedCornerShape(28.dp)
+                )
+                .padding(32.dp)
+        ) {
+            Text(
+                text = "Create Exercise",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 28.dp),
+                textAlign = TextAlign.Center
+            )
+
+            DialogInputField(
+                value = name,
+                onValueChange = { name = it },
+                hint = "Name"
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            DialogInputField(
+                value = description,
+                onValueChange = { description = it },
+                hint = "Description"
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            DialogInputField(
+                value = category1,
+                onValueChange = { category1 = it },
+                hint = "Category 1"
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            DialogInputField(
+                value = category2,
+                onValueChange = { category2 = it },
+                hint = "Category 2"
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            DialogInputField(
+                value = timePerRep,
+                onValueChange = { timePerRep = it },
+                hint = "Time per rep"
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth()
             ) {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Name") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                DialogBlackButton(
+                    text = "Cancel",
+                    onClick = onDismiss,
+                    modifier = Modifier.weight(1f)
                 )
 
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    label = { Text("Description") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                Spacer(modifier = Modifier.width(16.dp))
 
-                OutlinedTextField(
-                    value = category1,
-                    onValueChange = { category1 = it },
-                    label = { Text("Category 1") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                DialogBlackButton(
+                    text = "Create",
+                    onClick = {
+                        onConfirm(
+                            name,
+                            description,
+                            category1,
+                            category2,
+                            timePerRep
+                        )
+                    },
+                    modifier = Modifier.weight(1f)
                 )
-
-                OutlinedTextField(
-                    value = category2,
-                    onValueChange = { category2 = it },
-                    label = { Text("Category 2") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-
-                OutlinedTextField(
-                    value = timePerRep,
-                    onValueChange = { timePerRep = it },
-                    label = { Text("Time per rep") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    onConfirm(
-                        name,
-                        description,
-                        category1,
-                        category2,
-                        timePerRep
-                    )
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF0F172A),
-                    contentColor = Color.White
-                )
-            ) {
-                Text("Create")
-            }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = onDismiss
-            ) {
-                Text("Cancel")
             }
         }
-    )
+    }
 }

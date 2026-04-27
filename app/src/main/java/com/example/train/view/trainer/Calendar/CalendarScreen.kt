@@ -27,9 +27,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.train.viewmodel.trainer.CalendarViewModel
 
 @Composable
-fun CalendarScreen(
-    viewModel: CalendarViewModel = viewModel()
-) {
+fun CalendarScreen() {
+    val viewModel: CalendarViewModel = viewModel()
     val uiState by viewModel.uiState
 
     Column(

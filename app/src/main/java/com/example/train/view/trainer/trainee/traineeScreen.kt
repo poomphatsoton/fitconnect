@@ -1,17 +1,9 @@
 package com.example.train.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,11 +11,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.train.R
 import com.example.train.viewmodel.trainer.TraineesViewModel
+
+data class Trainee(
+    val id: Int,
+    val name: String,
+    val bio: String,
+    val tags: List<String>,
+    val completionRate: Float = 0f,
+    val imageRes: Int? = null
+)
 
 @Composable
 fun TraineesScreen(
-    viewModel: TraineesViewModel = viewModel()
+    modifier: Modifier = Modifier,
+    viewModel: TraineesViewModel = viewModel(),
+    onCalendarClick: (Int) -> Unit = {}
 ) {
     val uiState by viewModel.uiState
 
@@ -31,50 +35,92 @@ fun TraineesScreen(
         viewModel.loadTabData()
     }
 
+    TraineesScreenContent(
+        modifier = modifier,
+        activeCount = uiState.activeCount,
+        requestCount = uiState.requestCount,
+        onCalendarClick = onCalendarClick
+    )
+}
+
+@Composable
+fun TraineesScreenContent(
+    activeCount: Int,
+    requestCount: Int,
+    modifier: Modifier = Modifier,
+    initialTab: String = "Active",
+    onCalendarClick: (Int) -> Unit = {}
+) {
+    var selectedTab by remember { mutableStateOf(initialTab) }
+
+    val sampleActiveTrainees = listOf(
+        Trainee(
+            id = 1,
+            name = "Sarah Johnson",
+            bio = "Looking to build strength and improve fitness. Love trying new workouts!",
+            tags = listOf("strength", "weight-loss", "endurance"),
+            imageRes = R.drawable.ic_person
+        ),
+        Trainee(
+            id = 2,
+            name = "Mike Wilson",
+            bio = "Former athlete getting back into shape. Focused on building muscle and endurance.",
+            tags = listOf("muscle-gain", "strength", "endurance"),
+            imageRes = R.drawable.ic_person
+        )
+    )
+
+    val sampleRequests = listOf(
+        Trainee(
+            id = 3,
+            name = "Alex Martinez",
+            bio = "Marathon runner seeking cross-training options",
+            tags = listOf("endurance", "cardio", "injury-prevention"),
+            imageRes = R.drawable.ic_person
+        )
+    )
+
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F5F5))
+            .background(Color(0xFFF9FAFB))
             .padding(16.dp)
     ) {
         Text(
-            text = "Trainees Management",
-            fontSize = 22.sp,
+            text = "Manage Trainees",
+            fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 24.dp)
+            color = Color.Black,
+            modifier = Modifier.padding(vertical = 16.dp)
         )
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White)
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Active (${uiState.activeCount})",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(1f)
+        TraineeTabSelector(
+            selectedTab = selectedTab,
+            onTabSelected = { selectedTab = it },
+            tabs = listOf(
+                "Active ($activeCount)" to "Active",
+                "Requests ($requestCount)" to "Requests"
             )
+        )
 
-            Text(
-                text = "Requests (${uiState.requestCount})",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(1f)
+        Spacer(modifier = Modifier.height(24.dp))
+
+        if (selectedTab == "Active") {
+            TraineeActiveList(
+                trainees = sampleActiveTrainees,
+                onCalendarClick = onCalendarClick
             )
-        }
-
-        if (uiState.activeCount == 0) {
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Text(
-                text = "No active trainees yet",
-                fontSize = 16.sp,
-                color = Color(0xFF666666),
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+        } else {
+            TraineeRequestList(
+                trainees = sampleRequests
             )
         }
+    }
+}
+
+@Composable
+fun EmptyState(message: String) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text(text = message, color = Color.Gray)
     }
 }

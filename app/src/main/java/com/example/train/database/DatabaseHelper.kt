@@ -56,6 +56,14 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val COL_SCHEDULE_WORKOUT_ID = "workout_id"
         const val COL_SCHEDULE_DATE = "date"
         const val COL_SCHEDULE_TRAINEE_ID = "trainee_id"
+
+        // Trainee slot
+        const val TABLE_TRAINEE_CALENDAR_SLOT = "trainee_calendar_slot"
+        const val COL_SLOT_ID = "slot_id"
+        const val COL_TRAINEE_ID = "trainee_id"
+        const val COL_SLOT_STATUS = "slot_status"
+        const val COL_SLOT_START_TIME = "start_time"
+        const val COL_SLOT_END_TIME = "end_time"
     }
 
     override fun onCreate(db: SQLiteDatabase) {
@@ -65,6 +73,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.execSQL(CREATE_TABLE_WORKOUT_EXERCISES)
         db.execSQL(CREATE_TABLE_TRAINEE_REQUESTS)
         db.execSQL(CREATE_TABLE_WORKOUT_SCHEDULES)
+        db.execSQL(CREATE_TABLE_WORKOUT_SCHEDULES)
+        db.execSQL(CREATE_TABLE_TRAINEE_CALENDAR_SLOT)
         insertDemoData(db)
     }
 
@@ -75,6 +85,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.execSQL("DROP TABLE IF EXISTS $TABLE_WORKOUTS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_EXERCISES")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_USERS")
+        db.execSQL("DROP TABLE IF EXISTS $CREATE_TABLE_TRAINEE_CALENDAR_SLOT")
         onCreate(db)
     }
 
@@ -142,6 +153,19 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         )
     """.trimIndent()
 
+    private val CREATE_TABLE_TRAINEE_CALENDAR_SLOT = """
+        CREATE TABLE $TABLE_TRAINEE_CALENDAR_SLOT (
+            $COL_SLOT_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+            $COL_TRAINEE_ID INTEGER,
+            $COL_WORKOUT_ID INTEGER NOT NULL,
+            $COL_SLOT_STATUS INTEGER,
+            $COL_SLOT_START_TIME TEXT,
+            $COL_SLOT_END_TIME TEXT,
+            FOREIGN KEY($COL_TRAINEE_ID) REFERENCES $TABLE_USERS($COL_USER_ID),
+            FOREIGN KEY($COL_WORKOUT_ID) REFERENCES $TABLE_WORKOUTS($COL_WORKOUT_ID)
+        )
+    """.trimIndent()
+
     private fun insertDemoData(db: SQLiteDatabase) {
         db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainer', 'trainer123', 'trainer', 'John Smith', 'Certified personal trainer with 10 years of experience')")
         db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE) VALUES ('trainee', 'trainee123', 'trainee')")
@@ -159,6 +183,13 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.execSQL("INSERT INTO $TABLE_WORKOUT_EXERCISES ($COL_WE_WORKOUT_ID, $COL_WE_EXERCISE_ID, $COL_WE_REPS) VALUES (1, 4, 60)")
 
         db.execSQL("INSERT INTO $TABLE_TRAINEE_REQUESTS ($COL_REQUEST_TRAINER_ID, $COL_REQUEST_TRAINEE_ID) VALUES (1, 2)")
+
+        // Mock Trainee Slots for testing
+        // Status: 0: IDEAL, 1: MAYBE, 2: BUSY
+//        db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_WORKOUT_ID, $COL_SLOT_STATUS, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (2, 1, 0, '08:00', '09:00')")
+//        db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_WORKOUT_ID, $COL_SLOT_STATUS, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (2, 0, 1, '10:00', '11:00')")
+//        db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_WORKOUT_ID, $COL_SLOT_STATUS, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (2, 0, 2, '13:00', '14:00')")
+//        db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_WORKOUT_ID, $COL_SLOT_STATUS, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (2, 1, 0, '15:00', '16:00')")
     }
 
     fun getActiveTraineesCount(trainerId: Int): Int {
@@ -267,5 +298,16 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             WHERE we.$COL_WE_WORKOUT_ID = ?
         """.trimIndent()
         return db.rawQuery(query, arrayOf(workoutId.toString()))
+    }
+
+    fun getTraineeSlots(traineeId: Int): Cursor {
+        val db = readableDatabase
+        val query = """
+            SELECT s.*, w.$COL_WORKOUT_NAME
+            FROM $TABLE_TRAINEE_CALENDAR_SLOT s
+            JOIN $TABLE_WORKOUTS w ON s.$COL_WORKOUT_ID = w.$COL_WORKOUT_ID
+            WHERE s.$COL_TRAINEE_ID = ?
+        """.trimIndent()
+        return db.rawQuery(query, arrayOf(traineeId.toString()))
     }
 }
