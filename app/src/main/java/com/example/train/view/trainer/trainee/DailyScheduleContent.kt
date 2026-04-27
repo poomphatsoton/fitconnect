@@ -1,6 +1,8 @@
 package com.example.train.ui
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -10,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.train.R
@@ -29,14 +32,47 @@ fun DailyScheduleContent(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        slots.forEach { slot ->
-            ScheduleRow(
-                slot = slot,
-                onAddClick = onAddClick,
-                onEditClick = { onEditClick(slot) },
-                onDeleteClick = { onDeleteClick(slot) }
+        if (!slots.isEmpty()) {
+            slots.forEach { slot ->
+                ScheduleRow(
+                    slot = slot,
+                    onAddClick = onAddClick,
+                    onEditClick = { onEditClick(slot) },
+                    onDeleteClick = { onDeleteClick(slot) }
+                )
+            }
+        } else {
+            Text(
+                text = "No workouts scheduled for this day.",
+                fontSize = 20.sp,
+                color = Color.Gray
             )
         }
+    }
+}
+@Composable
+fun Tag(idTag: Int) {
+    val color = when(idTag) {
+        0 -> Color(0xFFD1FAE5)
+        1 -> Color(0xFFFEF3C7)
+        else -> Color(0xFFF3F4F6)
+    }
+    val text = when(idTag) {
+        0 -> "IDEAL"
+        1 -> "MAYBE"
+        else -> "BUSY"
+    }
+    Surface(
+        color = color,
+        shape = RoundedCornerShape(4.dp)
+    ) {
+        Text(
+            text = text,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.DarkGray,
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+        )
     }
 }
 
@@ -47,24 +83,6 @@ fun ScheduleRow(
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
-    val statusLabel = when (slot.status) {
-        0 -> "IDEAL"
-        1 -> "MAYBE"
-        else -> "BUSY"
-    }
-    
-    val statusBg = when (slot.status) {
-        0 -> Color(0xFFD1FAE5)
-        1 -> Color(0xFFFEF3C7)
-        else -> Color(0xFFF3F4F6)
-    }
-    
-    val statusText = when (slot.status) {
-        0 -> Color(0xFF059669)
-        1 -> Color(0xFFD97706)
-        else -> Color(0xFF6B7280)
-    }
-
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -91,18 +109,7 @@ fun ScheduleRow(
                         )
                     }
                     Spacer(modifier = Modifier.width(8.dp))
-                    Surface(
-                        color = statusBg,
-                        shape = RoundedCornerShape(4.dp)
-                    ) {
-                        Text(
-                            text = statusLabel,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = statusText,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                        )
-                    }
+                    Tag(slot.status)
                 }
                 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -121,42 +128,34 @@ fun ScheduleRow(
                 )
             }
 
-            // Action Buttons Logic
             if (slot.status != 2) {
                 if (slot.workoutId != null) {
-                    Row {
+                    Row (
+                        verticalAlignment = Alignment.CenterVertically
+                    ){
                         IconButton(onClick = onEditClick) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_list),
-                                contentDescription = "View Details",
-                                modifier = Modifier.size(20.dp),
-                                tint = Color(0xFF10B981)
+                            Image(
+                                painter = painterResource(id = R.drawable.edit),
+                                contentDescription = "Delete",
+                                modifier = Modifier
+                                    .size(25.dp)
                             )
                         }
                         IconButton(onClick = onDeleteClick) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_close),
+                            Image(
+                                painter = painterResource(id = R.drawable.delete),
                                 contentDescription = "Delete",
-                                modifier = Modifier.size(20.dp),
-                                tint = Color.Red
+                                modifier = Modifier.size(25.dp)
                             )
                         }
                     }
                 } else {
-                    Surface(
-                        onClick = onAddClick,
-                        modifier = Modifier.size(32.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        color = Color(0xFFF9FAFB)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_add),
-                                contentDescription = "Add",
-                                modifier = Modifier.size(16.dp),
-                                tint = Color.LightGray
-                            )
-                        }
+                    IconButton(onClick = onAddClick) {
+                        Image(
+                            painter = painterResource(id = R.drawable.add),
+                            contentDescription = "Add",
+                            modifier = Modifier.size(25.dp)
+                        )
                     }
                 }
             }

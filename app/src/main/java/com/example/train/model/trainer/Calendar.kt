@@ -7,7 +7,6 @@ import java.time.LocalTime
 data class CalendarUiState(
     val selectedDate: String = "",
     val displayDate: String = "",
-    val statusText: String = "No workouts scheduled for this day",
     val traineeSlots: List<TraineeSlot> = emptyList()
 )
 

@@ -73,17 +73,6 @@ class CalendarViewModel(
         )
     }
 
-    fun formatDateFromCalendar(
-        year: Int,
-        month: Int,
-        day: Int
-    ): String {
-        val calendar = Calendar.getInstance()
-        calendar.set(year, month, day)
-
-        return dateFormat.format(calendar.time)
-    }
-
     @RequiresApi(Build.VERSION_CODES.O)
     private fun Cursor.toTraineeSlot(): TraineeSlot {
         val workoutIdIndex = getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_ID)
