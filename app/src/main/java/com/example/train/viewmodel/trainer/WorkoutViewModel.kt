@@ -7,7 +7,6 @@ import com.example.train.database.DatabaseHelper
 import com.example.train.model.trainer.Exercise
 import com.example.train.model.trainer.ExerciseSelectUiItem
 import com.example.train.model.trainer.Workout
-import com.example.train.model.trainer.WorkoutCategoryPercent
 import com.example.train.model.trainer.WorkoutExerciseDetail
 import com.example.train.model.trainer.WorkoutUiItem
 
@@ -57,16 +56,10 @@ class WorkoutsViewModel(
 
                 val exerciseDetails = loadWorkoutExerciseDetails(workout.id.toLong())
 
-                val categoryPercents = calculateCategoryPercents(
-                    details = exerciseDetails,
-                    totalDuration = workout.duration
-                )
-
                 workouts.add(
                     WorkoutUiItem(
                         workout = workout,
                         exerciseDetails = exerciseDetails,
-                        categoryPercents = categoryPercents
                     )
                 )
 
@@ -148,14 +141,6 @@ class WorkoutsViewModel(
                     cursor.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_DESC)
                 )
 
-                category1 = cursor.getString(
-                    cursor.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_CATEGORY1)
-                )
-
-                category2 = cursor.getString(
-                    cursor.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_CATEGORY2)
-                )
-
                 timePerRep = cursor.getInt(
                     cursor.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_TIME_PER_REP)
                 )
@@ -180,8 +165,6 @@ class WorkoutsViewModel(
                     name = cursor.getString(0),
                     reps = cursor.getInt(1),
                     timePerRep = cursor.getInt(2),
-                    category1 = cursor.getString(3),
-                    category2 = cursor.getString(4)
                 )
 
                 details.add(detail)
@@ -194,37 +177,6 @@ class WorkoutsViewModel(
         return details
     }
 
-    private fun calculateCategoryPercents(
-        details: List<WorkoutExerciseDetail>,
-        totalDuration: Int
-    ): List<WorkoutCategoryPercent> {
-        val categoryTimeMap = mutableMapOf<String, Int>()
-        val safeTotalDuration = if (totalDuration <= 0) 1 else totalDuration
-
-        details.forEach { detail ->
-            val itemTotalTime = detail.reps * detail.timePerRep
-
-            val category1 = detail.category1
-            val category2 = detail.category2
-
-            if (!category1.isNullOrBlank()) {
-                categoryTimeMap[category1] =
-                    (categoryTimeMap[category1] ?: 0) + itemTotalTime
-            }
-
-            if (!category2.isNullOrBlank() && category2 != category1) {
-                categoryTimeMap[category2] =
-                    (categoryTimeMap[category2] ?: 0) + itemTotalTime
-            }
-        }
-
-        return categoryTimeMap.map { entry ->
-            WorkoutCategoryPercent(
-                category = entry.key,
-                percent = (entry.value * 100) / safeTotalDuration
-            )
-        }
-    }
 // ---------------------- For Workout Dialog ----------------------
     val availableExercises = mutableStateListOf<ExerciseSelectUiItem>()
 

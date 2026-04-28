@@ -1,12 +1,13 @@
 package com.example.train.model.trainer
 
+import com.example.train.model.Tag
+
 data class Exercise(
     var id: Int = 0,
     var name: String? = null,
     var description: String? = null,
-    var category1: String? = null,
-    var category2: String? = null,
-    var timePerRep: Int = 0
+    var timePerRep: Int = 0,
+    var exerciseTags: List<Tag> = emptyList(),
 )
 
 data class ExerciseSelectUiItem(

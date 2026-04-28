@@ -1,9 +1,13 @@
 package com.example.train.viewmodel.trainer
 
 import android.app.Application
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import com.example.train.database.DatabaseHelper
+import com.example.train.model.Tag
 import com.example.train.model.trainer.Exercise
 
 class ExercisesViewModel(
@@ -13,9 +17,12 @@ class ExercisesViewModel(
     private val dbHelper = DatabaseHelper(application)
 
     val exercises = mutableStateListOf<Exercise>()
+    var exerciseTagsMap by mutableStateOf<Map<Int, List<Tag>>>(emptyMap())
+        private set
 
     fun loadExercises() {
         exercises.clear()
+        val newTagsMap = mutableMapOf<Int, List<Tag>>()
 
         val cursor = dbHelper.readableDatabase.query(
             DatabaseHelper.TABLE_EXERCISES,
@@ -39,35 +46,50 @@ class ExercisesViewModel(
                     description = cursor.getString(
                         cursor.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_DESC)
                     ),
-                    category1 = cursor.getString(
-                        cursor.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_CATEGORY1)
-                    ),
-                    category2 = cursor.getString(
-                        cursor.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_CATEGORY2)
-                    ),
                     timePerRep = cursor.getInt(
                         cursor.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_TIME_PER_REP)
                     )
                 )
 
                 exercises.add(exercise)
+                newTagsMap[exercise.id] = getTagsByExerciseId(exercise.id)
             } while (cursor.moveToNext())
         }
 
-        cursor.close()
+        exerciseTagsMap = newTagsMap
+    }
+
+    private fun getTagsByExerciseId(exerciseId: Int): List<Tag> {
+        val tags = mutableListOf<Tag>()
+
+        val cursor = dbHelper.getExerciseTags(exerciseId.toLong())
+
+        cursor.use {
+            while (it.moveToNext()) {
+                tags.add(
+                    Tag(
+                        tagId = it.getInt(
+                            it.getColumnIndexOrThrow(DatabaseHelper.COL_TAG_ID)
+                        ),
+                        tagName = it.getString(
+                            it.getColumnIndexOrThrow(DatabaseHelper.COL_TAG_NAME)
+                        )
+                    )
+                )
+            }
+        }
+
+        return tags
     }
 
     fun createExercise(
         name: String,
         description: String,
-        category1: String,
-        category2: String,
-        timePerRepText: String
+        timePerRepText: String,
+        tags: List<Tag>
     ): String? {
         val trimmedName = name.trim()
         val trimmedDescription = description.trim()
-        val trimmedCategory1 = category1.trim()
-        val trimmedCategory2 = category2.trim()
         val trimmedTime = timePerRepText.trim()
 
         if (trimmedName.isEmpty() || trimmedTime.isEmpty()) {
@@ -80,9 +102,8 @@ class ExercisesViewModel(
         dbHelper.insertExercise(
             name = trimmedName,
             desc = trimmedDescription,
-            category1 = trimmedCategory1,
-            category2 = trimmedCategory2,
-            timePerRep = timePerRep
+            timePerRep = timePerRep,
+            tags = tags
         )
 
         loadExercises()

@@ -14,17 +14,9 @@ data class WorkoutExerciseDetail(
     val name: String,
     val reps: Int,
     val timePerRep: Int,
-    val category1: String?,
-    val category2: String?
-)
-
-data class WorkoutCategoryPercent(
-    val category: String,
-    val percent: Int
 )
 
 data class WorkoutUiItem(
     val workout: Workout,
     val exerciseDetails: List<WorkoutExerciseDetail>,
-    val categoryPercents: List<WorkoutCategoryPercent>
 )

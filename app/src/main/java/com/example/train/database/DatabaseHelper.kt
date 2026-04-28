@@ -7,13 +7,14 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.example.train.model.Tag
 import java.time.LocalDate
 
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
     companion object {
         private const val DATABASE_NAME = "FitConnect.db"
-        private const val DATABASE_VERSION = 15
+        private const val DATABASE_VERSION = 17
 
         // Users
         const val TABLE_USERS = "users"
@@ -40,8 +41,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val COL_EXERCISE_ID = "id"
         const val COL_EXERCISE_NAME = "name"
         const val COL_EXERCISE_DESC = "description"
-        const val COL_EXERCISE_CATEGORY1 = "category1"
-        const val COL_EXERCISE_CATEGORY2 = "category2"
         const val COL_EXERCISE_TIME_PER_REP = "time_per_rep"
 
         // Workouts
@@ -173,8 +172,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             $COL_EXERCISE_ID INTEGER PRIMARY KEY AUTOINCREMENT,
             $COL_EXERCISE_NAME TEXT NOT NULL,
             $COL_EXERCISE_DESC TEXT,
-            $COL_EXERCISE_CATEGORY1 TEXT,
-            $COL_EXERCISE_CATEGORY2 TEXT,
             $COL_EXERCISE_TIME_PER_REP INTEGER
         )
     """.trimIndent()
@@ -267,10 +264,10 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee3', 'pass123', 'trainee', 'Emily Davis', 'Focusing on weight loss')")
         db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee4', 'pass123', 'trainee', 'Chris Brown', 'Improving endurance')")
 
-        db.execSQL("INSERT INTO $TABLE_EXERCISES ($COL_EXERCISE_NAME, $COL_EXERCISE_DESC, $COL_EXERCISE_CATEGORY1, $COL_EXERCISE_CATEGORY2, $COL_EXERCISE_TIME_PER_REP) VALUES ('Push-ups', 'Standard push-ups with proper form. Keep body straight, lower chest to ground.', 'strength', 'upper-body', 3)")
-        db.execSQL("INSERT INTO $TABLE_EXERCISES ($COL_EXERCISE_NAME, $COL_EXERCISE_DESC, $COL_EXERCISE_CATEGORY1, $COL_EXERCISE_CATEGORY2, $COL_EXERCISE_TIME_PER_REP) VALUES ('Squats', 'Bodyweight squats. Keep back straight, lower until thighs are parallel to ground.', 'strength', 'lower-body', 4)")
-        db.execSQL("INSERT INTO $TABLE_EXERCISES ($COL_EXERCISE_NAME, $COL_EXERCISE_DESC, $COL_EXERCISE_CATEGORY1, $COL_EXERCISE_CATEGORY2, $COL_EXERCISE_TIME_PER_REP) VALUES ('Jumping Jacks', 'Cardio exercise. Jump while spreading legs and raising arms overhead.', 'cardio', 'full-body', 2)")
-        db.execSQL("INSERT INTO $TABLE_EXERCISES ($COL_EXERCISE_NAME, $COL_EXERCISE_DESC, $COL_EXERCISE_CATEGORY1, $COL_EXERCISE_CATEGORY2, $COL_EXERCISE_TIME_PER_REP) VALUES ('Plank', 'Hold plank position with forearms on ground, body straight.', 'strength', 'core', 1)")
+        db.execSQL("INSERT INTO $TABLE_EXERCISES ($COL_EXERCISE_NAME, $COL_EXERCISE_DESC, $COL_EXERCISE_TIME_PER_REP) VALUES ('Push-ups', 'Standard push-ups with proper form. Keep body straight, lower chest to ground.', 3)")
+        db.execSQL("INSERT INTO $TABLE_EXERCISES ($COL_EXERCISE_NAME, $COL_EXERCISE_DESC, $COL_EXERCISE_TIME_PER_REP) VALUES ('Squats', 'Bodyweight squats. Keep back straight, lower until thighs are parallel to ground.', 4)")
+        db.execSQL("INSERT INTO $TABLE_EXERCISES ($COL_EXERCISE_NAME, $COL_EXERCISE_DESC, $COL_EXERCISE_TIME_PER_REP) VALUES ('Jumping Jacks', 'Cardio exercise. Jump while spreading legs and raising arms overhead.', 2)")
+        db.execSQL("INSERT INTO $TABLE_EXERCISES ($COL_EXERCISE_NAME, $COL_EXERCISE_DESC, $COL_EXERCISE_TIME_PER_REP) VALUES ('Plank', 'Hold plank position with forearms on ground, body straight.', 1)")
 
         db.execSQL("INSERT INTO $TABLE_WORKOUTS ($COL_WORKOUT_NAME, $COL_WORKOUT_DESC, $COL_WORKOUT_DURATION) VALUES ('Full Body Strength', 'Complete full body workout targeting all major muscle groups', 245)")
 
@@ -336,7 +333,22 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee6', 'pass123', 'trainee', 'David Kim', 'Wants to improve flexibility')")
         db.execSQL("INSERT INTO $TABLE_TRAINEE_REQUESTS ($COL_REQUEST_TRAINER_ID, $COL_REQUEST_TRAINEE_ID, $COL_REQUEST_STATUS) VALUES (1, 6, '$STATUS_PENDING')")
         db.execSQL("INSERT INTO $TABLE_TRAINEE_REQUESTS ($COL_REQUEST_TRAINER_ID, $COL_REQUEST_TRAINEE_ID, $COL_REQUEST_STATUS) VALUES (1, 7, '$STATUS_PENDING')")
+        db.execSQL("INSERT INTO $TABLE_EXERCISE_TAGS ($COL_EXERCISE_ID, $COL_TAG_ID) VALUES (1, 1)") // strength
+        db.execSQL("INSERT INTO $TABLE_EXERCISE_TAGS ($COL_EXERCISE_ID, $COL_TAG_ID) VALUES (1, 5)") // muscle-gain
 
+// Exercise 2: Squats
+        db.execSQL("INSERT INTO $TABLE_EXERCISE_TAGS ($COL_EXERCISE_ID, $COL_TAG_ID) VALUES (2, 1)") // strength
+        db.execSQL("INSERT INTO $TABLE_EXERCISE_TAGS ($COL_EXERCISE_ID, $COL_TAG_ID) VALUES (2, 2)") // weight-loss
+        db.execSQL("INSERT INTO $TABLE_EXERCISE_TAGS ($COL_EXERCISE_ID, $COL_TAG_ID) VALUES (2, 5)") // muscle-gain
+
+// Exercise 3: Jumping Jacks
+        db.execSQL("INSERT INTO $TABLE_EXERCISE_TAGS ($COL_EXERCISE_ID, $COL_TAG_ID) VALUES (3, 3)") // endurance
+        db.execSQL("INSERT INTO $TABLE_EXERCISE_TAGS ($COL_EXERCISE_ID, $COL_TAG_ID) VALUES (3, 4)") // cardio
+        db.execSQL("INSERT INTO $TABLE_EXERCISE_TAGS ($COL_EXERCISE_ID, $COL_TAG_ID) VALUES (3, 2)") // weight-loss
+
+// Exercise 4: Plank
+        db.execSQL("INSERT INTO $TABLE_EXERCISE_TAGS ($COL_EXERCISE_ID, $COL_TAG_ID) VALUES (4, 1)") // strength
+        db.execSQL("INSERT INTO $TABLE_EXERCISE_TAGS ($COL_EXERCISE_ID, $COL_TAG_ID) VALUES (4, 3)") // endurance
     }
 
     fun getActiveTraineesCount(trainerId: Int): Int {
@@ -387,17 +399,23 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         return count
     }
 
-    fun insertExercise(name: String, desc: String, category1: String, category2: String, timePerRep: Int): Long {
+    fun insertExercise(name: String, desc: String, timePerRep: Int, tags: List<Tag>) {
         val db = writableDatabase
         val values = ContentValues().apply {
             put(COL_EXERCISE_NAME, name)
             put(COL_EXERCISE_DESC, desc)
-            put(COL_EXERCISE_CATEGORY1, category1)
-            put(COL_EXERCISE_CATEGORY2, category2)
             put(COL_EXERCISE_TIME_PER_REP, timePerRep)
         }
-        val insertId = db.insert(TABLE_EXERCISES, null, values)
-        return insertId
+        val exerciseId = db.insert(TABLE_EXERCISES, null, values)
+
+        tags.forEach { tag ->
+            val valueTag = ContentValues().apply {
+                put(COL_EXERCISE_ID, exerciseId)
+                put(COL_TAG_ID, tag.tagId)
+            }
+
+            db.insert(TABLE_EXERCISE_TAGS, null, valueTag)
+        }
     }
 
     fun insertWorkout(name: String, desc: String, duration: Int): Long {
@@ -452,8 +470,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     fun getWorkoutExerciseDetails(workoutId: Long): Cursor {
         val db = readableDatabase
         val query = """
-            SELECT e.$COL_EXERCISE_NAME, we.$COL_WE_REPS, e.$COL_EXERCISE_TIME_PER_REP,
-            e.$COL_EXERCISE_CATEGORY1, e.$COL_EXERCISE_CATEGORY2
+            SELECT e.$COL_EXERCISE_NAME, we.$COL_WE_REPS, e.$COL_EXERCISE_TIME_PER_REP
             FROM $TABLE_WORKOUT_EXERCISES we
             JOIN $TABLE_EXERCISES e ON we.$COL_WE_EXERCISE_ID = e.$COL_EXERCISE_ID
             WHERE we.$COL_WE_WORKOUT_ID = ?
@@ -586,5 +603,21 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         } finally {
             db.endTransaction()
         }
+    }
+
+    fun getExerciseTags(exerciseId: Long): Cursor {
+        val db = readableDatabase
+        val query = """
+            SELECT w.$COL_TAG_ID, w.$COL_TAG_NAME
+            FROM $TABLE_EXERCISE_TAGS s
+            LEFT JOIN $TABLE_TAGS w
+                ON s.$COL_TAG_ID = w.$COL_TAG_ID
+            WHERE s.$COL_EXERCISE_ID = ?
+        """.trimIndent()
+
+        return db.rawQuery(
+            query,
+            arrayOf(exerciseId.toString())
+        )
     }
 }

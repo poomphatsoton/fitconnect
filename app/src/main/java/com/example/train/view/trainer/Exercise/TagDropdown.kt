@@ -36,7 +36,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -45,13 +44,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.train.R
+import com.example.train.model.Tag
 
 @Composable
 fun TagDropdown(
-    selectedTags: List<String>,
-    items: List<String>,
-    onTagSelected: (String) -> Unit,
-    onTagRemoved: (String) -> Unit
+    selectedTags: List<Tag>,
+    items: List<Tag>,
+    onTagSelected: (Tag) -> Unit,
+    onTagRemoved: (Tag) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
     var menuWidth by remember { mutableStateOf(0.dp) }
@@ -75,10 +75,15 @@ fun TagDropdown(
             ) {
                 Text(
                     modifier = Modifier.padding(horizontal = 15.dp),
-                    text = if (selectedTags.isEmpty()) "Select tags" else "${selectedTags.size} tags selected",
+                    text = if (selectedTags.isEmpty()) {
+                        "Select tags"
+                    } else {
+                        "${selectedTags.size} tags selected"
+                    },
                     color = if (selectedTags.isEmpty()) Color(0xFF555555) else Color.Black,
                     fontSize = 16.sp
                 )
+
                 DropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
@@ -87,6 +92,10 @@ fun TagDropdown(
                         .background(Color(0xFFF1F1F1))
                 ) {
                     items.forEach { tag ->
+                        val isSelected = selectedTags.any {
+                            it.tagId == tag.tagId
+                        }
+
                         DropdownMenuItem(
                             text = {
                                 Row(
@@ -94,17 +103,18 @@ fun TagDropdown(
                                 ) {
                                     Checkbox(
                                         modifier = Modifier.padding(horizontal = 5.dp),
-                                        checked = selectedTags.contains(tag),
+                                        checked = isSelected,
                                         onCheckedChange = null
                                     )
 
-                                    Text(tag)
+                                    Text(tag.tagName)
                                 }
                             },
                             onClick = {
                                 onTagSelected(tag)
                             }
                         )
+
                         HorizontalDivider(
                             thickness = 1.dp,
                             color = Color(0xFFE0E0E0)
@@ -112,7 +122,6 @@ fun TagDropdown(
                     }
                 }
             }
-
 
             if (selectedTags.isNotEmpty()) {
                 LazyRow(
@@ -124,14 +133,14 @@ fun TagDropdown(
                     items(selectedTags) { tag ->
                         Surface(
                             color = Color(0xFFEFEFEF),
-                            shape = RoundedCornerShape(20),
+                            shape = RoundedCornerShape(20.dp),
                         ) {
                             Row(
                                 modifier = Modifier.padding(12.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = tag,
+                                    text = tag.tagName,
                                     fontSize = 14.sp
                                 )
 
