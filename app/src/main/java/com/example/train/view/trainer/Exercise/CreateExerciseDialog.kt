@@ -35,6 +35,7 @@ fun CreateExerciseDialog(
         timePerRep: String
     ) -> Unit
 ) {
+    var tmp = 5
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var category1 by remember { mutableStateOf("") }
