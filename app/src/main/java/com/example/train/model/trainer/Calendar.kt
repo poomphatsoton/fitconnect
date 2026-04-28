@@ -5,8 +5,6 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 
 data class CalendarUiState(
-    val selectedDate: String = "",
-    val displayDate: String = "",
     val traineeSlots: List<TraineeSlot> = emptyList()
 )
 

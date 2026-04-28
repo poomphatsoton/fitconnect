@@ -19,7 +19,10 @@ import com.example.train.view.trainer.trainee.activeAndRequest.TraineeBaseCard
 @Composable
 fun TraineeRequestList(
     trainees: List<Trainee>,
-    modifier: Modifier = Modifier
+    trainerId: Int,
+    modifier: Modifier = Modifier,
+    onApproveClick: (Int, Int) -> Boolean,
+    onDenyClick: (Int, Int) -> Boolean,
 ) {
     if (trainees.isEmpty()) {
         EmptyState(message = "No pending requests")
@@ -29,7 +32,12 @@ fun TraineeRequestList(
             modifier = modifier.fillMaxSize()
         ) {
             items(trainees) { trainee ->
-                TraineeRequestCard(trainee = trainee)
+                TraineeRequestCard(
+                    trainee = trainee,
+                    trainerId = trainerId,
+                    onApproveClick = onApproveClick,
+                    onDenyClick = onDenyClick
+                )
             }
         }
     }
@@ -38,8 +46,9 @@ fun TraineeRequestList(
 @Composable
 fun TraineeRequestCard(
     trainee: Trainee,
-    onApproveClick: () -> Unit = {},
-    onDenyClick: () -> Unit = {}
+    trainerId: Int,
+    onApproveClick: (Int, Int) -> Boolean,
+    onDenyClick: (Int, Int) -> Boolean,
 ) {
     TraineeBaseCard(
         name = trainee.name,
@@ -48,7 +57,7 @@ fun TraineeRequestCard(
         imageRes = trainee.imageRes
     ) {
         Button(
-            onClick = onApproveClick,
+            onClick = { onApproveClick(trainerId, trainee.id) },
             modifier = Modifier.weight(1f),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0F172A)),
             shape = RoundedCornerShape(8.dp),
@@ -65,7 +74,7 @@ fun TraineeRequestCard(
         }
 
         OutlinedButton(
-            onClick = onDenyClick,
+            onClick = { onDenyClick(trainerId, trainee.id) },
             modifier = Modifier.weight(1f),
             border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
             shape = RoundedCornerShape(8.dp),

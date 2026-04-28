@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.example.train.view.trainer.Exercise.TagDropdown
 
 @Composable
 fun CreateExerciseDialog(
@@ -39,6 +40,9 @@ fun CreateExerciseDialog(
     var category1 by remember { mutableStateOf("") }
     var category2 by remember { mutableStateOf("") }
     var timePerRep by remember { mutableStateOf("") }
+
+    var selectedTags by remember { mutableStateOf(listOf<String>()) }
+    val sampleTags = listOf("s1", "s2", "s3")
 
     Dialog(
         onDismissRequest = onDismiss
@@ -65,7 +69,7 @@ fun CreateExerciseDialog(
             DialogInputField(
                 value = name,
                 onValueChange = { name = it },
-                hint = "Name"
+                placeholder = "Name"
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -73,31 +77,32 @@ fun CreateExerciseDialog(
             DialogInputField(
                 value = description,
                 onValueChange = { description = it },
-                hint = "Description"
+                placeholder = "Description"
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            DialogInputField(
-                value = category1,
-                onValueChange = { category1 = it },
-                hint = "Category 1"
+            TagDropdown(
+                selectedTags = selectedTags,
+                items = sampleTags,
+                onTagSelected = { tag ->
+                    selectedTags =
+                        if (selectedTags.contains(tag)) {
+                            selectedTags - tag
+                        } else {
+                            selectedTags + tag
+                        }
+                },
+                onTagRemoved = { tag ->
+                    selectedTags = selectedTags - tag
+                }
             )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            DialogInputField(
-                value = category2,
-                onValueChange = { category2 = it },
-                hint = "Category 2"
-            )
-
             Spacer(modifier = Modifier.height(16.dp))
 
             DialogInputField(
                 value = timePerRep,
                 onValueChange = { timePerRep = it },
-                hint = "Time per rep"
+                placeholder = "Time per rep"
             )
 
             Spacer(modifier = Modifier.height(24.dp))

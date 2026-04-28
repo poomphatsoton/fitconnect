@@ -27,38 +27,6 @@ class CalendarViewModel(
     var uiState = mutableStateOf(CalendarUiState())
         private set
 
-    init {
-        val today = Calendar.getInstance()
-        val selectedDate = dateFormat.format(today.time)
-        val displayDate = displayFormat.format(today.time)
-        
-        uiState.value = uiState.value.copy(
-            selectedDate = selectedDate,
-            displayDate = displayDate
-        )
-    }
-
-    fun updateSelectedDate(date: String) {
-        try {
-            val parsedDate = dateFormat.parse(date)
-            val displayDate = if (parsedDate != null) {
-                displayFormat.format(parsedDate)
-            } else {
-                "Date Error"
-            }
-
-            uiState.value = uiState.value.copy(
-                selectedDate = date,
-                displayDate = displayDate
-            )
-
-        } catch (e: Exception) {
-            uiState.value = uiState.value.copy(
-                displayDate = "Date Error"
-            )
-        }
-    }
-
     @RequiresApi(Build.VERSION_CODES.O)
     fun loadTraineeSlots(traineeId: Int, date: LocalDate) {
         val slots = mutableListOf<TraineeSlot>()

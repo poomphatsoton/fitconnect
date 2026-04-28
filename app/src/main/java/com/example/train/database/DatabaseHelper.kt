@@ -13,7 +13,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     companion object {
         private const val DATABASE_NAME = "FitConnect.db"
-        private const val DATABASE_VERSION = 14
+        private const val DATABASE_VERSION = 15
 
         // Users
         const val TABLE_USERS = "users"
@@ -31,6 +31,9 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
         // User tags
         const val TABLE_USERS_TAGS = "user_tags"
+
+        // Exercise tags
+        const val TABLE_EXERCISE_TAGS = "exercise_tags"
 
         // Exercises
         const val TABLE_EXERCISES = "exercises"
@@ -53,6 +56,11 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val COL_WE_WORKOUT_ID = "workout_id"
         const val COL_WE_EXERCISE_ID = "exercise_id"
         const val COL_WE_REPS = "reps"
+
+        // Request Status
+        const val STATUS_PENDING = "pending"
+        const val STATUS_ACCEPTED = "accepted"
+        const val STATUS_REJECTED = "rejected"
 
         // Trainee Requests
         const val TABLE_TRAINEE_REQUESTS = "trainee_requests"
@@ -102,11 +110,13 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.execSQL(CREATE_TABLE_TRAINEE_TRAINER)
         db.execSQL(CREATE_TABLE_TAGS)
         db.execSQL(CREATE_TABLE_USER_TAGS)
+        db.execSQL(CREATE_TABLE_EXERCISE_TAGS)
         insertDemoData(db)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         db.execSQL("DROP TABLE IF EXISTS $TABLE_USERS_TAGS")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_EXERCISE_TAGS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_TRAINEE_TRAINER")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_TRAINER_TRAINEES")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_TRAINEE_CALENDAR_SLOT")
@@ -132,14 +142,24 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     """.trimIndent()
 
     private val CREATE_TABLE_USER_TAGS = """
-    CREATE TABLE $TABLE_USERS_TAGS (
-        $COL_USER_ID INTEGER,
-        $COL_TAG_ID INTEGER,
-        PRIMARY KEY($COL_USER_ID, $COL_TAG_ID),
-        FOREIGN KEY($COL_USER_ID) REFERENCES $TABLE_USERS($COL_USER_ID),
-        FOREIGN KEY($COL_TAG_ID) REFERENCES $TABLE_TAGS($COL_TAG_ID)
-    )
-""".trimIndent()
+        CREATE TABLE $TABLE_USERS_TAGS (
+            $COL_USER_ID INTEGER,
+            $COL_TAG_ID INTEGER,
+            PRIMARY KEY($COL_USER_ID, $COL_TAG_ID),
+            FOREIGN KEY($COL_USER_ID) REFERENCES $TABLE_USERS($COL_USER_ID),
+            FOREIGN KEY($COL_TAG_ID) REFERENCES $TABLE_TAGS($COL_TAG_ID)
+        )
+    """.trimIndent()
+
+    private val CREATE_TABLE_EXERCISE_TAGS = """
+        CREATE TABLE $TABLE_EXERCISE_TAGS (
+            $COL_EXERCISE_ID INTEGER,
+            $COL_TAG_ID INTEGER,
+            PRIMARY KEY($COL_EXERCISE_ID, $COL_TAG_ID),
+            FOREIGN KEY($COL_EXERCISE_ID) REFERENCES $TABLE_EXERCISES($COL_EXERCISE_ID),
+            FOREIGN KEY($COL_TAG_ID) REFERENCES $TABLE_TAGS($COL_TAG_ID)
+        )
+    """.trimIndent()
 
     private val CREATE_TABLE_TAGS = """
         CREATE TABLE $TABLE_TAGS (
@@ -184,7 +204,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             $COL_REQUEST_ID INTEGER PRIMARY KEY AUTOINCREMENT,
             $COL_REQUEST_TRAINER_ID INTEGER,
             $COL_REQUEST_TRAINEE_ID INTEGER,
-            $COL_REQUEST_STATUS TEXT DEFAULT 'pending',
+            $COL_REQUEST_STATUS TEXT NOT NULL DEFAULT '$STATUS_PENDING'
+                CHECK($COL_REQUEST_STATUS IN ('$STATUS_PENDING', '$STATUS_ACCEPTED', '$STATUS_REJECTED')),
             FOREIGN KEY($COL_REQUEST_TRAINER_ID) REFERENCES $TABLE_USERS($COL_USER_ID),
             FOREIGN KEY($COL_REQUEST_TRAINEE_ID) REFERENCES $TABLE_USERS($COL_USER_ID)
         )
@@ -309,6 +330,13 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.execSQL("INSERT INTO $TABLE_USERS_TAGS ($COL_USER_ID, $COL_TAG_ID) VALUES (3, 5)")
         db.execSQL("INSERT INTO $TABLE_USERS_TAGS ($COL_USER_ID, $COL_TAG_ID) VALUES (3, 1)")
         db.execSQL("INSERT INTO $TABLE_USERS_TAGS ($COL_USER_ID, $COL_TAG_ID) VALUES (3, 3)")
+
+        // Request data
+        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee5', 'pass123', 'trainee', 'Anna Lee', 'Interested in cardio training')")
+        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee6', 'pass123', 'trainee', 'David Kim', 'Wants to improve flexibility')")
+        db.execSQL("INSERT INTO $TABLE_TRAINEE_REQUESTS ($COL_REQUEST_TRAINER_ID, $COL_REQUEST_TRAINEE_ID, $COL_REQUEST_STATUS) VALUES (1, 6, '$STATUS_PENDING')")
+        db.execSQL("INSERT INTO $TABLE_TRAINEE_REQUESTS ($COL_REQUEST_TRAINER_ID, $COL_REQUEST_TRAINEE_ID, $COL_REQUEST_STATUS) VALUES (1, 7, '$STATUS_PENDING')")
+
     }
 
     fun getActiveTraineesCount(trainerId: Int): Int {
@@ -334,6 +362,20 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         val count = cursor.count
         cursor.close()
         return count
+    }
+
+    fun getPendingRequest(trainerId: Int): Cursor {
+        val db = readableDatabase
+        val query = """
+            SELECT w.*
+            FROM $TABLE_TRAINEE_REQUESTS s
+                LEFT JOIN $TABLE_USERS w
+                ON s.$COL_REQUEST_TRAINEE_ID = w.$COL_USER_ID
+            WHERE s.$COL_REQUEST_TRAINER_ID = ?
+            AND s.$COL_REQUEST_STATUS = ?
+        """.trimIndent()
+        val cursor = db.rawQuery(query, arrayOf(trainerId.toString(), STATUS_PENDING))
+        return cursor
     }
 
     fun getPendingRequestsCount(trainerId: Int): Int {
@@ -477,7 +519,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     fun getUserTags(userId: Int): Cursor {
         val db = readableDatabase
-
         val query = """
             SELECT s.$COL_USER_ID, w.$COL_TAG_ID, w.$COL_TAG_NAME
             FROM $TABLE_USERS_TAGS s
@@ -493,5 +534,57 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 userId.toString()
             )
         )
+    }
+
+    fun acceptTrainee(trainerId: Int, traineeId: Int): Boolean {
+        val db = writableDatabase
+        return try {
+            db.beginTransaction()
+            val query = ContentValues().apply {
+                put(COL_TT_TRAINER_ID, trainerId)
+                put(COL_TT_TRAINEE_ID, traineeId)
+            }
+            db.insert(TABLE_TRAINER_TRAINEES, null, query)
+
+            val query2 = ContentValues().apply {
+                put(COL_TTR_TRAINER_ID, trainerId)
+                put(COL_TTR_TRAINEE_ID, traineeId)
+            }
+            db.insert(TABLE_TRAINEE_TRAINER, null, query2)
+
+            val query3 = ContentValues().apply {
+                put(COL_REQUEST_STATUS, STATUS_ACCEPTED)
+            }
+            val condition = "$COL_REQUEST_TRAINER_ID = ? AND $COL_REQUEST_TRAINEE_ID = ?"
+            db.update(TABLE_TRAINEE_REQUESTS, query3, condition, arrayOf(trainerId.toString(), traineeId.toString()))
+
+            db.setTransactionSuccessful()
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        } finally {
+            db.endTransaction()
+        }
+    }
+
+    fun denyTrainee(trainerId: Int, traineeId: Int): Boolean  {
+        val db = writableDatabase
+        return try {
+            db.beginTransaction()
+            val query = ContentValues().apply {
+                put(COL_REQUEST_STATUS, STATUS_REJECTED)
+            }
+            val condition = "$COL_REQUEST_TRAINER_ID = ? AND $COL_REQUEST_TRAINEE_ID = ?"
+            db.update(TABLE_TRAINEE_REQUESTS, query, condition, arrayOf(trainerId.toString(), traineeId.toString()))
+
+            db.setTransactionSuccessful()
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        } finally {
+            db.endTransaction()
+        }
     }
 }

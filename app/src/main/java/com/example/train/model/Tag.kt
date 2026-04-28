@@ -1,6 +1,6 @@
 package com.example.train.model
 
-data class UserTag (
+data class Tag (
     val tagId: Int,
     val tagName: String
 )

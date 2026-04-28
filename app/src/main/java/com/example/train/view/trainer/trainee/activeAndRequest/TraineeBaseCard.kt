@@ -31,14 +31,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.train.R
-import com.example.train.model.UserTag
+import com.example.train.model.Tag
 import com.example.train.ui.TraineeTag
 
 @Composable
 fun TraineeBaseCard(
     name: String,
     bio: String,
-    tags: List<UserTag>,
+    tags: List<Tag>,
     imageRes: Int?,
     modifier: Modifier = Modifier,
     actions: @Composable RowScope.() -> Unit

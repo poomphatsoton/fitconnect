@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.component1
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.train.R
 import com.example.train.model.trainer.Trainee
@@ -33,7 +34,11 @@ fun TraineesScreen(
         activeCount = uiState.activeCount,
         requestCount = uiState.requestCount,
         activeTrainees = uiState.allActiveTrainees,
-        onCalendarClick = onCalendarClick
+        requestTrainees = uiState.allRequestTrainees,
+        onCalendarClick = onCalendarClick,
+        onApproveClick = { trainerId, traineeId -> viewModel.onApproveClick(trainerId, traineeId) },
+        onDenyClick = { trainerId, traineeId -> viewModel.onDenyClick(trainerId, traineeId) },
+        trainerId = uiState.trainerId,
     )
 }
 
@@ -42,21 +47,15 @@ fun TraineesScreenContent(
     activeCount: Int,
     requestCount: Int,
     activeTrainees: List<Trainee>,
+    requestTrainees: List<Trainee>,
     modifier: Modifier = Modifier,
     initialTab: String = "Active",
-    onCalendarClick: (Int) -> Unit = {}
+    onCalendarClick: (Int) -> Unit = {},
+    onApproveClick: (Int, Int) -> Boolean,
+    onDenyClick: (Int, Int) -> Boolean,
+    trainerId: Int
 ) {
     var selectedTab by remember { mutableStateOf(initialTab) }
-
-    val sampleRequests = listOf(
-        Trainee(
-            id = 3,
-            name = "Alex Martinez",
-            bio = "Marathon runner seeking cross-training options",
-            tags = emptyList(),
-            imageRes = R.drawable.ic_person
-        )
-    )
 
     Column(
         modifier = modifier
@@ -90,7 +89,10 @@ fun TraineesScreenContent(
             )
         } else {
             TraineeRequestList(
-                trainees = sampleRequests
+                trainees = requestTrainees,
+                trainerId = trainerId,
+                onApproveClick = onApproveClick,
+                onDenyClick = onDenyClick
             )
         }
     }
