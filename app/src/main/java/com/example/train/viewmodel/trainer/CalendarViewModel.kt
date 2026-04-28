@@ -1,11 +1,17 @@
 package com.example.train.viewmodel.trainer
 
 import android.app.Application
+import android.database.Cursor
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import com.example.train.database.DatabaseHelper
 import com.example.train.model.trainer.CalendarUiState
+import com.example.train.model.trainer.TraineeSlot
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.LocalTime
 import java.util.Calendar
 import java.util.Locale
 
@@ -21,69 +27,33 @@ class CalendarViewModel(
     var uiState = mutableStateOf(CalendarUiState())
         private set
 
-    init {
-        val today = Calendar.getInstance()
-        val selectedDate = dateFormat.format(today.time)
-        updateSelectedDate(selectedDate)
-    }
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun loadTraineeSlots(traineeId: Int, date: LocalDate) {
+        val slots = mutableListOf<TraineeSlot>()
 
-    fun updateSelectedDate(date: String) {
-        try {
-            val parsedDate = dateFormat.parse(date)
-            val displayDate = if (parsedDate != null) {
-                displayFormat.format(parsedDate)
-            } else {
-                "Date Error"
+        dbHelper.getTraineeSlots(traineeId, date).use { cursor ->
+            while (cursor.moveToNext()) {
+                slots.add(cursor.toTraineeSlot())
             }
-
-            val hasWorkout = hasWorkoutOnDate(date)
-
-            uiState.value = CalendarUiState(
-                selectedDate = date,
-                displayDate = displayDate,
-                statusText = if (hasWorkout) {
-                    "Scheduled workouts found for this day"
-                } else {
-                    "No workouts scheduled for this day"
-                }
-            )
-
-        } catch (e: Exception) {
-            uiState.value = uiState.value.copy(
-                displayDate = "Date Error",
-                statusText = "No workouts scheduled for this day"
-            )
         }
-    }
-
-    private fun hasWorkoutOnDate(date: String): Boolean {
-        val selection = "${DatabaseHelper.COL_SCHEDULE_DATE} = ?"
-        val args = arrayOf(date)
-
-        val cursor = dbHelper.readableDatabase.query(
-            DatabaseHelper.TABLE_WORKOUT_SCHEDULES,
-            null,
-            selection,
-            args,
-            null,
-            null,
-            null
+        uiState.value = uiState.value.copy(
+            traineeSlots = slots
         )
-
-        val hasWorkout = cursor.count > 0
-        cursor.close()
-
-        return hasWorkout
     }
 
-    fun formatDateFromCalendar(
-        year: Int,
-        month: Int,
-        day: Int
-    ): String {
-        val calendar = Calendar.getInstance()
-        calendar.set(year, month, day)
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun Cursor.toTraineeSlot(): TraineeSlot {
+        val workoutIdIndex = getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_WORKOUT_ID)
+        val workoutNameIndex = getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_NAME)
 
-        return dateFormat.format(calendar.time)
+        return TraineeSlot(
+            slotId = getInt(getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_ID)),
+            workoutId = if (isNull(workoutIdIndex)) null else getInt(workoutIdIndex),
+            workoutName = if (isNull(workoutNameIndex)) null else getString(workoutNameIndex),
+            status = getInt(getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_STATUS)),
+            startTime = LocalTime.parse(getString(getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_START_TIME))),
+            endTime = LocalTime.parse(getString(getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_END_TIME))),
+            date = LocalDate.parse(getString(getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_DATE)))
+        )
     }
 }

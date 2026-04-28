@@ -130,7 +130,7 @@ fun CreateWorkoutDialog(
             DialogInputField(
                 value = name,
                 onValueChange = { name = it },
-                hint = "Workout Name"
+                placeholder = "Workout Name"
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -138,7 +138,7 @@ fun CreateWorkoutDialog(
             DialogInputField(
                 value = description,
                 onValueChange = { description = it },
-                hint = "Description"
+                placeholder = "Description"
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -190,13 +190,13 @@ fun CreateWorkoutDialog(
 fun DialogInputField(
     value: String,
     onValueChange: (String) -> Unit,
-    hint: String
+    placeholder: String
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         placeholder = {
-            Text(text = hint)
+            Text(text = placeholder)
         },
         modifier = Modifier
             .fillMaxWidth()

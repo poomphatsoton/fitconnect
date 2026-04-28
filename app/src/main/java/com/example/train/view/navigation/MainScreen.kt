@@ -1,6 +1,8 @@
 package com.example.train.ui
 
+import android.os.Build
 import androidx.annotation.DrawableRes
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -17,8 +19,8 @@ object MainRoutes {
     const val HOME = "home"
     const val EXERCISES = "exercises"
     const val WORKOUTS = "workouts"
-    const val CALENDAR = "calendar"
     const val TRAINEES = "trainees"
+    const val TRAINEE_CALENDAR = "trainee_calendar"
 }
 
 data class BottomNavItem(
@@ -27,6 +29,7 @@ data class BottomNavItem(
     @DrawableRes val icon: Int
 )
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MainScreen(
     onLogout: () -> Unit
@@ -48,11 +51,6 @@ fun MainScreen(
             route = MainRoutes.WORKOUTS,
             label = "Workouts",
             icon = R.drawable.ic_list
-        ),
-        BottomNavItem(
-            route = MainRoutes.CALENDAR,
-            label = "Calendar",
-            icon = R.drawable.ic_calendar
         ),
         BottomNavItem(
             route = MainRoutes.TRAINEES,
@@ -92,12 +90,20 @@ fun MainScreen(
                 WorkoutsScreen()
             }
 
-            composable(MainRoutes.CALENDAR) {
-                CalendarScreen()
+            composable(MainRoutes.TRAINEES) {
+                TraineesScreen(
+                    onCalendarClick = { traineeId ->
+                        navController.navigate(MainRoutes.TRAINEE_CALENDAR)
+                    }
+                )
             }
 
-            composable(MainRoutes.TRAINEES) {
-                TraineesScreen()
+            composable(MainRoutes.TRAINEE_CALENDAR) {
+                TraineeCalendarScreen(
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
             }
         }
     }
