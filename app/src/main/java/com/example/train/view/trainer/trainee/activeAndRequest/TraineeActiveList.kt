@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.train.R
 import com.example.train.model.trainer.Trainee
+import com.example.train.view.trainer.trainee.activeAndRequest.TraineeBaseCard
 
 @Composable
 fun TraineeActiveList(
@@ -58,7 +59,7 @@ fun TraineeActiveCard(
             contentPadding = PaddingValues(vertical = 12.dp)
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_dashboard),
+                painter = painterResource(id = R.drawable.dashboard),
                 contentDescription = null,
                 modifier = Modifier.size(18.dp)
             )
@@ -74,7 +75,7 @@ fun TraineeActiveCard(
             contentPadding = PaddingValues(vertical = 12.dp)
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_calendar),
+                painter = painterResource(id = R.drawable.calendar),
                 contentDescription = null,
                 modifier = Modifier.size(18.dp),
                 tint = Color.Black

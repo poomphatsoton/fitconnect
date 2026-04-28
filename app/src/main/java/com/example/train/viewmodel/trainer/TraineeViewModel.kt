@@ -5,6 +5,7 @@ import android.content.Context
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import com.example.train.database.DatabaseHelper
+import com.example.train.model.UserTag
 import com.example.train.model.trainer.Trainee
 import com.example.train.model.trainer.TraineesUiState
 
@@ -33,19 +34,24 @@ class TraineesViewModel(
         
         val trainees = mutableListOf<Trainee>()
         val cursor = dbHelper.getAllTrainees(userId)
-        
+
         if (cursor.moveToFirst()) {
             do {
                 val id = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_USER_ID))
                 val name = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_USER_NAME)) ?: "Unknown"
                 val bio = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_USER_BIO)) ?: ""
-                
+                val tags = dbHelper.getUserTags(userId).mapToList {
+                    UserTag(
+                        tagId = getInt(getColumnIndexOrThrow(DatabaseHelper.COL_TAG_ID)),
+                        tagName = getString(getColumnIndexOrThrow(DatabaseHelper.COL_TAG_NAME))
+                    )
+                }
                 trainees.add(
                     Trainee(
                         id = id,
                         name = name,
                         bio = bio,
-                        tags = emptyList() // Tags implementation can be added later if needed
+                        tags = tags
                     )
                 )
             } while (cursor.moveToNext())

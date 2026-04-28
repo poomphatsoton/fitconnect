@@ -1,12 +1,25 @@
-package com.example.train.ui
+package com.example.train.view.trainer.trainee.activeAndRequest
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,12 +31,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.train.R
+import com.example.train.model.UserTag
+import com.example.train.ui.TraineeTag
 
 @Composable
 fun TraineeBaseCard(
     name: String,
     bio: String,
-    tags: List<String>,
+    tags: List<UserTag>,
     imageRes: Int?,
     modifier: Modifier = Modifier,
     actions: @Composable RowScope.() -> Unit
@@ -41,12 +56,15 @@ fun TraineeBaseCard(
                     contentDescription = null,
                     modifier = Modifier
                         .size(64.dp)
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop
+                        .clip(CircleShape)
+                        .border(
+                            width = 3.dp,
+                            color = Color.Black,
+                            shape = CircleShape
+                        ),
+                    contentScale = ContentScale.Crop,
                 )
-
                 Spacer(modifier = Modifier.width(16.dp))
-
                 Column {
                     Text(
                         text = name,
@@ -58,10 +76,9 @@ fun TraineeBaseCard(
                     Text(
                         text = bio,
                         fontSize = 15.sp,
-                        color = Color(0xFF6B7280),
+                        color = Color.Gray,
                         lineHeight = 22.sp
                     )
-
                     Spacer(modifier = Modifier.height(16.dp))
 
                     @OptIn(ExperimentalLayoutApi::class)
@@ -70,7 +87,7 @@ fun TraineeBaseCard(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         tags.forEach { tag ->
-                            TraineeTag(tag = tag)
+                            TraineeTag(tag = tag.tagName)
                         }
                     }
                 }
@@ -84,76 +101,5 @@ fun TraineeBaseCard(
                 content = actions
             )
         }
-    }
-}
-
-@Composable
-fun TraineeTabSelector(
-    selectedTab: String,
-    onTabSelected: (String) -> Unit,
-    tabs: List<Pair<String, String>>,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFFF3F4F6))
-            .padding(4.dp)
-    ) {
-        tabs.forEach { (label, value) ->
-            TraineeTabItem(
-                label = label,
-                isSelected = selectedTab == value,
-                onClick = { onTabSelected(value) },
-                modifier = Modifier.weight(1f)
-            )
-        }
-    }
-}
-
-@Composable
-fun TraineeTabItem(
-    label: String,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Surface(
-        onClick = onClick,
-        modifier = modifier.fillMaxHeight(),
-        shape = RoundedCornerShape(8.dp),
-        color = if (isSelected) Color.White else Color.Transparent,
-        shadowElevation = if (isSelected) 2.dp else 0.dp
-    ) {
-        Box(contentAlignment = Alignment.Center) {
-            Text(
-                text = label,
-                fontSize = 16.sp,
-                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                color = Color.Black
-            )
-        }
-    }
-}
-
-@Composable
-fun TraineeTag(
-    tag: String,
-    modifier: Modifier = Modifier
-) {
-    Surface(
-        color = Color(0xFFF3F4F6),
-        shape = RoundedCornerShape(8.dp),
-        modifier = modifier
-    ) {
-        Text(
-            text = tag,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color(0xFF374151),
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-        )
     }
 }

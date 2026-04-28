@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.train.R
 import com.example.train.model.trainer.Trainee
+import com.example.train.view.trainer.trainee.activeAndRequest.TraineeBaseCard
 
 @Composable
 fun TraineeRequestList(

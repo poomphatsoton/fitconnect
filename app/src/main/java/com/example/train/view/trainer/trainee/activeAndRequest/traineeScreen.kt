@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.train.R
 import com.example.train.model.trainer.Trainee
+import com.example.train.view.trainer.trainee.activeAndRequest.TraineeTabSelector
 import com.example.train.viewmodel.trainer.TraineesViewModel
 
 @Composable
@@ -52,7 +53,7 @@ fun TraineesScreenContent(
             id = 3,
             name = "Alex Martinez",
             bio = "Marathon runner seeking cross-training options",
-            tags = listOf("endurance", "cardio", "injury-prevention"),
+            tags = emptyList(),
             imageRes = R.drawable.ic_person
         )
     )

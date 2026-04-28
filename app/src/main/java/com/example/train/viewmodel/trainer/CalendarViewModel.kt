@@ -75,7 +75,7 @@ class CalendarViewModel(
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun Cursor.toTraineeSlot(): TraineeSlot {
-        val workoutIdIndex = getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_ID)
+        val workoutIdIndex = getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_WORKOUT_ID)
         val workoutNameIndex = getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_NAME)
 
         return TraineeSlot(
