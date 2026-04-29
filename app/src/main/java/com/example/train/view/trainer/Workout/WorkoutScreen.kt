@@ -4,10 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -33,7 +31,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.train.R
-import com.example.train.model.trainer.WorkoutCategoryPercent
 import com.example.train.model.trainer.WorkoutExerciseDetail
 import com.example.train.model.trainer.WorkoutUiItem
 import com.example.train.ui.components.CreateWorkoutDialogHost
@@ -123,7 +120,6 @@ fun WorkoutHeader(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun WorkoutCard(
     item: WorkoutUiItem
@@ -207,19 +203,6 @@ fun WorkoutCard(
             }
         }
 
-        if (item.categoryPercents.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(12.dp))
-
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                item.categoryPercents.forEach { tag ->
-                    CategoryPercentTag(tag = tag)
-                }
-            }
-        }
-
         Spacer(modifier = Modifier.height(12.dp))
 
         Spacer(
@@ -267,30 +250,6 @@ fun WorkoutExerciseRow(
             fontSize = 14.sp
         )
     }
-}
-
-@Composable
-fun CategoryPercentTag(
-    tag: WorkoutCategoryPercent
-) {
-    Text(
-        text = "${tag.category}: ${tag.percent}%",
-        color = Color.Black,
-        modifier = Modifier
-            .background(
-                color = Color(0xFFF5F5F5),
-                shape = RoundedCornerShape(99.dp)
-            )
-            .border(
-                width = 1.dp,
-                color = Color(0xFFE0E0E0),
-                shape = RoundedCornerShape(99.dp)
-            )
-            .padding(
-                horizontal = 25.dp,
-                vertical = 10.dp
-            )
-    )
 }
 
 @Composable

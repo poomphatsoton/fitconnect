@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.example.train.model.Tag
 import com.example.train.view.trainer.Exercise.TagDropdown
 
 @Composable
@@ -30,20 +31,22 @@ fun CreateExerciseDialog(
     onConfirm: (
         name: String,
         description: String,
-        category1: String,
-        category2: String,
-        timePerRep: String
+        timePerRep: String,
+        tags: List<Tag>,
     ) -> Unit
 ) {
-    var tmp = 5
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var category1 by remember { mutableStateOf("") }
-    var category2 by remember { mutableStateOf("") }
     var timePerRep by remember { mutableStateOf("") }
 
-    var selectedTags by remember { mutableStateOf(listOf<String>()) }
-    val sampleTags = listOf("s1", "s2", "s3")
+    var selectedTags by remember { mutableStateOf(listOf<Tag>()) }
+    val sampleTags: List<Tag> = listOf(
+        Tag(1, "Chest"),
+        Tag(2, "Back"),
+        Tag(3, "Legs"),
+        Tag(4, "Arms"),
+        Tag(5, "Shoulders")
+    )
 
     Dialog(
         onDismissRequest = onDismiss
@@ -88,14 +91,14 @@ fun CreateExerciseDialog(
                 items = sampleTags,
                 onTagSelected = { tag ->
                     selectedTags =
-                        if (selectedTags.contains(tag)) {
-                            selectedTags - tag
+                        if (selectedTags.any { it.tagId == tag.tagId }) {
+                            selectedTags.filterNot { it.tagId == tag.tagId }
                         } else {
                             selectedTags + tag
                         }
                 },
                 onTagRemoved = { tag ->
-                    selectedTags = selectedTags - tag
+                    selectedTags = selectedTags.filterNot { it.tagId == tag.tagId }
                 }
             )
             Spacer(modifier = Modifier.height(16.dp))
@@ -125,9 +128,8 @@ fun CreateExerciseDialog(
                         onConfirm(
                             name,
                             description,
-                            category1,
-                            category2,
-                            timePerRep
+                            timePerRep,
+                            selectedTags
                         )
                     },
                     modifier = Modifier.weight(1f)

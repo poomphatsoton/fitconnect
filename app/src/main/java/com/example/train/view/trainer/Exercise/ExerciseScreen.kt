@@ -14,11 +14,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.train.R
+import com.example.train.model.Tag
 import com.example.train.model.trainer.Exercise
 import com.example.train.viewmodel.trainer.ExercisesViewModel
 
@@ -76,7 +79,7 @@ fun ExercisesScreen(
                     items = exercises,
                     key = { it.id }
                 ) { exercise ->
-                    ExerciseCard(exercise = exercise)
+                    ExerciseCard(exercise = exercise, tags = viewModel.exerciseTagsMap[exercise.id].orEmpty())
                 }
             }
         }
@@ -87,13 +90,12 @@ fun ExercisesScreen(
             onDismiss = {
                 showCreateDialog = false
             },
-            onConfirm = { name, description, category1, category2, time ->
+            onConfirm = { name, description, time, tags ->
                 val errorMessage = viewModel.createExercise(
                     name = name,
                     description = description,
-                    category1 = category1,
-                    category2 = category2,
-                    timePerRepText = time
+                    timePerRepText = time,
+                    tags = tags
                 )
 
                 if (errorMessage == null) {
@@ -158,7 +160,8 @@ fun ExerciseHeader(
 
 @Composable
 fun ExerciseCard(
-    exercise: Exercise
+    exercise: Exercise,
+    tags: List<Tag>
 ) {
     Column(
         modifier = Modifier
@@ -180,15 +183,29 @@ fun ExerciseCard(
         )
 
         Spacer(modifier = Modifier.height(8.dp))
+        if (tags.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(8.dp))
 
-        Row {
-            CategoryTag(text = exercise.category1 ?: "")
-
-            Spacer(modifier = Modifier.width(4.dp))
-
-            CategoryTag(text = exercise.category2 ?: "")
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(tags) { tag ->
+                    Surface(
+                        color = Color(0xFFEFEFEF),
+                        shape = RoundedCornerShape(20.dp)
+                    ) {
+                        Text(
+                            text = tag.tagName,
+                            modifier = Modifier.padding(
+                                horizontal = 12.dp,
+                                vertical = 6.dp
+                            ),
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+            }
         }
-
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
@@ -197,22 +214,6 @@ fun ExerciseCard(
             color = Color(0xFF757575)
         )
     }
-}
-
-@Composable
-fun CategoryTag(
-    text: String
-) {
-    Text(
-        text = text,
-        fontSize = 12.sp,
-        modifier = Modifier
-            .background(Color(0xFFE0E0E0))
-            .padding(
-                horizontal = 8.dp,
-                vertical = 4.dp
-            )
-    )
 }
 
 @Composable

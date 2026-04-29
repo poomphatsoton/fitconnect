@@ -135,13 +135,12 @@ fun HomeScreen(
             onDismiss = {
                 showCreateExerciseDialog = false
             },
-            onConfirm = { name, description, category1, category2, time ->
+            onConfirm = { name, description, time, tags ->
                 val error = exercisesViewModel.createExercise(
                     name = name,
                     description = description,
-                    category1 = category1,
-                    category2 = category2,
-                    timePerRepText = time
+                    timePerRepText = time,
+                    tags = tags
                 )
 
                 if (error == null) {
