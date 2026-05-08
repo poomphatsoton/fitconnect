@@ -1,4 +1,4 @@
-package com.example.train.view.trainer.Exercise
+package com.example.train.view.trainer.exercise
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background

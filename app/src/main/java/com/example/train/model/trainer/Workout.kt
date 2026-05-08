@@ -11,6 +11,7 @@ data class Workout(
 ) : Serializable
 
 data class WorkoutExerciseDetail(
+    val exerciseId: Long,
     val name: String,
     val reps: Int,
     val timePerRep: Int,

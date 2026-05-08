@@ -14,7 +14,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     companion object {
         private const val DATABASE_NAME = "FitConnect.db"
-        private const val DATABASE_VERSION = 17
+        private const val DATABASE_VERSION = 19
 
         // Users
         const val TABLE_USERS = "users"
@@ -130,7 +130,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     }
 
     private val CREATE_TABLE_USERS = """
-        CREATE TABLE $TABLE_USERS (
+        CREATE TABLE IF NOT EXISTS $TABLE_USERS (
             $COL_USER_ID INTEGER PRIMARY KEY AUTOINCREMENT,
             $COL_USER_USERNAME TEXT UNIQUE NOT NULL,
             $COL_USER_PASSWORD TEXT NOT NULL,
@@ -141,7 +141,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     """.trimIndent()
 
     private val CREATE_TABLE_USER_TAGS = """
-        CREATE TABLE $TABLE_USERS_TAGS (
+        CREATE TABLE IF NOT EXISTS $TABLE_USERS_TAGS (
             $COL_USER_ID INTEGER,
             $COL_TAG_ID INTEGER,
             PRIMARY KEY($COL_USER_ID, $COL_TAG_ID),
@@ -151,7 +151,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     """.trimIndent()
 
     private val CREATE_TABLE_EXERCISE_TAGS = """
-        CREATE TABLE $TABLE_EXERCISE_TAGS (
+        CREATE TABLE IF NOT EXISTS $TABLE_EXERCISE_TAGS (
             $COL_EXERCISE_ID INTEGER,
             $COL_TAG_ID INTEGER,
             PRIMARY KEY($COL_EXERCISE_ID, $COL_TAG_ID),
@@ -161,14 +161,14 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     """.trimIndent()
 
     private val CREATE_TABLE_TAGS = """
-        CREATE TABLE $TABLE_TAGS (
+        CREATE TABLE IF NOT EXISTS $TABLE_TAGS (
             $COL_TAG_ID INTEGER PRIMARY KEY AUTOINCREMENT,
             $COL_TAG_NAME TEXT NOT NULL
         )
     """.trimIndent()
 
     private val CREATE_TABLE_EXERCISES = """
-        CREATE TABLE $TABLE_EXERCISES (
+        CREATE TABLE IF NOT EXISTS $TABLE_EXERCISES (
             $COL_EXERCISE_ID INTEGER PRIMARY KEY AUTOINCREMENT,
             $COL_EXERCISE_NAME TEXT NOT NULL,
             $COL_EXERCISE_DESC TEXT,
@@ -177,7 +177,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     """.trimIndent()
 
     private val CREATE_TABLE_WORKOUTS = """
-        CREATE TABLE $TABLE_WORKOUTS (
+        CREATE TABLE IF NOT EXISTS $TABLE_WORKOUTS (
             $COL_WORKOUT_ID INTEGER PRIMARY KEY AUTOINCREMENT,
             $COL_WORKOUT_NAME TEXT NOT NULL,
             $COL_WORKOUT_DESC TEXT,
@@ -186,7 +186,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     """.trimIndent()
 
     private val CREATE_TABLE_WORKOUT_EXERCISES = """
-        CREATE TABLE $TABLE_WORKOUT_EXERCISES (
+        CREATE TABLE IF NOT EXISTS $TABLE_WORKOUT_EXERCISES (
             $COL_WE_WORKOUT_ID INTEGER,
             $COL_WE_EXERCISE_ID INTEGER,
             $COL_WE_REPS INTEGER,
@@ -197,7 +197,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     """.trimIndent()
 
     private val CREATE_TABLE_TRAINEE_REQUESTS = """
-        CREATE TABLE $TABLE_TRAINEE_REQUESTS (
+        CREATE TABLE IF NOT EXISTS $TABLE_TRAINEE_REQUESTS (
             $COL_REQUEST_ID INTEGER PRIMARY KEY AUTOINCREMENT,
             $COL_REQUEST_TRAINER_ID INTEGER,
             $COL_REQUEST_TRAINEE_ID INTEGER,
@@ -209,7 +209,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     """.trimIndent()
 
     private val CREATE_TABLE_WORKOUT_SCHEDULES = """
-        CREATE TABLE $TABLE_WORKOUT_SCHEDULES (
+        CREATE TABLE IF NOT EXISTS $TABLE_WORKOUT_SCHEDULES (
             $COL_SCHEDULE_ID INTEGER PRIMARY KEY AUTOINCREMENT,
             $COL_SCHEDULE_WORKOUT_ID INTEGER,
             $COL_SCHEDULE_DATE TEXT NOT NULL,
@@ -220,7 +220,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     """.trimIndent()
 
     private val CREATE_TABLE_TRAINEE_CALENDAR_SLOT = """
-        CREATE TABLE $TABLE_TRAINEE_CALENDAR_SLOT (
+        CREATE TABLE IF NOT EXISTS $TABLE_TRAINEE_CALENDAR_SLOT (
             $COL_SLOT_ID INTEGER PRIMARY KEY AUTOINCREMENT,
             $COL_TRAINEE_ID INTEGER,
             $COL_SLOT_WORKOUT_ID INTEGER,
@@ -234,7 +234,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     """.trimIndent()
 
     private val CREATE_TABLE_TRAINER_TRAINEES = """
-        CREATE TABLE $TABLE_TRAINER_TRAINEES (
+        CREATE TABLE IF NOT EXISTS $TABLE_TRAINER_TRAINEES (
             $COL_TT_ID INTEGER PRIMARY KEY AUTOINCREMENT,
             $COL_TT_TRAINER_ID INTEGER,
             $COL_TT_TRAINEE_ID INTEGER,
@@ -244,7 +244,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     """.trimIndent()
 
     private val CREATE_TABLE_TRAINEE_TRAINER = """
-        CREATE TABLE $TABLE_TRAINEE_TRAINER (
+        CREATE TABLE IF NOT EXISTS $TABLE_TRAINEE_TRAINER (
             $COL_TTR_ID INTEGER PRIMARY KEY AUTOINCREMENT,
             $COL_TTR_TRAINEE_ID INTEGER UNIQUE,
             $COL_TTR_TRAINER_ID INTEGER,
@@ -470,7 +470,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     fun getWorkoutExerciseDetails(workoutId: Long): Cursor {
         val db = readableDatabase
         val query = """
-            SELECT e.$COL_EXERCISE_NAME, we.$COL_WE_REPS, e.$COL_EXERCISE_TIME_PER_REP
+            SELECT e.$COL_EXERCISE_ID, e.$COL_EXERCISE_NAME, we.$COL_WE_REPS, e.$COL_EXERCISE_TIME_PER_REP
             FROM $TABLE_WORKOUT_EXERCISES we
             JOIN $TABLE_EXERCISES e ON we.$COL_WE_EXERCISE_ID = e.$COL_EXERCISE_ID
             WHERE we.$COL_WE_WORKOUT_ID = ?
@@ -619,5 +619,69 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             query,
             arrayOf(exerciseId.toString())
         )
+    }
+
+    fun deleteWorkout(workoutId: Int) {
+        val db = writableDatabase
+        db.delete(TABLE_WORKOUT_EXERCISES, "$COL_WE_WORKOUT_ID = ?", arrayOf(workoutId.toString()))
+        db.delete(TABLE_WORKOUT_SCHEDULES, "$COL_SCHEDULE_WORKOUT_ID = ?", arrayOf(workoutId.toString()))
+        db.delete(TABLE_TRAINEE_CALENDAR_SLOT, "$COL_SLOT_WORKOUT_ID = ?", arrayOf(workoutId.toString()))
+        db.delete(TABLE_WORKOUTS, "$COL_WORKOUT_ID = ?", arrayOf(workoutId.toString()))
+    }
+
+    fun deleteExercise(exerciseId: Int) {
+        val db = writableDatabase
+        val affectedWorkoutIds = getWorkoutIdsForExercise(db, exerciseId)
+        db.delete(TABLE_EXERCISE_TAGS, "$COL_EXERCISE_ID = ?", arrayOf(exerciseId.toString()))
+        db.delete(TABLE_WORKOUT_EXERCISES, "$COL_WE_EXERCISE_ID = ?", arrayOf(exerciseId.toString()))
+        db.delete(TABLE_EXERCISES, "$COL_EXERCISE_ID = ?", arrayOf(exerciseId.toString()))
+        affectedWorkoutIds.forEach { workoutId ->
+            updateWorkoutDuration(workoutId, calculateWorkoutTotalDuration(workoutId))
+        }
+    }
+
+    fun updateExercise(id: Int, name: String, desc: String, timePerRep: Int, tags: List<Tag>) {
+        val db = writableDatabase
+        val affectedWorkoutIds = getWorkoutIdsForExercise(db, id)
+        val values = ContentValues().apply {
+            put(COL_EXERCISE_NAME, name)
+            put(COL_EXERCISE_DESC, desc)
+            put(COL_EXERCISE_TIME_PER_REP, timePerRep)
+        }
+        db.update(TABLE_EXERCISES, values, "$COL_EXERCISE_ID = ?", arrayOf(id.toString()))
+
+        // Update tags: clear and re-add
+        db.delete(TABLE_EXERCISE_TAGS, "$COL_EXERCISE_ID = ?", arrayOf(id.toString()))
+        tags.forEach { tag ->
+            val valueTag = ContentValues().apply {
+                put(COL_EXERCISE_ID, id)
+                put(COL_TAG_ID, tag.tagId)
+            }
+            db.insert(TABLE_EXERCISE_TAGS, null, valueTag)
+        }
+        affectedWorkoutIds.forEach { workoutId ->
+            updateWorkoutDuration(workoutId, calculateWorkoutTotalDuration(workoutId))
+        }
+    }
+
+    private fun getWorkoutIdsForExercise(db: SQLiteDatabase, exerciseId: Int): List<Long> {
+        val workoutIds = mutableListOf<Long>()
+        val cursor = db.query(
+            TABLE_WORKOUT_EXERCISES,
+            arrayOf(COL_WE_WORKOUT_ID),
+            "$COL_WE_EXERCISE_ID = ?",
+            arrayOf(exerciseId.toString()),
+            null,
+            null,
+            null
+        )
+
+        cursor.use {
+            while (it.moveToNext()) {
+                workoutIds.add(it.getLong(it.getColumnIndexOrThrow(COL_WE_WORKOUT_ID)))
+            }
+        }
+
+        return workoutIds
     }
 }

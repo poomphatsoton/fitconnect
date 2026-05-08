@@ -110,4 +110,40 @@ class ExercisesViewModel(
 
         return null
     }
+
+    fun deleteExercise(exerciseId: Int) {
+        dbHelper.deleteExercise(exerciseId)
+        loadExercises()
+    }
+
+    fun updateExercise(
+        id: Int,
+        name: String,
+        description: String,
+        timePerRepText: String,
+        tags: List<Tag>
+    ): String? {
+        val trimmedName = name.trim()
+        val trimmedDescription = description.trim()
+        val trimmedTime = timePerRepText.trim()
+
+        if (trimmedName.isEmpty() || trimmedTime.isEmpty()) {
+            return "Please fill required fields"
+        }
+
+        val timePerRep = trimmedTime.toIntOrNull()
+            ?: return "Time must be a number"
+
+        dbHelper.updateExercise(
+            id = id,
+            name = trimmedName,
+            desc = trimmedDescription,
+            timePerRep = timePerRep,
+            tags = tags
+        )
+
+        loadExercises()
+
+        return null
+    }
 }

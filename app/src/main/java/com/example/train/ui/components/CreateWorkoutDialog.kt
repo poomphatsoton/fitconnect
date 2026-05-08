@@ -41,20 +41,41 @@ fun CreateWorkoutDialogHost(
     viewModel: WorkoutsViewModel,
     onCreated: () -> Unit = {},
     content: @Composable (
-        openCreateWorkoutDialog: () -> Unit
+        () -> Unit,
+        (Int) -> Unit
     ) -> Unit
 ) {
     val context = LocalContext.current
     var showDialog by remember { mutableStateOf(false) }
+    var editingWorkoutId by remember { mutableStateOf<Int?>(null) }
 
-    content {
-        viewModel.loadAvailableExercises()
-        showDialog = true
-    }
+    content(
+        {
+            editingWorkoutId = null
+            viewModel.loadAvailableExercises()
+            showDialog = true
+        },
+        { id ->
+            editingWorkoutId = id
+            viewModel.loadWorkoutForEdit(id)
+            showDialog = true
+        }
+    )
 
     if (showDialog) {
+        val initialName = if (editingWorkoutId != null) {
+            viewModel.workouts.find { it.workout.id == editingWorkoutId }?.workout?.name ?: ""
+        } else ""
+
+        val initialDesc = if (editingWorkoutId != null) {
+            viewModel.workouts.find { it.workout.id == editingWorkoutId }?.workout?.description ?: ""
+        } else ""
+
         CreateWorkoutDialog(
             exercises = viewModel.availableExercises,
+            initialName = initialName,
+            initialDescription = initialDesc,
+            isEdit = editingWorkoutId != null,
             onDismiss = {
                 showDialog = false
             },
@@ -65,15 +86,19 @@ fun CreateWorkoutDialogHost(
                 viewModel.updateExerciseReps(id, reps)
             },
             onConfirm = { name, description ->
-                val error = viewModel.createWorkout(
-                    name = name,
-                    description = description
-                )
+                val error = if (editingWorkoutId != null) {
+                    viewModel.updateWorkout(editingWorkoutId!!, name, description)
+                } else {
+                    viewModel.createWorkout(
+                        name = name,
+                        description = description
+                    )
+                }
 
                 if (error == null) {
                     Toast.makeText(
                         context,
-                        "Workout created successfully",
+                        if (editingWorkoutId != null) "Workout updated successfully" else "Workout created successfully",
                         Toast.LENGTH_SHORT
                     ).show()
 
@@ -91,9 +116,13 @@ fun CreateWorkoutDialogHost(
         )
     }
 }
+
 @Composable
 fun CreateWorkoutDialog(
     exercises: List<ExerciseSelectUiItem>,
+    initialName: String = "",
+    initialDescription: String = "",
+    isEdit: Boolean = false,
     onDismiss: () -> Unit,
     onExerciseSelectedChange: (id: Long, selected: Boolean) -> Unit,
     onExerciseRepsChange: (id: Long, reps: String) -> Unit,
@@ -102,8 +131,8 @@ fun CreateWorkoutDialog(
         description: String
     ) -> Unit
 ) {
-    var name by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf(initialName) }
+    var description by remember { mutableStateOf(initialDescription) }
 
     Dialog(
         onDismissRequest = onDismiss
@@ -118,7 +147,7 @@ fun CreateWorkoutDialog(
                 .padding(32.dp)
         ) {
             Text(
-                text = "Create Workout",
+                text = if (isEdit) "Edit Workout" else "Create Workout",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
@@ -176,7 +205,7 @@ fun CreateWorkoutDialog(
                 Spacer(modifier = Modifier.width(16.dp))
 
                 DialogBlackButton(
-                    text = "Create",
+                    text = if (isEdit) "Update" else "Create",
                     onClick = {
                         onConfirm(name, description)
                     },
@@ -184,53 +213,6 @@ fun CreateWorkoutDialog(
                 )
             }
         }
-    }
-}
-@Composable
-fun DialogInputField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        placeholder = {
-            Text(text = placeholder)
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp),
-        singleLine = true,
-        shape = RoundedCornerShape(20.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = Color(0xFFF7F7F7),
-            unfocusedContainerColor = Color(0xFFF7F7F7),
-            focusedBorderColor = Color.Transparent,
-            unfocusedBorderColor = Color.Transparent
-        )
-    )
-}
-
-@Composable
-fun DialogBlackButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Button(
-        onClick = onClick,
-        modifier = modifier.height(56.dp),
-        shape = RoundedCornerShape(22.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color.Black,
-            contentColor = Color.White
-        )
-    ) {
-        Text(
-            text = text,
-            fontSize = 16.sp
-        )
     }
 }
 

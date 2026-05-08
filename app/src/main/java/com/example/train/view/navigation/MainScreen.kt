@@ -14,6 +14,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.train.R
 import com.example.train.ui.components.BottomNavigationBar
+import com.example.train.view.trainer.exercise.ExercisesScreen
+import com.example.train.view.trainer.workout.WorkoutsScreen
 
 object MainRoutes {
     const val HOME = "home"

@@ -1,6 +1,6 @@
 package com.example.train.ui
 
-import com.example.train.ui.components.CreateExerciseDialog
+import com.example.train.view.trainer.exercise.CreateExerciseDialog
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -96,7 +96,7 @@ fun HomeScreen(
                 onCreated = {
                     viewModel.loadOverviewData()
                 }
-            ) { openCreateWorkoutDialog ->
+            ) { openCreateWorkoutDialog, _ ->
 
                 CreateButtons(
                     onCreateExercise = {

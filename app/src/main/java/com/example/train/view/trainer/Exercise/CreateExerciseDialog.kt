@@ -1,4 +1,4 @@
-package com.example.train.ui.components
+package com.example.train.view.trainer.exercise
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -23,10 +23,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.train.model.Tag
-import com.example.train.view.trainer.Exercise.TagDropdown
+import com.example.train.model.trainer.Exercise
+import com.example.train.ui.components.DialogBlackButton
+import com.example.train.ui.components.DialogInputField
 
 @Composable
 fun CreateExerciseDialog(
+    initialExercise: Exercise? = null,
+    initialTags: List<Tag> = emptyList(),
     onDismiss: () -> Unit,
     onConfirm: (
         name: String,
@@ -35,11 +39,11 @@ fun CreateExerciseDialog(
         tags: List<Tag>,
     ) -> Unit
 ) {
-    var name by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var timePerRep by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf(initialExercise?.name ?: "") }
+    var description by remember { mutableStateOf(initialExercise?.description ?: "") }
+    var timePerRep by remember { mutableStateOf(initialExercise?.timePerRep?.toString() ?: "") }
 
-    var selectedTags by remember { mutableStateOf(listOf<Tag>()) }
+    var selectedTags by remember { mutableStateOf(initialTags) }
     val sampleTags: List<Tag> = listOf(
         Tag(1, "Chest"),
         Tag(2, "Back"),
@@ -61,7 +65,7 @@ fun CreateExerciseDialog(
                 .padding(32.dp)
         ) {
             Text(
-                text = "Create Exercise",
+                text = if (initialExercise != null) "Edit Exercise" else "Create Exercise",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
@@ -123,7 +127,7 @@ fun CreateExerciseDialog(
                 Spacer(modifier = Modifier.width(16.dp))
 
                 DialogBlackButton(
-                    text = "Create",
+                    text = if (initialExercise != null) "Update" else "Create",
                     onClick = {
                         onConfirm(
                             name,
