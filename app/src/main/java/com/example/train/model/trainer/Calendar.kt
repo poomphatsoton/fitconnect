@@ -5,6 +5,7 @@ import java.time.LocalTime
 
 data class CalendarUiState(
     val traineeSlots: List<TraineeSlot> = emptyList(),
+    val workoutDetailsBySlotId: Map<Int, WorkoutUiItem> = emptyMap(),
     val workoutOptions: List<WorkoutOption> = emptyList(),
     val showAssignDialog: Boolean = false,
     val editingWorkout: AssignedWorkout? = null,

@@ -3,17 +3,13 @@ package com.example.train.view.trainee.calendar
 import android.os.Build
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -25,10 +21,8 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,20 +30,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.train.R
 import com.example.train.model.trainer.TraineeSlot
 import com.example.train.view.reuseComponent.FitCalendarView
-import com.example.train.view.reuseComponent.SlotStatusTag
+import com.example.train.view.reuseComponent.ScheduleSlotCard
+import com.example.train.view.reuseComponent.ScheduleSlotCardMode
 import com.example.train.viewmodel.trainee.TraineeCalendarViewModel
 import java.time.LocalDate
 import java.time.LocalTime
@@ -124,8 +116,11 @@ fun TraineeCalendarTabScreen(
             )
         } else {
             uiState.slots.forEach { slot ->
-                TraineeSlotRow(
+                ScheduleSlotCard(
                     slot = slot,
+                    mode = ScheduleSlotCardMode.TraineeManage,
+                    workoutDetail = uiState.workoutDetailsBySlotId[slot.slotId],
+                    showWorkoutDetail = true,
                     onEditClick = {
                         editingSlot = slot
                     },
@@ -337,96 +332,6 @@ private fun SlotDialog(
                 }
             }
         }
-    }
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-private fun TraineeSlotRow(
-    slot: TraineeSlot,
-    onEditClick: () -> Unit,
-    onDeleteClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Surface(
-                        color = Color(0xFFF9FAFB),
-                        shape = RoundedCornerShape(4.dp)
-                    ) {
-                        Text(
-                            text = "${slot.startTime.toDisplayTime()} - ${slot.endTime.toDisplayTime()}",
-                            fontSize = 12.sp,
-                            color = Color.Gray,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.size(8.dp))
-
-                    SlotStatusTag(status = slot.status)
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = when {
-                        slot.status == 2 -> "Unavailable booking"
-                        slot.workoutId != null -> slot.workoutName ?: "Assigned Workout"
-                        else -> "Available for Booking"
-                    },
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (slot.status == 2 || slot.workoutId == null) Color.Gray else Color.Black
-                )
-            }
-
-            if (slot.workoutId != null) {
-                AssignedWorkoutTag()
-            } else {
-                IconButton(onClick = onEditClick) {
-                    Image(
-                        painter = painterResource(id = R.drawable.edit),
-                        contentDescription = "Edit slot",
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-
-                IconButton(onClick = onDeleteClick) {
-                    Image(
-                        painter = painterResource(id = R.drawable.delete),
-                        contentDescription = "Delete slot",
-                        modifier = Modifier.size(28.dp)
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun AssignedWorkoutTag() {
-    Surface(
-        color = Color(0xFFDBEAFE),
-        shape = RoundedCornerShape(4.dp)
-    ) {
-        Text(
-            text = "ASSIGNED WORKOUT",
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF1D4ED8),
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-        )
     }
 }
 

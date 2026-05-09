@@ -109,6 +109,7 @@ fun TraineeCalendarScreen(
 
             DailyScheduleContent(
                 slots = uiState.traineeSlots,
+                workoutDetailsBySlotId = uiState.workoutDetailsBySlotId,
                 onAddClick = viewModel::showAssignDialog,
                 onEditClick = viewModel::showEditDialog,
                 onDeleteClick = { slot ->

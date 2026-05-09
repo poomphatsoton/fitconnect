@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -121,8 +122,8 @@ fun TraineeTrainerScreen(
 
         item {
             HorizontalDivider(
-                modifier = Modifier.padding(vertical = 4.dp),
-                color = Color(0xFFE5E7EB)
+                color = Color.Black,
+                thickness = 2.dp
             )
         }
 

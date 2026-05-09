@@ -1,7 +1,6 @@
 package com.example.train.viewmodel.trainer
 
 import android.app.Application
-import android.database.Cursor
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.mutableStateOf
@@ -11,8 +10,9 @@ import com.example.train.database.DatabaseHelper
 import com.example.train.model.trainer.CalendarUiState
 import com.example.train.model.trainer.TraineeSlot
 import com.example.train.model.trainer.WorkoutOption
+import com.example.train.viewmodel.reuseComponent.WorkoutDetailLoader
+import com.example.train.viewmodel.reuseComponent.toTraineeSlot
 import java.time.LocalDate
-import java.time.LocalTime
 import kotlin.math.ceil
 
 class CalendarViewModel(
@@ -20,6 +20,7 @@ class CalendarViewModel(
 ) : AndroidViewModel(application) {
 
     private val dbHelper = DatabaseHelper(application)
+    private val workoutDetailLoader = WorkoutDetailLoader(dbHelper)
 
     var uiState = mutableStateOf(CalendarUiState())
         private set
@@ -37,8 +38,10 @@ class CalendarViewModel(
                 slots.add(cursor.toTraineeSlot())
             }
         }
+        val sortedSlots = slots.sortedBy { it.startTime }
         uiState.value = uiState.value.copy(
-            traineeSlots = slots.sortedBy { it.startTime }
+            traineeSlots = sortedSlots,
+            workoutDetailsBySlotId = workoutDetailLoader.loadWorkoutDetailsBySlotId(sortedSlots)
         )
     }
 
@@ -179,23 +182,5 @@ class CalendarViewModel(
         val assignmentId = selectedSlot.assignmentId ?: return listOf(selectedSlot)
         val sortedSlots = uiState.value.traineeSlots.sortedBy { it.startTime }
         return sortedSlots.filter { it.assignmentId == assignmentId }.ifEmpty { listOf(selectedSlot) }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun Cursor.toTraineeSlot(): TraineeSlot {
-        val workoutIdIndex = getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_WORKOUT_ID)
-        val assignmentIdIndex = getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_ASSIGNMENT_ID)
-        val workoutNameIndex = getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_NAME)
-
-        return TraineeSlot(
-            slotId = getInt(getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_ID)),
-            workoutId = if (isNull(workoutIdIndex)) null else getInt(workoutIdIndex),
-            assignmentId = if (isNull(assignmentIdIndex)) null else getInt(assignmentIdIndex),
-            workoutName = if (isNull(workoutNameIndex)) null else getString(workoutNameIndex),
-            status = getInt(getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_STATUS)),
-            startTime = LocalTime.parse(getString(getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_START_TIME))),
-            endTime = LocalTime.parse(getString(getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_END_TIME))),
-            date = LocalDate.parse(getString(getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_DATE)))
-        )
     }
 }
