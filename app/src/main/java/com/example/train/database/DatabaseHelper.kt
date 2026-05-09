@@ -599,12 +599,14 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         )
     }
 
-    fun updateUserProfile(userId: Int, name: String, bio: String, maxTrainees: Int, password: String?) {
+    fun updateUserProfile(userId: Int, name: String, bio: String, maxTrainees: Int? = null, password: String?) {
         val db = writableDatabase
         val values = ContentValues().apply {
             put(COL_USER_NAME, name)
             put(COL_USER_BIO, bio)
-            put(COL_USER_MAX_TRAINEES, maxTrainees)
+            if (maxTrainees != null) {
+                put(COL_USER_MAX_TRAINEES, maxTrainees)
+            }
             if (password != null) {
                 put(COL_USER_PASSWORD, password)
             }

@@ -96,6 +96,7 @@ fun HomeScreen(
                 initialMaxTrainees = uiState.maxTrainees,
                 initialTags = uiState.trainerTags,
                 availableTags = uiState.availableTags,
+                isTrainer = true,
                 modifier = Modifier.padding(innerPadding),
                 onCancel = {
                     showEditProfile = false
@@ -129,6 +130,7 @@ fun HomeScreen(
                     name = uiState.trainerName,
                     bio = uiState.trainerBio,
                     tags = uiState.trainerTags,
+                    isTrainer = true,
                     activeTrainees = uiState.activeTrainees,
                     maxTrainees = uiState.maxTrainees,
                     onEditClick = {
@@ -198,10 +200,11 @@ fun HomeScreen(
 fun EditTrainerProfileScreen(
     initialName: String,
     initialBio: String,
-    initialMaxTrainees: Int,
     initialTags: List<Tag>,
     availableTags: List<Tag>,
+    isTrainer: Boolean,
     modifier: Modifier = Modifier,
+    initialMaxTrainees: Int = 0,
     onCancel: () -> Unit,
     onSave: (name: String, bio: String, maxTrainees: String, password: String, tags: List<Tag>) -> Unit
 ) {
@@ -251,18 +254,20 @@ fun EditTrainerProfileScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        OutlinedTextField(
-            value = maxTrainees,
-            onValueChange = { value ->
-                maxTrainees = value.filter { it.isDigit() }
-            },
-            label = { Text("Max Trainees") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            shape = RoundedCornerShape(12.dp)
-        )
+        if (isTrainer) {
+            OutlinedTextField(
+                value = maxTrainees,
+                onValueChange = { value ->
+                    maxTrainees = value.filter { it.isDigit() }
+                },
+                label = { Text("Max Trainees") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp)
+            )
 
-        Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+        }
 
         Text(
             text = "Tags",

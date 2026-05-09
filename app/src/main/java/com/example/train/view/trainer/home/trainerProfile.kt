@@ -36,8 +36,9 @@ fun TrainerProfileCard(
     name: String,
     bio: String,
     tags: List<Tag>,
-    activeTrainees: Int,
-    maxTrainees: Int,
+    isTrainer: Boolean,
+    activeTrainees: Int = 0,
+    maxTrainees: Int = 0,
     onEditClick: () -> Unit
 ) {
     Card(
@@ -61,7 +62,7 @@ fun TrainerProfileCard(
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.ic_person),
-                    contentDescription = "Trainer avatar",
+                    contentDescription = if (isTrainer) "Trainer avatar" else "Trainee avatar",
                     modifier = Modifier.size(84.dp)
                 )
 
@@ -148,31 +149,33 @@ fun TrainerProfileCard(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(72.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FA)),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
+            if (isTrainer) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(72.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FA)),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text(
-                        text = "Trainee Capacity",
-                        fontSize = 12.sp,
-                        color = Color(0xFF6C757D)
-                    )
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Text(
+                            text = "Trainee Capacity",
+                            fontSize = 12.sp,
+                            color = Color(0xFF6C757D)
+                        )
 
-                    Text(
-                        text = "$activeTrainees / $maxTrainees trainees",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                        Text(
+                            text = "$activeTrainees / $maxTrainees trainees",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
             Button(
                 onClick = onEditClick,
