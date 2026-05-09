@@ -46,22 +46,22 @@ fun TraineeMainScreen(
         BottomNavItem(
             route = TraineeRoutes.HOME,
             label = "Home",
-            icon = R.drawable.ic_home
+            icon = R.drawable.home
         ),
         BottomNavItem(
             route = TraineeRoutes.WORKOUT,
             label = "Workout",
-            icon = R.drawable.ic_fitness
+            icon = R.drawable.fitness
         ),
         BottomNavItem(
             route = TraineeRoutes.CALENDAR,
             label = "Calendar",
-            icon = R.drawable.ic_calendar
+            icon = R.drawable.calendar
         ),
         BottomNavItem(
             route = TraineeRoutes.TRAINER,
             label = "Trainer",
-            icon = R.drawable.ic_group
+            icon = R.drawable.group
         )
     )
 

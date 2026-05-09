@@ -82,7 +82,7 @@ fun WorkoutDetailCard(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_fitness),
+                    painter = painterResource(id = R.drawable.fitness),
                     contentDescription = "Exercise count",
                     modifier = Modifier.size(20.dp),
                     tint = Color(0xFF757575)
@@ -101,7 +101,7 @@ fun WorkoutDetailCard(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_time),
+                    painter = painterResource(id = R.drawable.time),
                     contentDescription = "Duration",
                     modifier = Modifier.size(20.dp),
                     tint = Color(0xFF757575)

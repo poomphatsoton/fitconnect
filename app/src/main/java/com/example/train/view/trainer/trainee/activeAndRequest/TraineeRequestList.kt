@@ -64,7 +64,7 @@ fun TraineeRequestCard(
             contentPadding = PaddingValues(vertical = 12.dp)
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_check),
+                painter = painterResource(id = R.drawable.check),
                 contentDescription = null,
                 modifier = Modifier.size(18.dp),
                 tint = Color.White
@@ -81,7 +81,7 @@ fun TraineeRequestCard(
             contentPadding = PaddingValues(vertical = 12.dp)
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_close),
+                painter = painterResource(id = R.drawable.x),
                 contentDescription = null,
                 modifier = Modifier.size(18.dp),
                 tint = Color.Black

@@ -116,10 +116,10 @@ fun WorkoutHeader(
             ),
             shape = RoundedCornerShape(24.dp)
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_add),
-                contentDescription = "Create Workout",
-                modifier = Modifier.size(18.dp)
+            Text(
+                text = "+",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
             )
 
             Spacer(modifier = Modifier.width(4.dp))

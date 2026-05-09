@@ -49,22 +49,22 @@ fun MainScreen(
         BottomNavItem(
             route = MainRoutes.HOME,
             label = "Home",
-            icon = R.drawable.ic_home
+            icon = R.drawable.home
         ),
         BottomNavItem(
             route = MainRoutes.EXERCISES,
             label = "Exercises",
-            icon = R.drawable.ic_fitness
+            icon = R.drawable.fitness
         ),
         BottomNavItem(
             route = MainRoutes.WORKOUTS,
             label = "Workouts",
-            icon = R.drawable.ic_list
+            icon = R.drawable.list
         ),
         BottomNavItem(
             route = MainRoutes.TRAINEES,
             label = "Trainees",
-            icon = R.drawable.ic_group
+            icon = R.drawable.group
         )
     )
 

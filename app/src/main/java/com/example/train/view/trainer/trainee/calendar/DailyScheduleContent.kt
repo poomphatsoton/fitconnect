@@ -122,10 +122,11 @@ fun ScheduleRow(
                     }
                 } else {
                     IconButton(onClick = onAddClick) {
-                        Image(
-                            painter = painterResource(id = R.drawable.add),
-                            contentDescription = "Add",
-                            modifier = Modifier.size(25.dp)
+                        Text(
+                            text = "+",
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
                         )
                     }
                 }

@@ -118,7 +118,7 @@ private fun DashboardHeader(onBackClick: () -> Unit) {
     ) {
         IconButton(onClick = onBackClick) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_back),
+                painter = painterResource(id = R.drawable.back),
                 contentDescription = "Back"
             )
         }

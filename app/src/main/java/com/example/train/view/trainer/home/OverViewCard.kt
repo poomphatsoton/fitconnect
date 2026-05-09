@@ -52,19 +52,19 @@ fun OverviewCard(
             Spacer(modifier = Modifier.height(16.dp))
 
             OverviewRow(
-                icon = R.drawable.ic_group,
+                icon = R.drawable.group,
                 label = "Active Trainees",
                 value = activeTrainees.toString()
             )
 
             OverviewRow(
-                icon = R.drawable.ic_list,
+                icon = R.drawable.list,
                 label = "Exercises",
                 value = exercises.toString()
             )
 
             OverviewRow(
-                icon = R.drawable.ic_fitness,
+                icon = R.drawable.fitness,
                 label = "Workouts",
                 value = workouts.toString()
             )
