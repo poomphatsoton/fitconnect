@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.train.R
 import com.example.train.model.trainer.TraineeSlot
+import com.example.train.view.reuseComponent.SlotStatusTag
 
 @Composable
 fun DailyScheduleContent(
@@ -46,32 +47,6 @@ fun DailyScheduleContent(
         }
     }
 }
-@Composable
-fun Tag(idTag: Int) {
-    val color = when(idTag) {
-        0 -> Color(0xFFD1FAE5)
-        1 -> Color(0xFFFEF3C7)
-        else -> Color(0xFFF3F4F6)
-    }
-    val text = when(idTag) {
-        0 -> "IDEAL"
-        1 -> "MAYBE"
-        else -> "BUSY"
-    }
-    Surface(
-        color = color,
-        shape = RoundedCornerShape(4.dp)
-    ) {
-        Text(
-            text = text,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.DarkGray,
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-        )
-    }
-}
-
 @Composable
 fun ScheduleRow(
     slot: TraineeSlot,
@@ -105,7 +80,7 @@ fun ScheduleRow(
                         )
                     }
                     Spacer(modifier = Modifier.width(8.dp))
-                    Tag(slot.status)
+                    SlotStatusTag(slot.status)
                 }
                 
                 Spacer(modifier = Modifier.height(8.dp))

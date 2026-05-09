@@ -738,6 +738,88 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.delete(TABLE_WORKOUT_EXERCISE_COMPLETIONS, "$COL_COMPLETION_SLOT_ID = ?", arrayOf(slotId.toString()))
     }
 
+    fun addTraineeCalendarSlot(
+        traineeId: Int,
+        date: LocalDate,
+        startTime: String,
+        endTime: String,
+        status: Int
+    ): Boolean {
+        if (hasTraineeSlotAtTime(traineeId, date, startTime, endTime)) {
+            return false
+        }
+
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put(COL_TRAINEE_ID, traineeId)
+            putNull(COL_SLOT_WORKOUT_ID)
+            put(COL_SLOT_STATUS, status)
+            put(COL_SLOT_DATE, date.toString())
+            put(COL_SLOT_START_TIME, startTime)
+            put(COL_SLOT_END_TIME, endTime)
+        }
+        return db.insert(TABLE_TRAINEE_CALENDAR_SLOT, null, values) != -1L
+    }
+
+    fun updateTraineeCalendarSlot(
+        slotId: Int,
+        traineeId: Int,
+        date: LocalDate,
+        startTime: String,
+        endTime: String,
+        status: Int
+    ): Boolean {
+        if (hasTraineeSlotAtTime(traineeId, date, startTime, endTime, excludedSlotId = slotId)) {
+            return false
+        }
+
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put(COL_SLOT_STATUS, status)
+            put(COL_SLOT_START_TIME, startTime)
+            put(COL_SLOT_END_TIME, endTime)
+        }
+        return db.update(TABLE_TRAINEE_CALENDAR_SLOT, values, "$COL_SLOT_ID = ?", arrayOf(slotId.toString())) > 0
+    }
+
+    fun deleteTraineeCalendarSlot(slotId: Int): Boolean {
+        val db = writableDatabase
+        db.delete(TABLE_WORKOUT_EXERCISE_COMPLETIONS, "$COL_COMPLETION_SLOT_ID = ?", arrayOf(slotId.toString()))
+        return db.delete(TABLE_TRAINEE_CALENDAR_SLOT, "$COL_SLOT_ID = ?", arrayOf(slotId.toString())) > 0
+    }
+
+    private fun hasTraineeSlotAtTime(
+        traineeId: Int,
+        date: LocalDate,
+        startTime: String,
+        endTime: String,
+        excludedSlotId: Int? = null
+    ): Boolean {
+        val db = readableDatabase
+        val selection = buildString {
+            append("$COL_TRAINEE_ID = ? AND $COL_SLOT_DATE = ? AND $COL_SLOT_START_TIME = ? AND $COL_SLOT_END_TIME = ?")
+            if (excludedSlotId != null) {
+                append(" AND $COL_SLOT_ID != ?")
+            }
+        }
+        val args = mutableListOf(traineeId.toString(), date.toString(), startTime, endTime)
+        if (excludedSlotId != null) {
+            args.add(excludedSlotId.toString())
+        }
+        val cursor = db.query(
+            TABLE_TRAINEE_CALENDAR_SLOT,
+            arrayOf(COL_SLOT_ID),
+            selection,
+            args.toTypedArray(),
+            null,
+            null,
+            null
+        )
+        val exists = cursor.moveToFirst()
+        cursor.close()
+        return exists
+    }
+
     fun getCompletedExerciseIdsForSlot(slotId: Int): Cursor {
         val db = readableDatabase
         return db.query(

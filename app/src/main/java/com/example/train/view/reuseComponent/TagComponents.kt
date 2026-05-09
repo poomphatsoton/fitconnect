@@ -30,3 +30,34 @@ fun TraineeTag(
         )
     }
 }
+
+@Composable
+fun SlotStatusTag(
+    status: Int,
+    modifier: Modifier = Modifier
+) {
+    val text = when (status) {
+        0 -> "IDEAL"
+        1 -> "MAYBE"
+        else -> "BUSY"
+    }
+    val color = when (status) {
+        0 -> Color(0xFFD1FAE5)
+        1 -> Color(0xFFFEF3C7)
+        else -> Color(0xFFF3F4F6)
+    }
+
+    Surface(
+        color = color,
+        shape = RoundedCornerShape(4.dp),
+        modifier = modifier
+    ) {
+        Text(
+            text = text,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.DarkGray,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        )
+    }
+}

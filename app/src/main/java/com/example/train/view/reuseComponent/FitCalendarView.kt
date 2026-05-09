@@ -1,4 +1,4 @@
-package com.example.train.ui
+package com.example.train.view.reuseComponent
 
 import android.os.Build
 import android.widget.CalendarView
@@ -19,7 +19,7 @@ import java.time.ZoneId
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun TraineeCalendarView(
+fun FitCalendarView(
     modifier: Modifier = Modifier,
     selectedDate: LocalDate,
     onSelectedDate: (LocalDate) -> Unit
@@ -33,20 +33,13 @@ fun TraineeCalendarView(
         AndroidView(
             factory = { context ->
                 CalendarView(context).apply {
-                    // set วันที่เริ่มต้นให้ CalendarView
                     date = selectedDate
                         .atStartOfDay(ZoneId.systemDefault())
                         .toInstant()
                         .toEpochMilli()
 
                     setOnDateChangeListener { _, year, month, dayOfMonth ->
-                        val newDate = LocalDate.of(
-                            year,
-                            month + 1, // CalendarView month เริ่มจาก 0
-                            dayOfMonth
-                        )
-
-                        onSelectedDate(newDate)
+                        onSelectedDate(LocalDate.of(year, month + 1, dayOfMonth))
                     }
                 }
             },

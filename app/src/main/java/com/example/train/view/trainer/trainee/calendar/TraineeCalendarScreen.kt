@@ -21,6 +21,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.train.R
 import com.example.train.model.trainer.AssignedWorkout
 import com.example.train.model.trainer.WorkoutOption
+import com.example.train.view.reuseComponent.FitCalendarView
 import com.example.train.viewmodel.trainer.CalendarViewModel
 import java.time.LocalDate
 import java.time.LocalDate.*
@@ -56,7 +57,7 @@ fun TraineeCalendarScreen(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            TraineeCalendarView(
+            FitCalendarView(
                 selectedDate = selectedDate,
                 onSelectedDate = { newDate ->
                     selectedDate = newDate

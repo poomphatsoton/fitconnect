@@ -23,6 +23,7 @@ import com.example.train.R
 import com.example.train.ui.BottomNavItem
 import com.example.train.ui.components.BottomNavigationBar
 import com.example.train.ui.components.NavigationBar
+import com.example.train.view.trainee.calendar.TraineeCalendarTabScreen
 import com.example.train.view.trainee.home.TraineeHomeScreen
 import com.example.train.view.trainee.trainer.TraineeTrainerScreen
 import com.example.train.view.trainee.workout.TraineeWorkoutScreen
@@ -95,7 +96,7 @@ fun TraineeMainScreen(
             }
 
             composable(TraineeRoutes.CALENDAR) {
-                TraineePlaceholderScreen(title = "Calendar")
+                TraineeCalendarTabScreen()
             }
 
             composable(TraineeRoutes.TRAINER) {
