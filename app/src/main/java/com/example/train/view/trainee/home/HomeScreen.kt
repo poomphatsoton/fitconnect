@@ -16,8 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.train.ui.components.TrainerProfileCard
-import com.example.train.ui.EditTrainerProfileScreen
+import com.example.train.view.reuseComponent.EditUserProfileScreen
+import com.example.train.view.reuseComponent.UserProfileCard
 import com.example.train.viewmodel.trainee.TraineeHomeViewModel
 
 @Composable
@@ -34,7 +34,7 @@ fun TraineeHomeScreen(
     }
 
     if (showEditProfile) {
-        EditTrainerProfileScreen(
+        EditUserProfileScreen(
             initialName = uiState.traineeName,
             initialBio = uiState.traineeBio,
             initialTags = uiState.traineeTags,
@@ -67,7 +67,7 @@ fun TraineeHomeScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
-            TrainerProfileCard(
+            UserProfileCard(
                 name = uiState.traineeName,
                 bio = uiState.traineeBio,
                 tags = uiState.traineeTags,

@@ -52,7 +52,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.train.R
 import com.example.train.model.Tag
 import com.example.train.model.trainee.TrainerProfile
-import com.example.train.ui.TraineeTag
+import com.example.train.view.reuseComponent.TraineeTag
 import com.example.train.viewmodel.trainee.TraineeTrainerViewModel
 
 @Composable

@@ -14,7 +14,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     companion object {
         private const val DATABASE_NAME = "FitConnect.db"
-        private const val DATABASE_VERSION = 20
+        private const val DATABASE_VERSION = 22
 
         // Users
         const val TABLE_USERS = "users"
@@ -333,6 +333,18 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         // Request data
         db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee5', 'pass123', 'trainee', 'Anna Lee', 'Interested in cardio training')")
         db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee6', 'pass123', 'trainee', 'David Kim', 'Wants to improve flexibility')")
+
+        // Additional mock trainers (IDs 8, 9)
+        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO, $COL_USER_MAX_TRAINEES) VALUES ('trainer2', 'trainer123', 'trainer', 'Maya Chen', 'Strength and mobility coach focused on sustainable progress', 8)")
+        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO, $COL_USER_MAX_TRAINEES) VALUES ('trainer3', 'trainer123', 'trainer', 'Alex Rivera', 'Cardio and weight-loss specialist for beginner-friendly programs', 12)")
+        db.execSQL("INSERT INTO $TABLE_USERS_TAGS ($COL_USER_ID, $COL_TAG_ID) VALUES (8, 1)")
+        db.execSQL("INSERT INTO $TABLE_USERS_TAGS ($COL_USER_ID, $COL_TAG_ID) VALUES (8, 5)")
+        db.execSQL("INSERT INTO $TABLE_USERS_TAGS ($COL_USER_ID, $COL_TAG_ID) VALUES (9, 2)")
+        db.execSQL("INSERT INTO $TABLE_USERS_TAGS ($COL_USER_ID, $COL_TAG_ID) VALUES (9, 4)")
+
+        // Login test trainee account
+        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee', '123456', 'trainee', 'Test Trainee', 'Ready to find a trainer')")
+
         db.execSQL("INSERT INTO $TABLE_TRAINEE_REQUESTS ($COL_REQUEST_TRAINER_ID, $COL_REQUEST_TRAINEE_ID, $COL_REQUEST_STATUS) VALUES (1, 6, '$STATUS_PENDING')")
         db.execSQL("INSERT INTO $TABLE_TRAINEE_REQUESTS ($COL_REQUEST_TRAINER_ID, $COL_REQUEST_TRAINEE_ID, $COL_REQUEST_STATUS) VALUES (1, 7, '$STATUS_PENDING')")
         db.execSQL("INSERT INTO $TABLE_EXERCISE_TAGS ($COL_EXERCISE_ID, $COL_TAG_ID) VALUES (1, 1)") // strength

@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.train.R
 import com.example.train.model.Tag
-import com.example.train.ui.TraineeTag
+import com.example.train.view.reuseComponent.TraineeTag
 
 @Composable
 fun TraineeBaseCard(
