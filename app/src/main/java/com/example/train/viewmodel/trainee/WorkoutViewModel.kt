@@ -11,12 +11,14 @@ import com.example.train.database.DatabaseHelper
 import com.example.train.model.trainer.Exercise
 import com.example.train.model.trainer.Workout
 import com.example.train.model.trainer.WorkoutExerciseDetail
+import com.example.train.model.trainer.WorkoutTagPercent
 import com.example.train.model.trainer.WorkoutUiItem
 import com.example.train.model.trainee.TraineeAssignedWorkout
 import com.example.train.model.trainee.TraineeWorkoutUiState
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import kotlin.math.roundToInt
 
 class TraineeWorkoutViewModel(
     application: Application
@@ -126,7 +128,8 @@ class TraineeWorkoutViewModel(
 
             return WorkoutUiItem(
                 workout = workout,
-                exerciseDetails = exerciseDetails
+                exerciseDetails = exerciseDetails,
+                tagPercents = calculateWorkoutTagPercents(workoutId.toLong(), exerciseDetails)
             )
         }
     }
@@ -149,6 +152,41 @@ class TraineeWorkoutViewModel(
             }
         }
         return details
+    }
+
+    private fun calculateWorkoutTagPercents(
+        workoutId: Long,
+        exerciseDetails: List<WorkoutExerciseDetail>
+    ): List<WorkoutTagPercent> {
+        val totalTime = exerciseDetails.sumOf { it.reps * it.timePerRep }
+        if (totalTime <= 0) return emptyList()
+
+        val tagsByExercise = mutableMapOf<Long, MutableList<String>>()
+        dbHelper.getWorkoutExerciseTagTimes(workoutId).use { cursor ->
+            while (cursor.moveToNext()) {
+                val exerciseId = cursor.getLong(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_ID))
+                val tagName = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_TAG_NAME))
+                tagsByExercise.getOrPut(exerciseId) { mutableListOf() }.add(tagName)
+            }
+        }
+
+        val tagTimes = mutableMapOf<String, Double>()
+        exerciseDetails.forEach { detail ->
+            val tags = tagsByExercise[detail.exerciseId].orEmpty()
+            if (tags.isNotEmpty()) {
+                val sharedTime = (detail.reps * detail.timePerRep).toDouble() / tags.size
+                tags.forEach { tagName ->
+                    tagTimes[tagName] = (tagTimes[tagName] ?: 0.0) + sharedTime
+                }
+            }
+        }
+
+        return tagTimes.map { (tagName, tagTime) ->
+            WorkoutTagPercent(
+                tagName = tagName,
+                percent = (tagTime / totalTime * 100).roundToInt()
+            )
+        }.sortedByDescending { it.percent }
     }
 
     private fun Cursor.toWorkoutExerciseDetail(): WorkoutExerciseDetail {

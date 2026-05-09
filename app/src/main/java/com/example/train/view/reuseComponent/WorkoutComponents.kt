@@ -3,6 +3,8 @@ package com.example.train.view.reuseComponent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -24,8 +26,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.train.R
 import com.example.train.model.trainer.WorkoutExerciseDetail
+import com.example.train.model.trainer.WorkoutTagPercent
 import com.example.train.model.trainer.WorkoutUiItem
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun WorkoutDetailCard(
     item: WorkoutUiItem,
@@ -117,6 +121,19 @@ fun WorkoutDetailCard(
             }
         }
 
+        if (item.tagPercents.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(12.dp))
+
+            FlowRow(
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+                verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
+            ) {
+                item.tagPercents.forEach { tag ->
+                    WorkoutTagPercentChip(tag)
+                }
+            }
+        }
+
         Spacer(modifier = Modifier.height(12.dp))
 
         Spacer(
@@ -142,6 +159,22 @@ fun WorkoutDetailCard(
             }
         }
     }
+}
+
+@Composable
+private fun WorkoutTagPercentChip(tag: WorkoutTagPercent) {
+    Text(
+        text = "${tag.tagName} ${tag.percent}%",
+        fontSize = 12.sp,
+        fontWeight = FontWeight.SemiBold,
+        color = Color(0xFF374151),
+        modifier = Modifier
+            .background(
+                color = Color(0xFFF3F4F6),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(horizontal = 10.dp, vertical = 6.dp)
+    )
 }
 
 @Composable

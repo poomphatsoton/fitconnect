@@ -586,6 +586,25 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         return db.rawQuery(query, arrayOf(workoutId.toString()))
     }
 
+    fun getWorkoutExerciseTagTimes(workoutId: Long): Cursor {
+        val db = readableDatabase
+        val query = """
+            SELECT
+                e.$COL_EXERCISE_ID,
+                (we.$COL_WE_REPS * e.$COL_EXERCISE_TIME_PER_REP) AS exercise_time,
+                t.$COL_TAG_NAME
+            FROM $TABLE_WORKOUT_EXERCISES we
+            JOIN $TABLE_EXERCISES e
+                ON we.$COL_WE_EXERCISE_ID = e.$COL_EXERCISE_ID
+            JOIN $TABLE_EXERCISE_TAGS et
+                ON e.$COL_EXERCISE_ID = et.$COL_EXERCISE_ID
+            JOIN $TABLE_TAGS t
+                ON et.$COL_TAG_ID = t.$COL_TAG_ID
+            WHERE we.$COL_WE_WORKOUT_ID = ?
+        """.trimIndent()
+        return db.rawQuery(query, arrayOf(workoutId.toString()))
+    }
+
     fun getSnapshotWorkoutExerciseDetails(assignmentId: Int): Cursor {
         val db = readableDatabase
         val query = """

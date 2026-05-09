@@ -18,7 +18,13 @@ data class WorkoutExerciseDetail(
     val description: String = "",
 )
 
+data class WorkoutTagPercent(
+    val tagName: String,
+    val percent: Int
+)
+
 data class WorkoutUiItem(
     val workout: Workout,
     val exerciseDetails: List<WorkoutExerciseDetail>,
+    val tagPercents: List<WorkoutTagPercent> = emptyList()
 )
