@@ -5,8 +5,6 @@ import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import android.os.Build
-import androidx.annotation.RequiresApi
 import com.example.train.model.Tag
 import com.example.train.security.PasswordHasher
 import java.time.LocalDate
@@ -15,7 +13,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     companion object {
         private const val DATABASE_NAME = "FitConnect.db"
-        private const val DATABASE_VERSION = 30
+        private const val DATABASE_VERSION = 36
 
         // Users
         const val TABLE_USERS = "users"
@@ -138,7 +136,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.execSQL(CREATE_TABLE_TAGS)
         db.execSQL(CREATE_TABLE_USER_TAGS)
         db.execSQL(CREATE_TABLE_EXERCISE_TAGS)
-        insertDemoData(db)
+        CreateDeomo.insertDemoData(db)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -320,144 +318,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             FOREIGN KEY($COL_TTR_TRAINER_ID) REFERENCES $TABLE_USERS($COL_USER_ID)
         )
     """.trimIndent()
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun insertDemoData(db: SQLiteDatabase) {
-        // Trainer (ID 1)
-        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO, $COL_USER_MAX_TRAINEES) VALUES ('trainer', '${PasswordHasher.hash("trainer123")}', 'trainer', 'John Smith', 'Certified personal trainer with 10 years of experience', 10)")
-
-        // 4 Active Trainees (IDs 2, 3, 4, 5)
-        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee1', '${PasswordHasher.hash("pass123")}', 'trainee', 'Sarah Johnson', 'Looking to build strength')")
-        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee2', '${PasswordHasher.hash("pass123")}', 'trainee', 'Mike Wilson', 'Former athlete getting back into shape')")
-        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee3', '${PasswordHasher.hash("pass123")}', 'trainee', 'Emily Davis', 'Focusing on weight loss')")
-        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee4', '${PasswordHasher.hash("pass123")}', 'trainee', 'Chris Brown', 'Improving endurance')")
-
-        db.execSQL("INSERT INTO $TABLE_EXERCISES ($COL_EXERCISE_NAME, $COL_EXERCISE_DESC, $COL_EXERCISE_TIME_PER_REP) VALUES ('Push-ups', 'Standard push-ups with proper form. Keep body straight, lower chest to ground.', 3)")
-        db.execSQL("INSERT INTO $TABLE_EXERCISES ($COL_EXERCISE_NAME, $COL_EXERCISE_DESC, $COL_EXERCISE_TIME_PER_REP) VALUES ('Squats', 'Bodyweight squats. Keep back straight, lower until thighs are parallel to ground.', 4)")
-        db.execSQL("INSERT INTO $TABLE_EXERCISES ($COL_EXERCISE_NAME, $COL_EXERCISE_DESC, $COL_EXERCISE_TIME_PER_REP) VALUES ('Jumping Jacks', 'Cardio exercise. Jump while spreading legs and raising arms overhead.', 2)")
-        db.execSQL("INSERT INTO $TABLE_EXERCISES ($COL_EXERCISE_NAME, $COL_EXERCISE_DESC, $COL_EXERCISE_TIME_PER_REP) VALUES ('Plank', 'Hold plank position with forearms on ground, body straight.', 1)")
-
-        db.execSQL("INSERT INTO $TABLE_WORKOUTS ($COL_WORKOUT_NAME, $COL_WORKOUT_DESC, $COL_WORKOUT_DURATION) VALUES ('Full Body Strength', 'Complete full body workout targeting all major muscle groups', 245)")
-        db.execSQL("INSERT INTO $TABLE_WORKOUTS ($COL_WORKOUT_NAME, $COL_WORKOUT_DESC, $COL_WORKOUT_DURATION) VALUES ('Endurance Builder', 'Long conditioning workout that needs two connected trainee slots', 3900)")
-
-        db.execSQL("INSERT INTO $TABLE_WORKOUT_EXERCISES ($COL_WE_WORKOUT_ID, $COL_WE_EXERCISE_ID, $COL_WE_REPS) VALUES (1, 1, 15)")
-        db.execSQL("INSERT INTO $TABLE_WORKOUT_EXERCISES ($COL_WE_WORKOUT_ID, $COL_WE_EXERCISE_ID, $COL_WE_REPS) VALUES (1, 2, 20)")
-        db.execSQL("INSERT INTO $TABLE_WORKOUT_EXERCISES ($COL_WE_WORKOUT_ID, $COL_WE_EXERCISE_ID, $COL_WE_REPS) VALUES (1, 3, 30)")
-        db.execSQL("INSERT INTO $TABLE_WORKOUT_EXERCISES ($COL_WE_WORKOUT_ID, $COL_WE_EXERCISE_ID, $COL_WE_REPS) VALUES (1, 4, 60)")
-        db.execSQL("INSERT INTO $TABLE_WORKOUT_EXERCISES ($COL_WE_WORKOUT_ID, $COL_WE_EXERCISE_ID, $COL_WE_REPS) VALUES (2, 4, 1800)")
-        db.execSQL("INSERT INTO $TABLE_WORKOUT_EXERCISES ($COL_WE_WORKOUT_ID, $COL_WE_EXERCISE_ID, $COL_WE_REPS) VALUES (2, 3, 600)")
-        db.execSQL("INSERT INTO $TABLE_WORKOUT_EXERCISES ($COL_WE_WORKOUT_ID, $COL_WE_EXERCISE_ID, $COL_WE_REPS) VALUES (2, 2, 225)")
-
-        // Active Requests
-        db.execSQL("INSERT INTO $TABLE_TRAINEE_REQUESTS ($COL_REQUEST_TRAINER_ID, $COL_REQUEST_TRAINEE_ID, $COL_REQUEST_STATUS) VALUES (1, 2, 'accepted')")
-        db.execSQL("INSERT INTO $TABLE_TRAINEE_REQUESTS ($COL_REQUEST_TRAINER_ID, $COL_REQUEST_TRAINEE_ID, $COL_REQUEST_STATUS) VALUES (1, 3, 'accepted')")
-        db.execSQL("INSERT INTO $TABLE_TRAINEE_REQUESTS ($COL_REQUEST_TRAINER_ID, $COL_REQUEST_TRAINEE_ID, $COL_REQUEST_STATUS) VALUES (1, 4, 'accepted')")
-        db.execSQL("INSERT INTO $TABLE_TRAINEE_REQUESTS ($COL_REQUEST_TRAINER_ID, $COL_REQUEST_TRAINEE_ID, $COL_REQUEST_STATUS) VALUES (1, 5, 'accepted')")
-
-        // Active Mappings (Trainee Table)
-        db.execSQL("INSERT INTO $TABLE_TRAINER_TRAINEES ($COL_TT_TRAINER_ID, $COL_TT_TRAINEE_ID) VALUES (1, 2)")
-        db.execSQL("INSERT INTO $TABLE_TRAINER_TRAINEES ($COL_TT_TRAINER_ID, $COL_TT_TRAINEE_ID) VALUES (1, 3)")
-        db.execSQL("INSERT INTO $TABLE_TRAINER_TRAINEES ($COL_TT_TRAINER_ID, $COL_TT_TRAINEE_ID) VALUES (1, 4)")
-        db.execSQL("INSERT INTO $TABLE_TRAINER_TRAINEES ($COL_TT_TRAINER_ID, $COL_TT_TRAINEE_ID) VALUES (1, 5)")
-
-        db.execSQL("INSERT INTO $TABLE_TRAINEE_TRAINER ($COL_TTR_TRAINEE_ID, $COL_TTR_TRAINER_ID) VALUES (2, 1)")
-        db.execSQL("INSERT INTO $TABLE_TRAINEE_TRAINER ($COL_TTR_TRAINEE_ID, $COL_TTR_TRAINER_ID) VALUES (3, 1)")
-        db.execSQL("INSERT INTO $TABLE_TRAINEE_TRAINER ($COL_TTR_TRAINEE_ID, $COL_TTR_TRAINER_ID) VALUES (4, 1)")
-        db.execSQL("INSERT INTO $TABLE_TRAINEE_TRAINER ($COL_TTR_TRAINEE_ID, $COL_TTR_TRAINER_ID) VALUES (5, 1)")
-
-        // Mock Trainee Slots for testing for Sarah (ID 2)
-        val today = java.time.LocalDate.now().toString()
-
-        // 1. IDEAL with Workout
-        db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_ASSIGNMENT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (2, 1, 1, 0, '$today', '08:00', '09:00')")
-
-        // 2. MAYBE without Workout (Available)
-        db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (2, NULL, 1, '$today', '10:00', '11:00')")
-
-        // 3. BUSY without Workout (Unavailable)
-        db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (2, NULL, 2, '$today', '13:00', '14:00')")
-
-        // 4. IDEAL without Workout (Available)
-        db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (2, NULL, 0, '$today', '15:00', '16:00')")
-
-        // 5. MAYBE with Workout
-        db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_ASSIGNMENT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (2, 1, 2, 1, '$today', '17:00', '18:00')")
-        createSnapshotWorkout(db, assignmentId = 1, workoutId = 1)
-        createSnapshotWorkout(db, assignmentId = 2, workoutId = 1)
-        createWorkoutAssignmentProgress(db, assignmentId = 1, workoutId = 1)
-        createWorkoutAssignmentProgress(db, assignmentId = 2, workoutId = 1)
-
-        // Mock Tags
-        db.execSQL("INSERT INTO $TABLE_TAGS ($COL_TAG_NAME) VALUES ('strength')") // ID 1
-        db.execSQL("INSERT INTO $TABLE_TAGS ($COL_TAG_NAME) VALUES ('weight-loss')") // ID 2
-        db.execSQL("INSERT INTO $TABLE_TAGS ($COL_TAG_NAME) VALUES ('endurance')") // ID 3
-        db.execSQL("INSERT INTO $TABLE_TAGS ($COL_TAG_NAME) VALUES ('cardio')") // ID 4
-        db.execSQL("INSERT INTO $TABLE_TAGS ($COL_TAG_NAME) VALUES ('muscle-gain')") // ID 5
-
-        // Assign tags to Sarah (User ID 2)
-        db.execSQL("INSERT INTO $TABLE_USERS_TAGS ($COL_USER_ID, $COL_TAG_ID) VALUES (2, 1)")
-        db.execSQL("INSERT INTO $TABLE_USERS_TAGS ($COL_USER_ID, $COL_TAG_ID) VALUES (2, 2)")
-        db.execSQL("INSERT INTO $TABLE_USERS_TAGS ($COL_USER_ID, $COL_TAG_ID) VALUES (2, 3)")
-
-        // Assign tags to Mike (User ID 3)
-        db.execSQL("INSERT INTO $TABLE_USERS_TAGS ($COL_USER_ID, $COL_TAG_ID) VALUES (3, 5)")
-        db.execSQL("INSERT INTO $TABLE_USERS_TAGS ($COL_USER_ID, $COL_TAG_ID) VALUES (3, 1)")
-        db.execSQL("INSERT INTO $TABLE_USERS_TAGS ($COL_USER_ID, $COL_TAG_ID) VALUES (3, 3)")
-
-        // Request data
-        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee5', '${PasswordHasher.hash("pass123")}', 'trainee', 'Anna Lee', 'Interested in cardio training')")
-        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee6', '${PasswordHasher.hash("pass123")}', 'trainee', 'David Kim', 'Wants to improve flexibility')")
-
-        // Additional mock trainers (IDs 8, 9)
-        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO, $COL_USER_MAX_TRAINEES) VALUES ('trainer2', '${PasswordHasher.hash("trainer123")}', 'trainer', 'Maya Chen', 'Strength and mobility coach focused on sustainable progress', 8)")
-        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO, $COL_USER_MAX_TRAINEES) VALUES ('trainer3', '${PasswordHasher.hash("trainer123")}', 'trainer', 'Alex Rivera', 'Cardio and weight-loss specialist for beginner-friendly programs', 12)")
-        db.execSQL("INSERT INTO $TABLE_USERS_TAGS ($COL_USER_ID, $COL_TAG_ID) VALUES (8, 1)")
-        db.execSQL("INSERT INTO $TABLE_USERS_TAGS ($COL_USER_ID, $COL_TAG_ID) VALUES (8, 5)")
-        db.execSQL("INSERT INTO $TABLE_USERS_TAGS ($COL_USER_ID, $COL_TAG_ID) VALUES (9, 2)")
-        db.execSQL("INSERT INTO $TABLE_USERS_TAGS ($COL_USER_ID, $COL_TAG_ID) VALUES (9, 4)")
-
-        // Login test trainee account
-        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee', '${PasswordHasher.hash("123456")}', 'trainee', 'Test Trainee', 'Ready to find a trainer')")
-
-        // Test trainee is enrolled with Alex Rivera (trainer ID 9, trainee ID 10)
-        db.execSQL("INSERT INTO $TABLE_TRAINEE_REQUESTS ($COL_REQUEST_TRAINER_ID, $COL_REQUEST_TRAINEE_ID, $COL_REQUEST_STATUS) VALUES (9, 10, '$STATUS_ACCEPTED')")
-        db.execSQL("INSERT INTO $TABLE_TRAINER_TRAINEES ($COL_TT_TRAINER_ID, $COL_TT_TRAINEE_ID) VALUES (9, 10)")
-        db.execSQL("INSERT INTO $TABLE_TRAINEE_TRAINER ($COL_TTR_TRAINEE_ID, $COL_TTR_TRAINER_ID) VALUES (10, 9)")
-        db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_ASSIGNMENT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (10, 2, 3, 0, '$today', '08:00', '09:00')")
-        db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_ASSIGNMENT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (10, 2, 3, 1, '$today', '09:00', '10:00')")
-        db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_ASSIGNMENT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (10, 1, 4, 0, '$today', '13:00', '14:00')")
-        db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_ASSIGNMENT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (10, NULL, NULL, 2, '$today', '15:00', '16:00')")
-        createSnapshotWorkout(db, assignmentId = 3, workoutId = 2)
-        createSnapshotWorkout(db, assignmentId = 4, workoutId = 1)
-        createWorkoutAssignmentProgress(db, assignmentId = 3, workoutId = 2)
-        createWorkoutAssignmentProgress(db, assignmentId = 4, workoutId = 1)
-        db.execSQL("INSERT INTO $TABLE_WORKOUT_EXERCISE_COMPLETIONS ($COL_COMPLETION_SLOT_ID, $COL_COMPLETION_EXERCISE_ID, $COL_COMPLETION_COMPLETED_AT) SELECT $COL_SLOT_ID, 4, '${System.currentTimeMillis()}' FROM $TABLE_TRAINEE_CALENDAR_SLOT WHERE $COL_TRAINEE_ID = 10 AND $COL_SLOT_DATE = '$today' AND $COL_SLOT_START_TIME = '08:00'")
-        db.execSQL("UPDATE $TABLE_WORKOUT_ASSIGNMENT_PROGRESS SET $COL_PROGRESS_COMPLETED_EXERCISE_TIME = (SELECT $COL_SNAPSHOT_EXERCISE_TOTAL_TIME FROM $TABLE_SNAPSHOT_WORKOUT WHERE $COL_SNAPSHOT_ASSIGNMENT_ID = 3 AND $COL_SNAPSHOT_EXERCISE_ID = 4) WHERE $COL_PROGRESS_ASSIGNMENT_ID = 3")
-        db.execSQL("INSERT INTO $TABLE_WORKOUT_EXERCISE_COMPLETIONS ($COL_COMPLETION_SLOT_ID, $COL_COMPLETION_EXERCISE_ID, $COL_COMPLETION_COMPLETED_AT) SELECT $COL_SLOT_ID, 1, '${System.currentTimeMillis()}' FROM $TABLE_TRAINEE_CALENDAR_SLOT WHERE $COL_TRAINEE_ID = 10 AND $COL_SLOT_DATE = '$today' AND $COL_SLOT_START_TIME = '13:00'")
-        db.execSQL("INSERT INTO $TABLE_WORKOUT_EXERCISE_COMPLETIONS ($COL_COMPLETION_SLOT_ID, $COL_COMPLETION_EXERCISE_ID, $COL_COMPLETION_COMPLETED_AT) SELECT $COL_SLOT_ID, 2, '${System.currentTimeMillis()}' FROM $TABLE_TRAINEE_CALENDAR_SLOT WHERE $COL_TRAINEE_ID = 10 AND $COL_SLOT_DATE = '$today' AND $COL_SLOT_START_TIME = '13:00'")
-        db.execSQL("INSERT INTO $TABLE_WORKOUT_EXERCISE_COMPLETIONS ($COL_COMPLETION_SLOT_ID, $COL_COMPLETION_EXERCISE_ID, $COL_COMPLETION_COMPLETED_AT) SELECT $COL_SLOT_ID, 3, '${System.currentTimeMillis()}' FROM $TABLE_TRAINEE_CALENDAR_SLOT WHERE $COL_TRAINEE_ID = 10 AND $COL_SLOT_DATE = '$today' AND $COL_SLOT_START_TIME = '13:00'")
-        db.execSQL("INSERT INTO $TABLE_WORKOUT_EXERCISE_COMPLETIONS ($COL_COMPLETION_SLOT_ID, $COL_COMPLETION_EXERCISE_ID, $COL_COMPLETION_COMPLETED_AT) SELECT $COL_SLOT_ID, 4, '${System.currentTimeMillis()}' FROM $TABLE_TRAINEE_CALENDAR_SLOT WHERE $COL_TRAINEE_ID = 10 AND $COL_SLOT_DATE = '$today' AND $COL_SLOT_START_TIME = '13:00'")
-        db.execSQL("UPDATE $TABLE_WORKOUT_ASSIGNMENT_PROGRESS SET $COL_PROGRESS_COMPLETED_EXERCISE_TIME = $COL_PROGRESS_TOTAL_EXERCISE_TIME WHERE $COL_PROGRESS_ASSIGNMENT_ID = 4")
-
-        db.execSQL("INSERT INTO $TABLE_TRAINEE_REQUESTS ($COL_REQUEST_TRAINER_ID, $COL_REQUEST_TRAINEE_ID, $COL_REQUEST_STATUS) VALUES (1, 6, '$STATUS_PENDING')")
-        db.execSQL("INSERT INTO $TABLE_TRAINEE_REQUESTS ($COL_REQUEST_TRAINER_ID, $COL_REQUEST_TRAINEE_ID, $COL_REQUEST_STATUS) VALUES (1, 7, '$STATUS_PENDING')")
-        db.execSQL("INSERT INTO $TABLE_EXERCISE_TAGS ($COL_EXERCISE_ID, $COL_TAG_ID) VALUES (1, 1)") // strength
-        db.execSQL("INSERT INTO $TABLE_EXERCISE_TAGS ($COL_EXERCISE_ID, $COL_TAG_ID) VALUES (1, 5)") // muscle-gain
-
-// Exercise 2: Squats
-        db.execSQL("INSERT INTO $TABLE_EXERCISE_TAGS ($COL_EXERCISE_ID, $COL_TAG_ID) VALUES (2, 1)") // strength
-        db.execSQL("INSERT INTO $TABLE_EXERCISE_TAGS ($COL_EXERCISE_ID, $COL_TAG_ID) VALUES (2, 2)") // weight-loss
-        db.execSQL("INSERT INTO $TABLE_EXERCISE_TAGS ($COL_EXERCISE_ID, $COL_TAG_ID) VALUES (2, 5)") // muscle-gain
-
-// Exercise 3: Jumping Jacks
-        db.execSQL("INSERT INTO $TABLE_EXERCISE_TAGS ($COL_EXERCISE_ID, $COL_TAG_ID) VALUES (3, 3)") // endurance
-        db.execSQL("INSERT INTO $TABLE_EXERCISE_TAGS ($COL_EXERCISE_ID, $COL_TAG_ID) VALUES (3, 4)") // cardio
-        db.execSQL("INSERT INTO $TABLE_EXERCISE_TAGS ($COL_EXERCISE_ID, $COL_TAG_ID) VALUES (3, 2)") // weight-loss
-
-// Exercise 4: Plank
-        db.execSQL("INSERT INTO $TABLE_EXERCISE_TAGS ($COL_EXERCISE_ID, $COL_TAG_ID) VALUES (4, 1)") // strength
-        db.execSQL("INSERT INTO $TABLE_EXERCISE_TAGS ($COL_EXERCISE_ID, $COL_TAG_ID) VALUES (4, 3)") // endurance
-    }
 
     fun getActiveTraineesCount(trainerId: Int): Int {
         val db = readableDatabase
@@ -788,18 +648,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         }
     }
 
-    fun getTraineeID(userId: Int): Int {
-        val db = readableDatabase
-        val query = "SELECT $COL_TTR_TRAINEE_ID FROM $TABLE_TRAINEE_TRAINER WHERE $COL_TTR_TRAINEE_ID = ?"
-        val cursor = db.rawQuery(query, arrayOf(userId.toString()))
-        var traineeId = -1
-        if (cursor.moveToFirst()) {
-            traineeId = cursor.getInt(0)
-        }
-        cursor.close()
-        return traineeId
-    }
-
     fun getTraineeSlots(traineeId: Int, date: LocalDate): Cursor {
         val db = readableDatabase
 
@@ -833,19 +681,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             null,
             COL_WORKOUT_NAME
         )
-    }
-
-    fun assignWorkoutToTraineeSlot(slotId: Int, workoutId: Int) {
-        val db = writableDatabase
-        val assignmentId = getNextAssignmentId(db)
-        val values = ContentValues().apply {
-            put(COL_SLOT_WORKOUT_ID, workoutId)
-            put(COL_SLOT_ASSIGNMENT_ID, assignmentId)
-        }
-        db.update(TABLE_TRAINEE_CALENDAR_SLOT, values, "$COL_SLOT_ID = ?", arrayOf(slotId.toString()))
-        db.delete(TABLE_WORKOUT_EXERCISE_COMPLETIONS, "$COL_COMPLETION_SLOT_ID = ?", arrayOf(slotId.toString()))
-        createSnapshotWorkout(db, assignmentId, workoutId)
-        createWorkoutAssignmentProgress(db, assignmentId, workoutId)
     }
 
     fun assignWorkoutToTraineeSlots(slotIds: List<Int>, workoutId: Int): Boolean {
@@ -936,19 +771,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         } finally {
             db.endTransaction()
         }
-    }
-
-    fun clearWorkoutFromTraineeSlot(slotId: Int) {
-        val db = writableDatabase
-        val assignmentIds = getAssignmentIdsForSlots(db, listOf(slotId))
-        val values = ContentValues().apply {
-            putNull(COL_SLOT_WORKOUT_ID)
-            putNull(COL_SLOT_ASSIGNMENT_ID)
-        }
-        db.update(TABLE_TRAINEE_CALENDAR_SLOT, values, "$COL_SLOT_ID = ?", arrayOf(slotId.toString()))
-        db.delete(TABLE_WORKOUT_EXERCISE_COMPLETIONS, "$COL_COMPLETION_SLOT_ID = ?", arrayOf(slotId.toString()))
-        deleteSnapshotsForAssignments(db, assignmentIds)
-        deleteProgressForAssignments(db, assignmentIds)
     }
 
     private fun getNextAssignmentId(db: SQLiteDatabase): Int {

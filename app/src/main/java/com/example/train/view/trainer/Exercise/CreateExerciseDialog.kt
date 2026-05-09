@@ -123,9 +123,13 @@ fun CreateExerciseDialog(
             ) {
                 DialogInputField(
                     value = timePerRep,
-                    onValueChange = { timePerRep = it },
+                    onValueChange = { value ->
+                        if (value.all { it.isDigit() }) {
+                            timePerRep = value
+                        }
+                    },
                     placeholder = "Enter minutes",
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.weight(1f)
                 )
 
@@ -170,10 +174,5 @@ fun CreateExerciseDialog(
 }
 
 private fun Int.toMinuteText(): String {
-    val minutes = this / 60.0
-    return if (minutes % 1.0 == 0.0) {
-        minutes.toInt().toString()
-    } else {
-        String.format("%.2f", minutes).trimEnd('0').trimEnd('.')
-    }
+    return (this / 60).coerceAtLeast(1).toString()
 }

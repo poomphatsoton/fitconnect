@@ -326,12 +326,9 @@ class WorkoutsViewModel(
     }
 
     fun loadWorkoutForEdit(workoutId: Int) {
-        // Load available exercises first
         loadAvailableExercises()
 
-        // Get this specific workout from our loaded list
         val workoutUiItem = workouts.find { it.workout.id == workoutId } ?: return
-        // Map exercise details to our select ui items
         availableExercises.forEachIndexed { index, selectItem ->
             val existingExercise = workoutUiItem.exerciseDetails.find {
                 it.exerciseId == selectItem.id
