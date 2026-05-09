@@ -45,7 +45,9 @@ class TraineeWorkoutViewModel(
                 val workoutIdIndex = cursor.getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_WORKOUT_ID)
                 if (!cursor.isNull(workoutIdIndex)) {
                     val workoutId = cursor.getInt(workoutIdIndex)
-                    val workout = loadWorkoutById(workoutId)
+                    val assignmentIdIndex = cursor.getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_ASSIGNMENT_ID)
+                    val assignmentId = if (cursor.isNull(assignmentIdIndex)) null else cursor.getInt(assignmentIdIndex)
+                    val workout = loadWorkoutById(workoutId, assignmentId)
                     if (workout != null) {
                         workouts.add(
                             TraineeAssignedWorkout(
@@ -90,7 +92,7 @@ class TraineeWorkoutViewModel(
         return completedExerciseIds
     }
 
-    private fun loadWorkoutById(workoutId: Int): WorkoutUiItem? {
+    private fun loadWorkoutById(workoutId: Int, assignmentId: Int?): WorkoutUiItem? {
         val cursor = dbHelper.readableDatabase.query(
             DatabaseHelper.TABLE_WORKOUTS,
             null,
@@ -104,64 +106,27 @@ class TraineeWorkoutViewModel(
         cursor.use {
             if (!it.moveToFirst()) return null
 
+            val snapshotDetails = assignmentId?.let { id -> loadSnapshotWorkoutExerciseDetails(id) }.orEmpty()
+            val exerciseDetails = snapshotDetails.ifEmpty { loadWorkoutExerciseDetails(workoutId.toLong()) }
+
             val workout = Workout(
                 id = it.getInt(it.getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_ID)),
                 name = it.getString(it.getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_NAME)),
                 description = it.getString(it.getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_DESC)),
-                duration = it.getInt(it.getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_DURATION)),
-                exercises = loadExercisesForWorkout(workoutId)
+                duration = exerciseDetails.sumOf { detail -> detail.reps * detail.timePerRep },
+                exercises = exerciseDetails.map { detail ->
+                    Exercise(
+                        id = detail.exerciseId.toInt(),
+                        name = detail.name,
+                        description = detail.description,
+                        timePerRep = detail.timePerRep
+                    )
+                }
             )
 
             return WorkoutUiItem(
                 workout = workout,
-                exerciseDetails = loadWorkoutExerciseDetails(workoutId.toLong())
-            )
-        }
-    }
-
-    private fun loadExercisesForWorkout(workoutId: Int): List<Exercise> {
-        val exercises = mutableListOf<Exercise>()
-        val cursor = dbHelper.readableDatabase.query(
-            DatabaseHelper.TABLE_WORKOUT_EXERCISES,
-            null,
-            "${DatabaseHelper.COL_WE_WORKOUT_ID} = ?",
-            arrayOf(workoutId.toString()),
-            null,
-            null,
-            null
-        )
-
-        cursor.use {
-            while (it.moveToNext()) {
-                val exerciseId = it.getInt(it.getColumnIndexOrThrow(DatabaseHelper.COL_WE_EXERCISE_ID))
-                loadExerciseById(exerciseId)?.let { exercise ->
-                    exercises.add(exercise)
-                }
-            }
-        }
-
-        return exercises
-    }
-
-    private fun loadExerciseById(exerciseId: Int): Exercise? {
-        val cursor = dbHelper.readableDatabase.query(
-            DatabaseHelper.TABLE_EXERCISES,
-            null,
-            "${DatabaseHelper.COL_EXERCISE_ID} = ?",
-            arrayOf(exerciseId.toString()),
-            null,
-            null,
-            null
-        )
-
-        cursor.use {
-            if (!it.moveToFirst()) return null
-
-            return Exercise(
-                id = it.getInt(it.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_ID)),
-                name = it.getString(it.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_NAME)),
-                description = it.getString(it.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_DESC)),
-                timePerRep = it.getInt(it.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_TIME_PER_REP))
+                exerciseDetails = exerciseDetails
             )
         }
     }
@@ -169,6 +134,16 @@ class TraineeWorkoutViewModel(
     private fun loadWorkoutExerciseDetails(workoutId: Long): List<WorkoutExerciseDetail> {
         val details = mutableListOf<WorkoutExerciseDetail>()
         dbHelper.getWorkoutExerciseDetails(workoutId).use { cursor ->
+            while (cursor.moveToNext()) {
+                details.add(cursor.toWorkoutExerciseDetail())
+            }
+        }
+        return details
+    }
+
+    private fun loadSnapshotWorkoutExerciseDetails(assignmentId: Int): List<WorkoutExerciseDetail> {
+        val details = mutableListOf<WorkoutExerciseDetail>()
+        dbHelper.getSnapshotWorkoutExerciseDetails(assignmentId).use { cursor ->
             while (cursor.moveToNext()) {
                 details.add(cursor.toWorkoutExerciseDetail())
             }

@@ -14,7 +14,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     companion object {
         private const val DATABASE_NAME = "FitConnect.db"
-        private const val DATABASE_VERSION = 26
+        private const val DATABASE_VERSION = 27
 
         // Users
         const val TABLE_USERS = "users"
@@ -61,6 +61,17 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val COL_COMPLETION_SLOT_ID = "slot_id"
         const val COL_COMPLETION_EXERCISE_ID = "exercise_id"
         const val COL_COMPLETION_COMPLETED_AT = "completed_at"
+
+        const val TABLE_SNAPSHOT_WORKOUT = "snapshotWorkout"
+        const val COL_SNAPSHOT_ID = "snapshot_id"
+        const val COL_SNAPSHOT_ASSIGNMENT_ID = "assignment_id"
+        const val COL_SNAPSHOT_WORKOUT_ID = "workout_id"
+        const val COL_SNAPSHOT_EXERCISE_ID = "exercise_id"
+        const val COL_SNAPSHOT_EXERCISE_NAME = "exercise_name"
+        const val COL_SNAPSHOT_EXERCISE_DESC = "exercise_description"
+        const val COL_SNAPSHOT_TIME_PER_REP = "time_per_rep"
+        const val COL_SNAPSHOT_REPS = "reps"
+        const val COL_SNAPSHOT_EXERCISE_TOTAL_TIME = "exercise_total_time"
 
         // Request Status
         const val STATUS_PENDING = "pending"
@@ -110,6 +121,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.execSQL(CREATE_TABLE_WORKOUTS)
         db.execSQL(CREATE_TABLE_WORKOUT_EXERCISES)
         db.execSQL(CREATE_TABLE_WORKOUT_EXERCISE_COMPLETIONS)
+        db.execSQL(CREATE_TABLE_SNAPSHOT_WORKOUT)
         db.execSQL(CREATE_TABLE_TRAINEE_REQUESTS)
         db.execSQL(CREATE_TABLE_WORKOUT_SCHEDULES)
         db.execSQL(CREATE_TABLE_TRAINEE_CALENDAR_SLOT)
@@ -129,6 +141,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.execSQL("DROP TABLE IF EXISTS $TABLE_TRAINEE_CALENDAR_SLOT")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_WORKOUT_SCHEDULES")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_TRAINEE_REQUESTS")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_SNAPSHOT_WORKOUT")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_WORKOUT_EXERCISE_COMPLETIONS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_WORKOUT_EXERCISES")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_WORKOUTS")
@@ -214,6 +227,21 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             PRIMARY KEY($COL_COMPLETION_SLOT_ID, $COL_COMPLETION_EXERCISE_ID),
             FOREIGN KEY($COL_COMPLETION_SLOT_ID) REFERENCES $TABLE_TRAINEE_CALENDAR_SLOT($COL_SLOT_ID),
             FOREIGN KEY($COL_COMPLETION_EXERCISE_ID) REFERENCES $TABLE_EXERCISES($COL_EXERCISE_ID)
+        )
+    """.trimIndent()
+
+    private val CREATE_TABLE_SNAPSHOT_WORKOUT = """
+        CREATE TABLE IF NOT EXISTS $TABLE_SNAPSHOT_WORKOUT (
+            $COL_SNAPSHOT_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+            $COL_SNAPSHOT_ASSIGNMENT_ID INTEGER NOT NULL,
+            $COL_SNAPSHOT_WORKOUT_ID INTEGER NOT NULL,
+            $COL_SNAPSHOT_EXERCISE_ID INTEGER NOT NULL,
+            $COL_SNAPSHOT_EXERCISE_NAME TEXT NOT NULL,
+            $COL_SNAPSHOT_EXERCISE_DESC TEXT,
+            $COL_SNAPSHOT_TIME_PER_REP INTEGER NOT NULL,
+            $COL_SNAPSHOT_REPS INTEGER NOT NULL,
+            $COL_SNAPSHOT_EXERCISE_TOTAL_TIME INTEGER NOT NULL,
+            FOREIGN KEY($COL_SNAPSHOT_WORKOUT_ID) REFERENCES $TABLE_WORKOUTS($COL_WORKOUT_ID)
         )
     """.trimIndent()
 
@@ -332,6 +360,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
         // 5. MAYBE with Workout
         db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_ASSIGNMENT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (2, 1, 2, 1, '$today', '17:00', '18:00')")
+        createSnapshotWorkout(db, assignmentId = 1, workoutId = 1)
+        createSnapshotWorkout(db, assignmentId = 2, workoutId = 1)
 
         // Mock Tags
         db.execSQL("INSERT INTO $TABLE_TAGS ($COL_TAG_NAME) VALUES ('strength')") // ID 1
@@ -521,6 +551,22 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         return db.rawQuery(query, arrayOf(workoutId.toString()))
     }
 
+    fun getSnapshotWorkoutExerciseDetails(assignmentId: Int): Cursor {
+        val db = readableDatabase
+        val query = """
+            SELECT
+                $COL_SNAPSHOT_EXERCISE_ID AS $COL_EXERCISE_ID,
+                $COL_SNAPSHOT_EXERCISE_NAME AS $COL_EXERCISE_NAME,
+                $COL_SNAPSHOT_REPS AS $COL_WE_REPS,
+                $COL_SNAPSHOT_TIME_PER_REP AS $COL_EXERCISE_TIME_PER_REP,
+                $COL_SNAPSHOT_EXERCISE_DESC AS $COL_EXERCISE_DESC
+            FROM $TABLE_SNAPSHOT_WORKOUT
+            WHERE $COL_SNAPSHOT_ASSIGNMENT_ID = ?
+            ORDER BY $COL_SNAPSHOT_ID ASC
+        """.trimIndent()
+        return db.rawQuery(query, arrayOf(assignmentId.toString()))
+    }
+
     fun getAllTraineesForTrainer(trainerId: Int): Cursor {
         val db = readableDatabase
         val query = """
@@ -656,6 +702,12 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 arrayOf(traineeId.toString())
             )
 
+            db.delete(
+                TABLE_SNAPSHOT_WORKOUT,
+                "$COL_SNAPSHOT_ASSIGNMENT_ID IN (SELECT $COL_SLOT_ASSIGNMENT_ID FROM $TABLE_TRAINEE_CALENDAR_SLOT WHERE $COL_TRAINEE_ID = ? AND $COL_SLOT_ASSIGNMENT_ID IS NOT NULL)",
+                arrayOf(traineeId.toString())
+            )
+
             val slotValues = ContentValues().apply {
                 putNull(COL_SLOT_WORKOUT_ID)
                 putNull(COL_SLOT_ASSIGNMENT_ID)
@@ -726,12 +778,14 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     fun assignWorkoutToTraineeSlot(slotId: Int, workoutId: Int) {
         val db = writableDatabase
+        val assignmentId = getNextAssignmentId(db)
         val values = ContentValues().apply {
             put(COL_SLOT_WORKOUT_ID, workoutId)
-            put(COL_SLOT_ASSIGNMENT_ID, getNextAssignmentId(db))
+            put(COL_SLOT_ASSIGNMENT_ID, assignmentId)
         }
         db.update(TABLE_TRAINEE_CALENDAR_SLOT, values, "$COL_SLOT_ID = ?", arrayOf(slotId.toString()))
         db.delete(TABLE_WORKOUT_EXERCISE_COMPLETIONS, "$COL_COMPLETION_SLOT_ID = ?", arrayOf(slotId.toString()))
+        createSnapshotWorkout(db, assignmentId, workoutId)
     }
 
     fun assignWorkoutToTraineeSlots(slotIds: List<Int>, workoutId: Int): Boolean {
@@ -741,6 +795,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         return try {
             db.beginTransaction()
             val assignmentId = getNextAssignmentId(db)
+            createSnapshotWorkout(db, assignmentId, workoutId)
             slotIds.forEach { slotId ->
                 val values = ContentValues().apply {
                     put(COL_SLOT_WORKOUT_ID, workoutId)
@@ -766,6 +821,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         return try {
             db.beginTransaction()
             val assignmentId = getAssignmentIdForSlots(db, oldSlotIds) ?: getNextAssignmentId(db)
+            deleteSnapshotsForAssignments(db, listOf(assignmentId))
+            createSnapshotWorkout(db, assignmentId, workoutId)
             oldSlotIds.forEach { slotId ->
                 val values = ContentValues().apply {
                     putNull(COL_SLOT_WORKOUT_ID)
@@ -798,6 +855,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         val db = writableDatabase
         return try {
             db.beginTransaction()
+            val assignmentIds = getAssignmentIdsForSlots(db, slotIds)
             slotIds.forEach { slotId ->
                 val values = ContentValues().apply {
                     putNull(COL_SLOT_WORKOUT_ID)
@@ -806,6 +864,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 db.update(TABLE_TRAINEE_CALENDAR_SLOT, values, "$COL_SLOT_ID = ?", arrayOf(slotId.toString()))
                 db.delete(TABLE_WORKOUT_EXERCISE_COMPLETIONS, "$COL_COMPLETION_SLOT_ID = ?", arrayOf(slotId.toString()))
             }
+            deleteSnapshotsForAssignments(db, assignmentIds)
             db.setTransactionSuccessful()
             true
         } catch (e: Exception) {
@@ -818,12 +877,14 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     fun clearWorkoutFromTraineeSlot(slotId: Int) {
         val db = writableDatabase
+        val assignmentIds = getAssignmentIdsForSlots(db, listOf(slotId))
         val values = ContentValues().apply {
             putNull(COL_SLOT_WORKOUT_ID)
             putNull(COL_SLOT_ASSIGNMENT_ID)
         }
         db.update(TABLE_TRAINEE_CALENDAR_SLOT, values, "$COL_SLOT_ID = ?", arrayOf(slotId.toString()))
         db.delete(TABLE_WORKOUT_EXERCISE_COMPLETIONS, "$COL_COMPLETION_SLOT_ID = ?", arrayOf(slotId.toString()))
+        deleteSnapshotsForAssignments(db, assignmentIds)
     }
 
     private fun getNextAssignmentId(db: SQLiteDatabase): Int {
@@ -853,6 +914,68 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         val assignmentId = if (cursor.moveToFirst()) cursor.getInt(0) else null
         cursor.close()
         return assignmentId
+    }
+
+    private fun getAssignmentIdsForSlots(db: SQLiteDatabase, slotIds: List<Int>): List<Int> {
+        if (slotIds.isEmpty()) return emptyList()
+
+        val placeholders = slotIds.joinToString(",") { "?" }
+        val cursor = db.rawQuery(
+            """
+                SELECT DISTINCT $COL_SLOT_ASSIGNMENT_ID
+                FROM $TABLE_TRAINEE_CALENDAR_SLOT
+                WHERE $COL_SLOT_ID IN ($placeholders)
+                AND $COL_SLOT_ASSIGNMENT_ID IS NOT NULL
+            """.trimIndent(),
+            slotIds.map { it.toString() }.toTypedArray()
+        )
+        val assignmentIds = mutableListOf<Int>()
+        cursor.use {
+            while (it.moveToNext()) {
+                assignmentIds.add(it.getInt(0))
+            }
+        }
+        return assignmentIds
+    }
+
+    private fun createSnapshotWorkout(db: SQLiteDatabase, assignmentId: Int, workoutId: Int) {
+        db.delete(TABLE_SNAPSHOT_WORKOUT, "$COL_SNAPSHOT_ASSIGNMENT_ID = ?", arrayOf(assignmentId.toString()))
+
+        val query = """
+            SELECT e.$COL_EXERCISE_ID, e.$COL_EXERCISE_NAME, e.$COL_EXERCISE_DESC,
+                   e.$COL_EXERCISE_TIME_PER_REP, we.$COL_WE_REPS
+            FROM $TABLE_WORKOUT_EXERCISES we
+            JOIN $TABLE_EXERCISES e ON we.$COL_WE_EXERCISE_ID = e.$COL_EXERCISE_ID
+            WHERE we.$COL_WE_WORKOUT_ID = ?
+        """.trimIndent()
+        db.rawQuery(query, arrayOf(workoutId.toString())).use { cursor ->
+            while (cursor.moveToNext()) {
+                val timePerRep = cursor.getInt(cursor.getColumnIndexOrThrow(COL_EXERCISE_TIME_PER_REP))
+                val reps = cursor.getInt(cursor.getColumnIndexOrThrow(COL_WE_REPS))
+                val values = ContentValues().apply {
+                    put(COL_SNAPSHOT_ASSIGNMENT_ID, assignmentId)
+                    put(COL_SNAPSHOT_WORKOUT_ID, workoutId)
+                    put(COL_SNAPSHOT_EXERCISE_ID, cursor.getInt(cursor.getColumnIndexOrThrow(COL_EXERCISE_ID)))
+                    put(COL_SNAPSHOT_EXERCISE_NAME, cursor.getString(cursor.getColumnIndexOrThrow(COL_EXERCISE_NAME)))
+                    put(COL_SNAPSHOT_EXERCISE_DESC, cursor.getString(cursor.getColumnIndexOrThrow(COL_EXERCISE_DESC)))
+                    put(COL_SNAPSHOT_TIME_PER_REP, timePerRep)
+                    put(COL_SNAPSHOT_REPS, reps)
+                    put(COL_SNAPSHOT_EXERCISE_TOTAL_TIME, timePerRep * reps)
+                }
+                db.insert(TABLE_SNAPSHOT_WORKOUT, null, values)
+            }
+        }
+    }
+
+    private fun deleteSnapshotsForAssignments(db: SQLiteDatabase, assignmentIds: List<Int>) {
+        if (assignmentIds.isEmpty()) return
+
+        val placeholders = assignmentIds.joinToString(",") { "?" }
+        db.delete(
+            TABLE_SNAPSHOT_WORKOUT,
+            "$COL_SNAPSHOT_ASSIGNMENT_ID IN ($placeholders)",
+            assignmentIds.map { it.toString() }.toTypedArray()
+        )
     }
 
     fun addTraineeCalendarSlot(
@@ -902,7 +1025,9 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     fun deleteTraineeCalendarSlot(slotId: Int): Boolean {
         val db = writableDatabase
+        val assignmentIds = getAssignmentIdsForSlots(db, listOf(slotId))
         db.delete(TABLE_WORKOUT_EXERCISE_COMPLETIONS, "$COL_COMPLETION_SLOT_ID = ?", arrayOf(slotId.toString()))
+        deleteSnapshotsForAssignments(db, assignmentIds)
         return db.delete(TABLE_TRAINEE_CALENDAR_SLOT, "$COL_SLOT_ID = ?", arrayOf(slotId.toString())) > 0
     }
 
@@ -1124,7 +1249,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         val db = writableDatabase
         db.delete(TABLE_WORKOUT_EXERCISES, "$COL_WE_WORKOUT_ID = ?", arrayOf(workoutId.toString()))
         db.delete(TABLE_WORKOUT_SCHEDULES, "$COL_SCHEDULE_WORKOUT_ID = ?", arrayOf(workoutId.toString()))
-        db.delete(TABLE_TRAINEE_CALENDAR_SLOT, "$COL_SLOT_WORKOUT_ID = ?", arrayOf(workoutId.toString()))
         db.delete(TABLE_WORKOUTS, "$COL_WORKOUT_ID = ?", arrayOf(workoutId.toString()))
     }
 
