@@ -70,7 +70,8 @@ fun TagDropdown(
                     .height(56.dp)
                     .clip(RoundedCornerShape(20.dp))
                     .background(Color(0xFFF7F7F7))
-                    .clickable { expanded = true },
+                    .clickable { expanded = true }
+                    .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(20.dp)),
                 contentAlignment = Alignment.CenterStart
             ) {
                 Text(

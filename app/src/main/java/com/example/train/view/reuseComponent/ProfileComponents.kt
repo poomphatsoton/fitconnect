@@ -1,6 +1,7 @@
 package com.example.train.view.reuseComponent
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -39,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import com.example.train.R
 import com.example.train.model.Tag
 import com.example.train.view.trainer.exercise.TagDropdown
+import androidx.compose.foundation.border
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -300,7 +302,7 @@ fun EditUserProfileScreen(
             },
             onTagRemoved = { tag ->
                 selectedTags = selectedTags.filterNot { it.tagId == tag.tagId }
-            }
+            },
         )
 
         Spacer(modifier = Modifier.height(12.dp))
