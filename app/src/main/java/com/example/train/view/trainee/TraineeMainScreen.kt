@@ -25,6 +25,7 @@ import com.example.train.ui.components.BottomNavigationBar
 import com.example.train.ui.components.NavigationBar
 import com.example.train.view.trainee.home.TraineeHomeScreen
 import com.example.train.view.trainee.trainer.TraineeTrainerScreen
+import com.example.train.view.trainee.workout.TraineeWorkoutScreen
 
 private object TraineeRoutes {
     const val HOME = "trainee_home"
@@ -90,7 +91,7 @@ fun TraineeMainScreen(
             }
 
             composable(TraineeRoutes.WORKOUT) {
-                TraineePlaceholderScreen(title = "Workout")
+                TraineeWorkoutScreen()
             }
 
             composable(TraineeRoutes.CALENDAR) {

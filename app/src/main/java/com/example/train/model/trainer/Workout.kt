@@ -15,6 +15,7 @@ data class WorkoutExerciseDetail(
     val name: String,
     val reps: Int,
     val timePerRep: Int,
+    val description: String = "",
 )
 
 data class WorkoutUiItem(

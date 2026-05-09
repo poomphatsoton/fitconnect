@@ -167,6 +167,7 @@ class WorkoutsViewModel(
                     name = cursor.getString(1),
                     reps = cursor.getInt(2),
                     timePerRep = cursor.getInt(3),
+                    description = cursor.getString(4),
                 )
 
                 details.add(detail)
