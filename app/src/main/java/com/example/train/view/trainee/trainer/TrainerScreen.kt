@@ -107,9 +107,13 @@ fun TraineeTrainerScreen(
                 TrainerCard(
                     trainer = trainer,
                     showRequestStatus = trainer.requestStatus == DatabaseHelper.STATUS_PENDING,
-                    actionText = if (trainer.requestStatus == DatabaseHelper.STATUS_PENDING) "Cancel" else null,
+                    actionText = if (trainer.requestStatus == DatabaseHelper.STATUS_PENDING) "Cancel" else "Unroll",
                     onActionClick = {
-                        viewModel.cancelTrainerRequest(trainer.id)
+                        if (trainer.requestStatus == DatabaseHelper.STATUS_PENDING) {
+                            viewModel.cancelTrainerRequest(trainer.id)
+                        } else {
+                            viewModel.unrollTrainer(trainer.id)
+                        }
                     }
                 )
             }
@@ -354,8 +358,8 @@ private fun TrainerCard(
                     enabled = actionEnabled,
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (actionText == "Cancel") Color(0xFFE5E7EB) else Color(0xFF0F172A),
-                        contentColor = if (actionText == "Cancel") Color.Black else Color.White,
+                        containerColor = if (actionText == "Request") Color(0xFF0F172A) else Color(0xFFE5E7EB),
+                        contentColor = if (actionText == "Request") Color.White else Color.Black,
                         disabledContainerColor = Color(0xFFE5E7EB),
                         disabledContentColor = Color(0xFF9CA3AF)
                     ),

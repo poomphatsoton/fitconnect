@@ -77,6 +77,16 @@ class TraineeTrainerViewModel(
         return isSuccess
     }
 
+    fun unrollTrainer(trainerId: Int): Boolean {
+        if (userId == -1) return false
+
+        val isSuccess = dbHelper.unrollTrainer(trainerId, userId)
+        if (isSuccess) {
+            loadTrainers()
+        }
+        return isSuccess
+    }
+
     fun onSearchQueryChange(query: String) {
         uiState.value = uiState.value.copy(
             searchQuery = query,

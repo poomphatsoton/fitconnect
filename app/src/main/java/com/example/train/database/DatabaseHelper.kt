@@ -592,6 +592,55 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         ) > 0
     }
 
+    fun unrollTrainer(trainerId: Int, traineeId: Int): Boolean {
+        val db = writableDatabase
+        return try {
+            db.beginTransaction()
+
+            db.delete(
+                TABLE_TRAINER_TRAINEES,
+                "$COL_TT_TRAINER_ID = ? AND $COL_TT_TRAINEE_ID = ?",
+                arrayOf(trainerId.toString(), traineeId.toString())
+            )
+
+            db.delete(
+                TABLE_TRAINEE_TRAINER,
+                "$COL_TTR_TRAINER_ID = ? AND $COL_TTR_TRAINEE_ID = ?",
+                arrayOf(trainerId.toString(), traineeId.toString())
+            )
+
+            db.delete(
+                TABLE_TRAINEE_REQUESTS,
+                "$COL_REQUEST_TRAINER_ID = ? AND $COL_REQUEST_TRAINEE_ID = ?",
+                arrayOf(trainerId.toString(), traineeId.toString())
+            )
+
+            db.delete(
+                TABLE_WORKOUT_SCHEDULES,
+                "$COL_SCHEDULE_TRAINEE_ID = ?",
+                arrayOf(traineeId.toString())
+            )
+
+            val slotValues = ContentValues().apply {
+                putNull(COL_SLOT_WORKOUT_ID)
+            }
+            db.update(
+                TABLE_TRAINEE_CALENDAR_SLOT,
+                slotValues,
+                "$COL_TRAINEE_ID = ?",
+                arrayOf(traineeId.toString())
+            )
+
+            db.setTransactionSuccessful()
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        } finally {
+            db.endTransaction()
+        }
+    }
+
     fun getTraineeID(userId: Int): Int {
         val db = readableDatabase
         val query = "SELECT $COL_TTR_TRAINEE_ID FROM $TABLE_TRAINEE_TRAINER WHERE $COL_TTR_TRAINEE_ID = ?"
