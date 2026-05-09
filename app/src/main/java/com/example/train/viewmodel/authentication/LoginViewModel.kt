@@ -17,6 +17,10 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         return prefs.contains("userId")
     }
 
+    fun getUserRole(): String? {
+        return prefs.getString("role", null)
+    }
+
     fun logout() {
         prefs.edit().clear().apply()
     }

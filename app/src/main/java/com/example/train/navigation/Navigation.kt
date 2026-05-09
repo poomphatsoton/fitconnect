@@ -8,6 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.train.ui.MainScreen
 import com.example.train.view.authentication.LoginScreen
 import com.example.train.view.authentication.RegistrationScreen
+import com.example.train.view.trainee.TraineeMainScreen
 import com.example.train.viewmodel.authentication.LoginViewModel
 
 object Routes {
@@ -57,17 +58,21 @@ fun AppNavigation() {
             )
         }
         composable(Routes.HOME) {
-            MainScreen(
-                onLogout = {
-                    loginViewModel.logout()
+            val onLogout = {
+                loginViewModel.logout()
 
-                    navController.navigate(Routes.LOGIN) {
-                        popUpTo(Routes.HOME) {
-                            inclusive = true
-                        }
+                navController.navigate(Routes.LOGIN) {
+                    popUpTo(Routes.HOME) {
+                        inclusive = true
                     }
                 }
-            )
+            }
+
+            if (loginViewModel.getUserRole() == "trainee") {
+                TraineeMainScreen(onLogout = onLogout)
+            } else {
+                MainScreen(onLogout = onLogout)
+            }
         }
 
     }
