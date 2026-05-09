@@ -480,7 +480,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         return db.rawQuery(query, arrayOf(workoutId.toString()))
     }
 
-    fun getAllTrainees(trainerId: Int): Cursor {
+    fun getAllTraineesForTrainer(trainerId: Int): Cursor {
         val db = readableDatabase
         val query = """
             SELECT u.* 
@@ -491,7 +491,33 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         return db.rawQuery(query, arrayOf(trainerId.toString()))
     }
 
-    fun getTrainerID(traineeUserId: Int): Int {
+    fun getAllTrainers(): Cursor {
+        val db = readableDatabase
+        return db.query(
+            TABLE_USERS,
+            null,
+            "$COL_USER_ROLE = ?",
+            arrayOf("trainer"),
+            null,
+            null,
+            COL_USER_NAME
+        )
+    }
+
+    fun getTrainerById(trainerId: Int): Cursor {
+        val db = readableDatabase
+        return db.query(
+            TABLE_USERS,
+            null,
+            "$COL_USER_ID = ? AND $COL_USER_ROLE = ?",
+            arrayOf(trainerId.toString(), "trainer"),
+            null,
+            null,
+            null
+        )
+    }
+
+    fun getMyTrainerID(traineeUserId: Int): Int {
         val db = readableDatabase
         val query = "SELECT $COL_TTR_TRAINER_ID FROM $TABLE_TRAINEE_TRAINER WHERE $COL_TTR_TRAINEE_ID = ?"
         val cursor = db.rawQuery(query, arrayOf(traineeUserId.toString()))
