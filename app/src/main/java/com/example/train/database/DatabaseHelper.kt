@@ -14,7 +14,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     companion object {
         private const val DATABASE_NAME = "FitConnect.db"
-        private const val DATABASE_VERSION = 19
+        private const val DATABASE_VERSION = 20
 
         // Users
         const val TABLE_USERS = "users"
@@ -24,6 +24,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val COL_USER_ROLE = "role"
         const val COL_USER_NAME = "name"
         const val COL_USER_BIO = "bio"
+        const val COL_USER_MAX_TRAINEES = "max_trainees"
 
         //Tags
         const val TABLE_TAGS = "tags"
@@ -136,7 +137,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             $COL_USER_PASSWORD TEXT NOT NULL,
             $COL_USER_ROLE TEXT NOT NULL,
             $COL_USER_NAME TEXT,
-            $COL_USER_BIO TEXT
+            $COL_USER_BIO TEXT,
+            $COL_USER_MAX_TRAINEES INTEGER DEFAULT 10
         )
     """.trimIndent()
 
@@ -256,7 +258,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     @RequiresApi(Build.VERSION_CODES.O)
     private fun insertDemoData(db: SQLiteDatabase) {
         // Trainer (ID 1)
-        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainer', 'trainer123', 'trainer', 'John Smith', 'Certified personal trainer with 10 years of experience')")
+        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO, $COL_USER_MAX_TRAINEES) VALUES ('trainer', 'trainer123', 'trainer', 'John Smith', 'Certified personal trainer with 10 years of experience', 10)")
 
         // 4 Active Trainees (IDs 2, 3, 4, 5)
         db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee1', 'pass123', 'trainee', 'Sarah Johnson', 'Looking to build strength')")
@@ -584,8 +586,73 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         )
     }
 
+    fun getAllTags(): Cursor {
+        val db = readableDatabase
+        return db.query(
+            TABLE_TAGS,
+            null,
+            null,
+            null,
+            null,
+            null,
+            COL_TAG_NAME
+        )
+    }
+
+    fun updateUserProfile(userId: Int, name: String, bio: String, maxTrainees: Int, password: String?) {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put(COL_USER_NAME, name)
+            put(COL_USER_BIO, bio)
+            put(COL_USER_MAX_TRAINEES, maxTrainees)
+            if (password != null) {
+                put(COL_USER_PASSWORD, password)
+            }
+        }
+        db.update(TABLE_USERS, values, "$COL_USER_ID = ?", arrayOf(userId.toString()))
+    }
+
+    fun updateUserTags(userId: Int, tags: List<Tag>) {
+        val db = writableDatabase
+        db.delete(TABLE_USERS_TAGS, "$COL_USER_ID = ?", arrayOf(userId.toString()))
+
+        tags.forEach { tag ->
+            val values = ContentValues().apply {
+                put(COL_USER_ID, userId)
+                put(COL_TAG_ID, tag.tagId)
+            }
+            db.insert(TABLE_USERS_TAGS, null, values)
+        }
+    }
+
+    fun getTrainerMaxTrainees(trainerId: Int): Int {
+        val db = readableDatabase
+        val cursor = db.query(
+            TABLE_USERS,
+            arrayOf(COL_USER_MAX_TRAINEES),
+            "$COL_USER_ID = ?",
+            arrayOf(trainerId.toString()),
+            null,
+            null,
+            null
+        )
+
+        val maxTrainees = if (cursor.moveToFirst()) {
+            cursor.getInt(cursor.getColumnIndexOrThrow(COL_USER_MAX_TRAINEES))
+        } else {
+            0
+        }
+        cursor.close()
+        return maxTrainees
+    }
+
     fun acceptTrainee(trainerId: Int, traineeId: Int): Boolean {
         val db = writableDatabase
+        val maxTrainees = getTrainerMaxTrainees(trainerId)
+        if (maxTrainees > 0 && getActiveTraineesCount(trainerId) >= maxTrainees) {
+            return false
+        }
+
         return try {
             db.beginTransaction()
             val query = ContentValues().apply {
