@@ -23,6 +23,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -50,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.train.R
+import com.example.train.database.DatabaseHelper
 import com.example.train.model.Tag
 import com.example.train.model.trainee.TrainerProfile
 import com.example.train.view.reuseComponent.TraineeTag
@@ -101,7 +104,14 @@ fun TraineeTrainerScreen(
             if (trainer == null) {
                 EmptyTrainerText(text = "No trainer enrolled")
             } else {
-                TrainerCard(trainer = trainer)
+                TrainerCard(
+                    trainer = trainer,
+                    showRequestStatus = trainer.requestStatus == DatabaseHelper.STATUS_PENDING,
+                    actionText = if (trainer.requestStatus == DatabaseHelper.STATUS_PENDING) "Cancel" else null,
+                    onActionClick = {
+                        viewModel.cancelTrainerRequest(trainer.id)
+                    }
+                )
             }
         }
 
@@ -122,7 +132,14 @@ fun TraineeTrainerScreen(
             }
         } else {
             items(uiState.otherTrainers) { trainer ->
-                TrainerCard(trainer = trainer)
+                TrainerCard(
+                    trainer = trainer,
+                    actionText = "Request",
+                    actionEnabled = !uiState.hasTrainerOrPendingRequest,
+                    onActionClick = {
+                        viewModel.requestTrainer(trainer.id)
+                    }
+                )
             }
         }
     }
@@ -249,7 +266,11 @@ private fun EmptyTrainerText(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TrainerCard(
-    trainer: TrainerProfile
+    trainer: TrainerProfile,
+    showRequestStatus: Boolean = false,
+    actionText: String? = null,
+    actionEnabled: Boolean = true,
+    onActionClick: () -> Unit = {}
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -301,6 +322,17 @@ private fun TrainerCard(
                         color = Color(0xFF0F172A)
                     )
 
+                    if (showRequestStatus) {
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = "Status: Request",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF2563EB)
+                        )
+                    }
+
                     Spacer(modifier = Modifier.height(16.dp))
 
                     FlowRow(
@@ -311,6 +343,25 @@ private fun TrainerCard(
                             TraineeTag(tag = tag.tagName)
                         }
                     }
+                }
+            }
+
+            if (actionText != null) {
+                Spacer(modifier = Modifier.height(18.dp))
+
+                Button(
+                    onClick = onActionClick,
+                    enabled = actionEnabled,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (actionText == "Cancel") Color(0xFFE5E7EB) else Color(0xFF0F172A),
+                        contentColor = if (actionText == "Cancel") Color.Black else Color.White,
+                        disabledContainerColor = Color(0xFFE5E7EB),
+                        disabledContentColor = Color(0xFF9CA3AF)
+                    ),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(text = actionText, fontSize = 15.sp)
                 }
             }
         }

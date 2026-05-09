@@ -541,6 +541,57 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         return trainerId
     }
 
+    fun getPendingTrainerRequestId(traineeUserId: Int): Int {
+        val db = readableDatabase
+        val query = """
+            SELECT $COL_REQUEST_TRAINER_ID
+            FROM $TABLE_TRAINEE_REQUESTS
+            WHERE $COL_REQUEST_TRAINEE_ID = ?
+            AND $COL_REQUEST_STATUS = ?
+            LIMIT 1
+        """.trimIndent()
+        val cursor = db.rawQuery(query, arrayOf(traineeUserId.toString(), STATUS_PENDING))
+        val trainerId = if (cursor.moveToFirst()) {
+            cursor.getInt(0)
+        } else {
+            -1
+        }
+        cursor.close()
+        return trainerId
+    }
+
+    fun requestTrainer(trainerId: Int, traineeId: Int): Boolean {
+        if (getMyTrainerID(traineeId) != -1 || getPendingTrainerRequestId(traineeId) != -1) {
+            return false
+        }
+
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put(COL_REQUEST_TRAINER_ID, trainerId)
+            put(COL_REQUEST_TRAINEE_ID, traineeId)
+            put(COL_REQUEST_STATUS, STATUS_PENDING)
+        }
+        return db.insert(TABLE_TRAINEE_REQUESTS, null, values) != -1L
+    }
+
+    fun cancelTrainerRequest(trainerId: Int, traineeId: Int): Boolean {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put(COL_REQUEST_STATUS, STATUS_REJECTED)
+        }
+        val condition = """
+            $COL_REQUEST_TRAINER_ID = ?
+            AND $COL_REQUEST_TRAINEE_ID = ?
+            AND $COL_REQUEST_STATUS = ?
+        """.trimIndent()
+        return db.update(
+            TABLE_TRAINEE_REQUESTS,
+            values,
+            condition,
+            arrayOf(trainerId.toString(), traineeId.toString(), STATUS_PENDING)
+        ) > 0
+    }
+
     fun getTraineeID(userId: Int): Int {
         val db = readableDatabase
         val query = "SELECT $COL_TTR_TRAINEE_ID FROM $TABLE_TRAINEE_TRAINER WHERE $COL_TTR_TRAINEE_ID = ?"

@@ -7,7 +7,8 @@ data class TraineeTrainerUiState(
     val otherTrainers: List<TrainerProfile> = emptyList(),
     val availableTags: List<Tag> = emptyList(),
     val searchQuery: String = "",
-    val selectedTags: List<Tag> = emptyList()
+    val selectedTags: List<Tag> = emptyList(),
+    val hasTrainerOrPendingRequest: Boolean = false
 )
 
 data class TrainerProfile(
@@ -16,7 +17,8 @@ data class TrainerProfile(
     val bio: String,
     val tags: List<Tag> = emptyList(),
     val activeTrainees: Int = 0,
-    val maxTrainees: Int = 0
+    val maxTrainees: Int = 0,
+    val requestStatus: String? = null
 ) {
     val availableTrainees: Int
         get() = (maxTrainees - activeTrainees).coerceAtLeast(0)

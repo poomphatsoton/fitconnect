@@ -32,10 +32,18 @@ class TraineeTrainerViewModel(
         if (userId == -1) return
 
         val myTrainerId = dbHelper.getMyTrainerID(userId)
-        val myTrainer = if (myTrainerId != -1) loadTrainerById(myTrainerId) else null
+        val pendingTrainerId = dbHelper.getPendingTrainerRequestId(userId)
+        val displayedTrainerId = if (myTrainerId != -1) myTrainerId else pendingTrainerId
+        val myTrainer = if (displayedTrainerId != -1) {
+            loadTrainerById(displayedTrainerId)?.copy(
+                requestStatus = if (myTrainerId != -1) DatabaseHelper.STATUS_ACCEPTED else DatabaseHelper.STATUS_PENDING
+            )
+        } else {
+            null
+        }
 
         allOtherTrainers = loadAllTrainers()
-            .filterNot { it.id == myTrainerId }
+            .filterNot { it.id == displayedTrainerId }
 
         uiState.value = uiState.value.copy(
             myTrainer = myTrainer,
@@ -44,8 +52,29 @@ class TraineeTrainerViewModel(
                 query = uiState.value.searchQuery,
                 selectedTags = uiState.value.selectedTags
             ),
-            availableTags = loadAllTags()
+            availableTags = loadAllTags(),
+            hasTrainerOrPendingRequest = displayedTrainerId != -1
         )
+    }
+
+    fun requestTrainer(trainerId: Int): Boolean {
+        if (userId == -1 || uiState.value.hasTrainerOrPendingRequest) return false
+
+        val isSuccess = dbHelper.requestTrainer(trainerId, userId)
+        if (isSuccess) {
+            loadTrainers()
+        }
+        return isSuccess
+    }
+
+    fun cancelTrainerRequest(trainerId: Int): Boolean {
+        if (userId == -1) return false
+
+        val isSuccess = dbHelper.cancelTrainerRequest(trainerId, userId)
+        if (isSuccess) {
+            loadTrainers()
+        }
+        return isSuccess
     }
 
     fun onSearchQueryChange(query: String) {
