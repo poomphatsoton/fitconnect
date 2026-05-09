@@ -16,6 +16,7 @@ import androidx.navigation.navArgument
 import androidx.navigation.NavType
 import com.example.train.R
 import com.example.train.ui.components.BottomNavigationBar
+import com.example.train.view.trainer.trainee.dashboard.TraineeDashboardScreen
 import com.example.train.view.trainer.exercise.ExercisesScreen
 import com.example.train.view.trainer.workout.WorkoutsScreen
 
@@ -24,8 +25,10 @@ object MainRoutes {
     const val EXERCISES = "exercises"
     const val WORKOUTS = "workouts"
     const val TRAINEES = "trainees"
+    const val TRAINEE_DASHBOARD = "trainee_dashboard/{traineeId}"
     const val TRAINEE_CALENDAR = "trainee_calendar/{traineeId}"
 
+    fun traineeDashboard(traineeId: Int): String = "trainee_dashboard/$traineeId"
     fun traineeCalendar(traineeId: Int): String = "trainee_calendar/$traineeId"
 }
 
@@ -98,8 +101,24 @@ fun MainScreen(
 
             composable(MainRoutes.TRAINEES) {
                 TraineesScreen(
+                    onDashboardClick = { traineeId ->
+                        navController.navigate(MainRoutes.traineeDashboard(traineeId))
+                    },
                     onCalendarClick = { traineeId ->
                         navController.navigate(MainRoutes.traineeCalendar(traineeId))
+                    }
+                )
+            }
+
+            composable(
+                route = MainRoutes.TRAINEE_DASHBOARD,
+                arguments = listOf(navArgument("traineeId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val traineeId = backStackEntry.arguments?.getInt("traineeId") ?: -1
+                TraineeDashboardScreen(
+                    traineeId = traineeId,
+                    onBackClick = {
+                        navController.popBackStack()
                     }
                 )
             }

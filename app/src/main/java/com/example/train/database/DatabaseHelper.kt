@@ -14,7 +14,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     companion object {
         private const val DATABASE_NAME = "FitConnect.db"
-        private const val DATABASE_VERSION = 27
+        private const val DATABASE_VERSION = 29
 
         // Users
         const val TABLE_USERS = "users"
@@ -73,6 +73,12 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val COL_SNAPSHOT_REPS = "reps"
         const val COL_SNAPSHOT_EXERCISE_TOTAL_TIME = "exercise_total_time"
 
+        const val TABLE_WORKOUT_ASSIGNMENT_PROGRESS = "workoutAssignmentProgress"
+        const val COL_PROGRESS_ASSIGNMENT_ID = "assignment_id"
+        const val COL_PROGRESS_WORKOUT_ID = "workout_id"
+        const val COL_PROGRESS_COMPLETED_EXERCISE_TIME = "completed_exercise_time"
+        const val COL_PROGRESS_TOTAL_EXERCISE_TIME = "total_exercise_time"
+
         // Request Status
         const val STATUS_PENDING = "pending"
         const val STATUS_ACCEPTED = "accepted"
@@ -122,6 +128,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.execSQL(CREATE_TABLE_WORKOUT_EXERCISES)
         db.execSQL(CREATE_TABLE_WORKOUT_EXERCISE_COMPLETIONS)
         db.execSQL(CREATE_TABLE_SNAPSHOT_WORKOUT)
+        db.execSQL(CREATE_TABLE_WORKOUT_ASSIGNMENT_PROGRESS)
         db.execSQL(CREATE_TABLE_TRAINEE_REQUESTS)
         db.execSQL(CREATE_TABLE_WORKOUT_SCHEDULES)
         db.execSQL(CREATE_TABLE_TRAINEE_CALENDAR_SLOT)
@@ -141,6 +148,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.execSQL("DROP TABLE IF EXISTS $TABLE_TRAINEE_CALENDAR_SLOT")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_WORKOUT_SCHEDULES")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_TRAINEE_REQUESTS")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_WORKOUT_ASSIGNMENT_PROGRESS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_SNAPSHOT_WORKOUT")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_WORKOUT_EXERCISE_COMPLETIONS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_WORKOUT_EXERCISES")
@@ -245,6 +253,15 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         )
     """.trimIndent()
 
+    private val CREATE_TABLE_WORKOUT_ASSIGNMENT_PROGRESS = """
+        CREATE TABLE IF NOT EXISTS $TABLE_WORKOUT_ASSIGNMENT_PROGRESS (
+            $COL_PROGRESS_ASSIGNMENT_ID INTEGER PRIMARY KEY,
+            $COL_PROGRESS_WORKOUT_ID INTEGER NOT NULL,
+            $COL_PROGRESS_COMPLETED_EXERCISE_TIME INTEGER NOT NULL DEFAULT 0,
+            $COL_PROGRESS_TOTAL_EXERCISE_TIME INTEGER NOT NULL DEFAULT 0
+        )
+    """.trimIndent()
+
     private val CREATE_TABLE_TRAINEE_REQUESTS = """
         CREATE TABLE IF NOT EXISTS $TABLE_TRAINEE_REQUESTS (
             $COL_REQUEST_ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -320,11 +337,15 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.execSQL("INSERT INTO $TABLE_EXERCISES ($COL_EXERCISE_NAME, $COL_EXERCISE_DESC, $COL_EXERCISE_TIME_PER_REP) VALUES ('Plank', 'Hold plank position with forearms on ground, body straight.', 1)")
 
         db.execSQL("INSERT INTO $TABLE_WORKOUTS ($COL_WORKOUT_NAME, $COL_WORKOUT_DESC, $COL_WORKOUT_DURATION) VALUES ('Full Body Strength', 'Complete full body workout targeting all major muscle groups', 245)")
+        db.execSQL("INSERT INTO $TABLE_WORKOUTS ($COL_WORKOUT_NAME, $COL_WORKOUT_DESC, $COL_WORKOUT_DURATION) VALUES ('Endurance Builder', 'Long conditioning workout that needs two connected trainee slots', 3900)")
 
         db.execSQL("INSERT INTO $TABLE_WORKOUT_EXERCISES ($COL_WE_WORKOUT_ID, $COL_WE_EXERCISE_ID, $COL_WE_REPS) VALUES (1, 1, 15)")
         db.execSQL("INSERT INTO $TABLE_WORKOUT_EXERCISES ($COL_WE_WORKOUT_ID, $COL_WE_EXERCISE_ID, $COL_WE_REPS) VALUES (1, 2, 20)")
         db.execSQL("INSERT INTO $TABLE_WORKOUT_EXERCISES ($COL_WE_WORKOUT_ID, $COL_WE_EXERCISE_ID, $COL_WE_REPS) VALUES (1, 3, 30)")
         db.execSQL("INSERT INTO $TABLE_WORKOUT_EXERCISES ($COL_WE_WORKOUT_ID, $COL_WE_EXERCISE_ID, $COL_WE_REPS) VALUES (1, 4, 60)")
+        db.execSQL("INSERT INTO $TABLE_WORKOUT_EXERCISES ($COL_WE_WORKOUT_ID, $COL_WE_EXERCISE_ID, $COL_WE_REPS) VALUES (2, 4, 1800)")
+        db.execSQL("INSERT INTO $TABLE_WORKOUT_EXERCISES ($COL_WE_WORKOUT_ID, $COL_WE_EXERCISE_ID, $COL_WE_REPS) VALUES (2, 3, 600)")
+        db.execSQL("INSERT INTO $TABLE_WORKOUT_EXERCISES ($COL_WE_WORKOUT_ID, $COL_WE_EXERCISE_ID, $COL_WE_REPS) VALUES (2, 2, 225)")
 
         // Active Requests
         db.execSQL("INSERT INTO $TABLE_TRAINEE_REQUESTS ($COL_REQUEST_TRAINER_ID, $COL_REQUEST_TRAINEE_ID, $COL_REQUEST_STATUS) VALUES (1, 2, 'accepted')")
@@ -362,6 +383,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_ASSIGNMENT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (2, 1, 2, 1, '$today', '17:00', '18:00')")
         createSnapshotWorkout(db, assignmentId = 1, workoutId = 1)
         createSnapshotWorkout(db, assignmentId = 2, workoutId = 1)
+        createWorkoutAssignmentProgress(db, assignmentId = 1, workoutId = 1)
+        createWorkoutAssignmentProgress(db, assignmentId = 2, workoutId = 1)
 
         // Mock Tags
         db.execSQL("INSERT INTO $TABLE_TAGS ($COL_TAG_NAME) VALUES ('strength')") // ID 1
@@ -399,10 +422,21 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.execSQL("INSERT INTO $TABLE_TRAINEE_REQUESTS ($COL_REQUEST_TRAINER_ID, $COL_REQUEST_TRAINEE_ID, $COL_REQUEST_STATUS) VALUES (9, 10, '$STATUS_ACCEPTED')")
         db.execSQL("INSERT INTO $TABLE_TRAINER_TRAINEES ($COL_TT_TRAINER_ID, $COL_TT_TRAINEE_ID) VALUES (9, 10)")
         db.execSQL("INSERT INTO $TABLE_TRAINEE_TRAINER ($COL_TTR_TRAINEE_ID, $COL_TTR_TRAINER_ID) VALUES (10, 9)")
-        db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_ASSIGNMENT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (10, NULL, NULL, 0, '$today', '08:00', '09:00')")
-        db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_ASSIGNMENT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (10, NULL, NULL, 1, '$today', '09:00', '10:00')")
-        db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_ASSIGNMENT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (10, NULL, NULL, 0, '$today', '13:00', '14:00')")
+        db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_ASSIGNMENT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (10, 2, 3, 0, '$today', '08:00', '09:00')")
+        db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_ASSIGNMENT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (10, 2, 3, 1, '$today', '09:00', '10:00')")
+        db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_ASSIGNMENT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (10, 1, 4, 0, '$today', '13:00', '14:00')")
         db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_ASSIGNMENT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (10, NULL, NULL, 2, '$today', '15:00', '16:00')")
+        createSnapshotWorkout(db, assignmentId = 3, workoutId = 2)
+        createSnapshotWorkout(db, assignmentId = 4, workoutId = 1)
+        createWorkoutAssignmentProgress(db, assignmentId = 3, workoutId = 2)
+        createWorkoutAssignmentProgress(db, assignmentId = 4, workoutId = 1)
+        db.execSQL("INSERT INTO $TABLE_WORKOUT_EXERCISE_COMPLETIONS ($COL_COMPLETION_SLOT_ID, $COL_COMPLETION_EXERCISE_ID, $COL_COMPLETION_COMPLETED_AT) SELECT $COL_SLOT_ID, 4, '${System.currentTimeMillis()}' FROM $TABLE_TRAINEE_CALENDAR_SLOT WHERE $COL_TRAINEE_ID = 10 AND $COL_SLOT_DATE = '$today' AND $COL_SLOT_START_TIME = '08:00'")
+        db.execSQL("UPDATE $TABLE_WORKOUT_ASSIGNMENT_PROGRESS SET $COL_PROGRESS_COMPLETED_EXERCISE_TIME = (SELECT $COL_SNAPSHOT_EXERCISE_TOTAL_TIME FROM $TABLE_SNAPSHOT_WORKOUT WHERE $COL_SNAPSHOT_ASSIGNMENT_ID = 3 AND $COL_SNAPSHOT_EXERCISE_ID = 4) WHERE $COL_PROGRESS_ASSIGNMENT_ID = 3")
+        db.execSQL("INSERT INTO $TABLE_WORKOUT_EXERCISE_COMPLETIONS ($COL_COMPLETION_SLOT_ID, $COL_COMPLETION_EXERCISE_ID, $COL_COMPLETION_COMPLETED_AT) SELECT $COL_SLOT_ID, 1, '${System.currentTimeMillis()}' FROM $TABLE_TRAINEE_CALENDAR_SLOT WHERE $COL_TRAINEE_ID = 10 AND $COL_SLOT_DATE = '$today' AND $COL_SLOT_START_TIME = '13:00'")
+        db.execSQL("INSERT INTO $TABLE_WORKOUT_EXERCISE_COMPLETIONS ($COL_COMPLETION_SLOT_ID, $COL_COMPLETION_EXERCISE_ID, $COL_COMPLETION_COMPLETED_AT) SELECT $COL_SLOT_ID, 2, '${System.currentTimeMillis()}' FROM $TABLE_TRAINEE_CALENDAR_SLOT WHERE $COL_TRAINEE_ID = 10 AND $COL_SLOT_DATE = '$today' AND $COL_SLOT_START_TIME = '13:00'")
+        db.execSQL("INSERT INTO $TABLE_WORKOUT_EXERCISE_COMPLETIONS ($COL_COMPLETION_SLOT_ID, $COL_COMPLETION_EXERCISE_ID, $COL_COMPLETION_COMPLETED_AT) SELECT $COL_SLOT_ID, 3, '${System.currentTimeMillis()}' FROM $TABLE_TRAINEE_CALENDAR_SLOT WHERE $COL_TRAINEE_ID = 10 AND $COL_SLOT_DATE = '$today' AND $COL_SLOT_START_TIME = '13:00'")
+        db.execSQL("INSERT INTO $TABLE_WORKOUT_EXERCISE_COMPLETIONS ($COL_COMPLETION_SLOT_ID, $COL_COMPLETION_EXERCISE_ID, $COL_COMPLETION_COMPLETED_AT) SELECT $COL_SLOT_ID, 4, '${System.currentTimeMillis()}' FROM $TABLE_TRAINEE_CALENDAR_SLOT WHERE $COL_TRAINEE_ID = 10 AND $COL_SLOT_DATE = '$today' AND $COL_SLOT_START_TIME = '13:00'")
+        db.execSQL("UPDATE $TABLE_WORKOUT_ASSIGNMENT_PROGRESS SET $COL_PROGRESS_COMPLETED_EXERCISE_TIME = $COL_PROGRESS_TOTAL_EXERCISE_TIME WHERE $COL_PROGRESS_ASSIGNMENT_ID = 4")
 
         db.execSQL("INSERT INTO $TABLE_TRAINEE_REQUESTS ($COL_REQUEST_TRAINER_ID, $COL_REQUEST_TRAINEE_ID, $COL_REQUEST_STATUS) VALUES (1, 6, '$STATUS_PENDING')")
         db.execSQL("INSERT INTO $TABLE_TRAINEE_REQUESTS ($COL_REQUEST_TRAINER_ID, $COL_REQUEST_TRAINEE_ID, $COL_REQUEST_STATUS) VALUES (1, 7, '$STATUS_PENDING')")
@@ -707,6 +741,11 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 "$COL_SNAPSHOT_ASSIGNMENT_ID IN (SELECT $COL_SLOT_ASSIGNMENT_ID FROM $TABLE_TRAINEE_CALENDAR_SLOT WHERE $COL_TRAINEE_ID = ? AND $COL_SLOT_ASSIGNMENT_ID IS NOT NULL)",
                 arrayOf(traineeId.toString())
             )
+            db.delete(
+                TABLE_WORKOUT_ASSIGNMENT_PROGRESS,
+                "$COL_PROGRESS_ASSIGNMENT_ID IN (SELECT $COL_SLOT_ASSIGNMENT_ID FROM $TABLE_TRAINEE_CALENDAR_SLOT WHERE $COL_TRAINEE_ID = ? AND $COL_SLOT_ASSIGNMENT_ID IS NOT NULL)",
+                arrayOf(traineeId.toString())
+            )
 
             val slotValues = ContentValues().apply {
                 putNull(COL_SLOT_WORKOUT_ID)
@@ -786,6 +825,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.update(TABLE_TRAINEE_CALENDAR_SLOT, values, "$COL_SLOT_ID = ?", arrayOf(slotId.toString()))
         db.delete(TABLE_WORKOUT_EXERCISE_COMPLETIONS, "$COL_COMPLETION_SLOT_ID = ?", arrayOf(slotId.toString()))
         createSnapshotWorkout(db, assignmentId, workoutId)
+        createWorkoutAssignmentProgress(db, assignmentId, workoutId)
     }
 
     fun assignWorkoutToTraineeSlots(slotIds: List<Int>, workoutId: Int): Boolean {
@@ -796,6 +836,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             db.beginTransaction()
             val assignmentId = getNextAssignmentId(db)
             createSnapshotWorkout(db, assignmentId, workoutId)
+            createWorkoutAssignmentProgress(db, assignmentId, workoutId)
             slotIds.forEach { slotId ->
                 val values = ContentValues().apply {
                     put(COL_SLOT_WORKOUT_ID, workoutId)
@@ -823,6 +864,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             val assignmentId = getAssignmentIdForSlots(db, oldSlotIds) ?: getNextAssignmentId(db)
             deleteSnapshotsForAssignments(db, listOf(assignmentId))
             createSnapshotWorkout(db, assignmentId, workoutId)
+            createWorkoutAssignmentProgress(db, assignmentId, workoutId)
             oldSlotIds.forEach { slotId ->
                 val values = ContentValues().apply {
                     putNull(COL_SLOT_WORKOUT_ID)
@@ -865,6 +907,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 db.delete(TABLE_WORKOUT_EXERCISE_COMPLETIONS, "$COL_COMPLETION_SLOT_ID = ?", arrayOf(slotId.toString()))
             }
             deleteSnapshotsForAssignments(db, assignmentIds)
+            deleteProgressForAssignments(db, assignmentIds)
             db.setTransactionSuccessful()
             true
         } catch (e: Exception) {
@@ -885,6 +928,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.update(TABLE_TRAINEE_CALENDAR_SLOT, values, "$COL_SLOT_ID = ?", arrayOf(slotId.toString()))
         db.delete(TABLE_WORKOUT_EXERCISE_COMPLETIONS, "$COL_COMPLETION_SLOT_ID = ?", arrayOf(slotId.toString()))
         deleteSnapshotsForAssignments(db, assignmentIds)
+        deleteProgressForAssignments(db, assignmentIds)
     }
 
     private fun getNextAssignmentId(db: SQLiteDatabase): Int {
@@ -967,6 +1011,32 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         }
     }
 
+    private fun createWorkoutAssignmentProgress(db: SQLiteDatabase, assignmentId: Int, workoutId: Int) {
+        val totalTime = getSnapshotTotalExerciseTime(db, assignmentId)
+        val values = ContentValues().apply {
+            put(COL_PROGRESS_ASSIGNMENT_ID, assignmentId)
+            put(COL_PROGRESS_WORKOUT_ID, workoutId)
+            put(COL_PROGRESS_COMPLETED_EXERCISE_TIME, 0)
+            put(COL_PROGRESS_TOTAL_EXERCISE_TIME, totalTime)
+        }
+        db.insertWithOnConflict(
+            TABLE_WORKOUT_ASSIGNMENT_PROGRESS,
+            null,
+            values,
+            SQLiteDatabase.CONFLICT_REPLACE
+        )
+    }
+
+    private fun getSnapshotTotalExerciseTime(db: SQLiteDatabase, assignmentId: Int): Int {
+        val cursor = db.rawQuery(
+            "SELECT COALESCE(SUM($COL_SNAPSHOT_EXERCISE_TOTAL_TIME), 0) FROM $TABLE_SNAPSHOT_WORKOUT WHERE $COL_SNAPSHOT_ASSIGNMENT_ID = ?",
+            arrayOf(assignmentId.toString())
+        )
+        val totalTime = if (cursor.moveToFirst()) cursor.getInt(0) else 0
+        cursor.close()
+        return totalTime
+    }
+
     private fun deleteSnapshotsForAssignments(db: SQLiteDatabase, assignmentIds: List<Int>) {
         if (assignmentIds.isEmpty()) return
 
@@ -974,6 +1044,17 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.delete(
             TABLE_SNAPSHOT_WORKOUT,
             "$COL_SNAPSHOT_ASSIGNMENT_ID IN ($placeholders)",
+            assignmentIds.map { it.toString() }.toTypedArray()
+        )
+    }
+
+    private fun deleteProgressForAssignments(db: SQLiteDatabase, assignmentIds: List<Int>) {
+        if (assignmentIds.isEmpty()) return
+
+        val placeholders = assignmentIds.joinToString(",") { "?" }
+        db.delete(
+            TABLE_WORKOUT_ASSIGNMENT_PROGRESS,
+            "$COL_PROGRESS_ASSIGNMENT_ID IN ($placeholders)",
             assignmentIds.map { it.toString() }.toTypedArray()
         )
     }
@@ -1028,6 +1109,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         val assignmentIds = getAssignmentIdsForSlots(db, listOf(slotId))
         db.delete(TABLE_WORKOUT_EXERCISE_COMPLETIONS, "$COL_COMPLETION_SLOT_ID = ?", arrayOf(slotId.toString()))
         deleteSnapshotsForAssignments(db, assignmentIds)
+        deleteProgressForAssignments(db, assignmentIds)
         return db.delete(TABLE_TRAINEE_CALENDAR_SLOT, "$COL_SLOT_ID = ?", arrayOf(slotId.toString())) > 0
     }
 
@@ -1078,17 +1160,86 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     fun markWorkoutExerciseComplete(slotId: Int, exerciseId: Long): Boolean {
         val db = writableDatabase
-        val values = ContentValues().apply {
-            put(COL_COMPLETION_SLOT_ID, slotId)
-            put(COL_COMPLETION_EXERCISE_ID, exerciseId)
-            put(COL_COMPLETION_COMPLETED_AT, System.currentTimeMillis().toString())
+        return try {
+            db.beginTransaction()
+
+            val assignmentId = getAssignmentIdForSlots(db, listOf(slotId))
+            val shouldUpdateProgress = assignmentId == null ||
+                !hasCompletedExerciseForAssignment(db, assignmentId, exerciseId)
+
+            val values = ContentValues().apply {
+                put(COL_COMPLETION_SLOT_ID, slotId)
+                put(COL_COMPLETION_EXERCISE_ID, exerciseId)
+                put(COL_COMPLETION_COMPLETED_AT, System.currentTimeMillis().toString())
+            }
+            val isInserted = db.insertWithOnConflict(
+                TABLE_WORKOUT_EXERCISE_COMPLETIONS,
+                null,
+                values,
+                SQLiteDatabase.CONFLICT_IGNORE
+            ) != -1L
+
+            if (isInserted && shouldUpdateProgress && assignmentId != null) {
+                addCompletedExerciseTime(db, assignmentId, exerciseId)
+            }
+
+            db.setTransactionSuccessful()
+            isInserted
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        } finally {
+            db.endTransaction()
         }
-        return db.insertWithOnConflict(
-            TABLE_WORKOUT_EXERCISE_COMPLETIONS,
+    }
+
+    private fun hasCompletedExerciseForAssignment(
+        db: SQLiteDatabase,
+        assignmentId: Int,
+        exerciseId: Long
+    ): Boolean {
+        val query = """
+            SELECT c.$COL_COMPLETION_EXERCISE_ID
+            FROM $TABLE_WORKOUT_EXERCISE_COMPLETIONS c
+            JOIN $TABLE_TRAINEE_CALENDAR_SLOT s
+                ON c.$COL_COMPLETION_SLOT_ID = s.$COL_SLOT_ID
+            WHERE s.$COL_SLOT_ASSIGNMENT_ID = ?
+            AND c.$COL_COMPLETION_EXERCISE_ID = ?
+            LIMIT 1
+        """.trimIndent()
+        val cursor = db.rawQuery(query, arrayOf(assignmentId.toString(), exerciseId.toString()))
+        val exists = cursor.moveToFirst()
+        cursor.close()
+        return exists
+    }
+
+    private fun addCompletedExerciseTime(
+        db: SQLiteDatabase,
+        assignmentId: Int,
+        exerciseId: Long
+    ) {
+        val cursor = db.query(
+            TABLE_SNAPSHOT_WORKOUT,
+            arrayOf(COL_SNAPSHOT_EXERCISE_TOTAL_TIME),
+            "$COL_SNAPSHOT_ASSIGNMENT_ID = ? AND $COL_SNAPSHOT_EXERCISE_ID = ?",
+            arrayOf(assignmentId.toString(), exerciseId.toString()),
             null,
-            values,
-            SQLiteDatabase.CONFLICT_IGNORE
-        ) != -1L
+            null,
+            null
+        )
+        val exerciseTime = if (cursor.moveToFirst()) cursor.getInt(0) else 0
+        cursor.close()
+        if (exerciseTime <= 0) return
+
+        db.execSQL(
+            """
+                UPDATE $TABLE_WORKOUT_ASSIGNMENT_PROGRESS
+                SET $COL_PROGRESS_COMPLETED_EXERCISE_TIME =
+                    MIN($COL_PROGRESS_COMPLETED_EXERCISE_TIME + ?, $COL_PROGRESS_TOTAL_EXERCISE_TIME)
+                WHERE $COL_PROGRESS_ASSIGNMENT_ID = ?
+            """.trimIndent(),
+            arrayOf(exerciseTime, assignmentId)
+        )
     }
 
     fun getUserTags(userId: Int): Cursor {

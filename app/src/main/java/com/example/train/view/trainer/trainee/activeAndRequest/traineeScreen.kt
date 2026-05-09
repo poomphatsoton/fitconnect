@@ -21,6 +21,7 @@ import com.example.train.viewmodel.trainer.TraineesViewModel
 fun TraineesScreen(
     modifier: Modifier = Modifier,
     viewModel: TraineesViewModel = viewModel(),
+    onDashboardClick: (Int) -> Unit = {},
     onCalendarClick: (Int) -> Unit = {}
 ) {
     val uiState by viewModel.uiState
@@ -35,6 +36,7 @@ fun TraineesScreen(
         requestCount = uiState.requestCount,
         activeTrainees = uiState.allActiveTrainees,
         requestTrainees = uiState.allRequestTrainees,
+        onDashboardClick = onDashboardClick,
         onCalendarClick = onCalendarClick,
         onApproveClick = { trainerId, traineeId -> viewModel.onApproveClick(trainerId, traineeId) },
         onDenyClick = { trainerId, traineeId -> viewModel.onDenyClick(trainerId, traineeId) },
@@ -50,6 +52,7 @@ fun TraineesScreenContent(
     requestTrainees: List<Trainee>,
     modifier: Modifier = Modifier,
     initialTab: String = "Active",
+    onDashboardClick: (Int) -> Unit = {},
     onCalendarClick: (Int) -> Unit = {},
     onApproveClick: (Int, Int) -> Boolean,
     onDenyClick: (Int, Int) -> Boolean,
@@ -85,6 +88,7 @@ fun TraineesScreenContent(
         if (selectedTab == "Active") {
             TraineeActiveList(
                 trainees = activeTrainees,
+                onDashboardClick = onDashboardClick,
                 onCalendarClick = onCalendarClick
             )
         } else {
