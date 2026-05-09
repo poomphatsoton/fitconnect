@@ -19,7 +19,7 @@ import com.example.train.model.trainer.TraineeSlot
 @Composable
 fun DailyScheduleContent(
     slots: List<TraineeSlot>,
-    onAddClick: () -> Unit,
+    onAddClick: (TraineeSlot) -> Unit,
     onEditClick: (TraineeSlot) -> Unit,
     onDeleteClick: (TraineeSlot) -> Unit,
     modifier: Modifier = Modifier,
@@ -32,7 +32,7 @@ fun DailyScheduleContent(
             slots.forEach { slot ->
                 ScheduleRow(
                     slot = slot,
-                    onAddClick = onAddClick,
+                    onAddClick = { onAddClick(slot) },
                     onEditClick = { onEditClick(slot) },
                     onDeleteClick = { onDeleteClick(slot) }
                 )

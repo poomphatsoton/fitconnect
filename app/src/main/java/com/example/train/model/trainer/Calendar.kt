@@ -5,7 +5,11 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 
 data class CalendarUiState(
-    val traineeSlots: List<TraineeSlot> = emptyList()
+    val traineeSlots: List<TraineeSlot> = emptyList(),
+    val workoutOptions: List<String> = emptyList(),
+    val showAssignDialog: Boolean = false,
+    val editingWorkout: AssignedWorkout? = null,
+    val selectedSlot: TraineeSlot? = null
 )
 
 data class TraineeSlot(

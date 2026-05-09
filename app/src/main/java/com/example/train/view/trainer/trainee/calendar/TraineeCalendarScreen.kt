@@ -35,8 +35,6 @@ fun TraineeCalendarScreen(
 ) {
     val uiState by viewModel.uiState
     var selectedDate by remember { mutableStateOf(calendarDate) }
-    var showAssignDialog by remember { mutableStateOf(false) }
-    var editingWorkout by remember { mutableStateOf<AssignedWorkout?>(null) }
 
     LaunchedEffect(traineeId, selectedDate) {
         if (traineeId != -1) {
@@ -76,33 +74,33 @@ fun TraineeCalendarScreen(
 
             DailyScheduleContent(
                 slots = uiState.traineeSlots,
-                onAddClick = { showAssignDialog = true },
-                onEditClick = { slot ->
-                    editingWorkout = AssignedWorkout(
-                        name = slot.workoutName ?: "",
-                        startTime = slot.startTime.toString(),
-                        endTime = slot.endTime.toString(),
-                        tag = "",
-                        datetime = LocalDateTime.now()
-                    )
-                },
-                onDeleteClick = { /* Handle Delete */ }
+                onAddClick = viewModel::showAssignDialog,
+                onEditClick = viewModel::showEditDialog,
+                onDeleteClick = { slot ->
+                    viewModel.deleteAssignedWorkout(slot, traineeId, selectedDate)
+                }
             )
         }
     }
 
-    if (showAssignDialog) {
+    if (uiState.showAssignDialog) {
         AssignWorkoutDialog(
-            onDismiss = { showAssignDialog = false },
-            onAssign = { showAssignDialog = false }
+            workoutOptions = uiState.workoutOptions,
+            onDismiss = viewModel::dismissAssignDialog,
+            onAssign = { assignedWorkout ->
+                viewModel.assignWorkout(assignedWorkout, traineeId, selectedDate)
+            }
         )
     }
 
-    if (editingWorkout != null) {
+    if (uiState.editingWorkout != null) {
         AssignWorkoutDialog(
-            initialWorkout = editingWorkout,
-            onDismiss = { editingWorkout = null },
-            onAssign = { editingWorkout = null }
+            initialWorkout = uiState.editingWorkout,
+            workoutOptions = uiState.workoutOptions,
+            onDismiss = viewModel::dismissEditDialog,
+            onAssign = { assignedWorkout ->
+                viewModel.updateAssignedWorkout(assignedWorkout, traineeId, selectedDate)
+            }
         )
     }
 }
@@ -135,10 +133,12 @@ fun TraineeCalendarHeader(onBackClick: () -> Unit) {
 @Composable
 fun AssignWorkoutDialog(
     initialWorkout: AssignedWorkout? = null,
+    workoutOptions: List<String> = emptyList(),
     onDismiss: () -> Unit,
-    onAssign: () -> Unit
+    onAssign: (AssignedWorkout) -> Unit
 ) {
-    var workoutName by remember { mutableStateOf(initialWorkout?.name ?: "Strength & Power") }
+    val defaultWorkoutName = initialWorkout?.name ?: workoutOptions.firstOrNull() ?: "Full Body Strength"
+    var workoutName by remember(initialWorkout, workoutOptions) { mutableStateOf(defaultWorkoutName) }
     var startTime by remember { mutableStateOf(initialWorkout?.startTime ?: "08:00") }
     var endTime by remember { mutableStateOf(initialWorkout?.endTime ?: "09:00") }
     
@@ -146,7 +146,7 @@ fun AssignWorkoutDialog(
     var expandedStart by remember { mutableStateOf(false) }
     var expandedEnd by remember { mutableStateOf(false) }
 
-    val workoutOptions = listOf("Strength & Power", "Yoga Flow", "HIIT Session", "Endurance Run")
+    val availableWorkoutOptions = workoutOptions.ifEmpty { listOf(defaultWorkoutName) }
     val timeOptions = (5..22).flatMap { hour -> 
         listOf(
             String.format("%02d:00", hour),
@@ -205,7 +205,7 @@ fun AssignWorkoutDialog(
                             onDismissRequest = { expandedWorkout = false },
                             modifier = Modifier.background(Color.White)
                         ) {
-                            workoutOptions.forEach { option ->
+                            availableWorkoutOptions.forEach { option ->
                                 DropdownMenuItem(
                                     text = { Text(text = option) },
                                     onClick = {
@@ -319,7 +319,17 @@ fun AssignWorkoutDialog(
                     }
 
                     Button(
-                        onClick = onAssign,
+                        onClick = {
+                            onAssign(
+                                AssignedWorkout(
+                                    name = workoutName,
+                                    startTime = startTime,
+                                    endTime = endTime,
+                                    tag = initialWorkout?.tag ?: "",
+                                    datetime = initialWorkout?.datetime ?: LocalDateTime.now()
+                                )
+                            )
+                        },
                         modifier = Modifier
                             .weight(1f)
                             .height(56.dp),

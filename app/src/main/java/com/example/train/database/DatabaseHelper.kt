@@ -534,6 +534,59 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         )
     }
 
+    fun getWorkoutOptions(): Cursor {
+        val db = readableDatabase
+        return db.query(
+            TABLE_WORKOUTS,
+            arrayOf(COL_WORKOUT_ID, COL_WORKOUT_NAME),
+            null,
+            null,
+            null,
+            null,
+            COL_WORKOUT_NAME
+        )
+    }
+
+    fun getWorkoutIdByName(workoutName: String): Int? {
+        val db = readableDatabase
+        val cursor = db.query(
+            TABLE_WORKOUTS,
+            arrayOf(COL_WORKOUT_ID),
+            "$COL_WORKOUT_NAME = ?",
+            arrayOf(workoutName),
+            null,
+            null,
+            null,
+            "1"
+        )
+
+        val workoutId = if (cursor.moveToFirst()) {
+            cursor.getInt(cursor.getColumnIndexOrThrow(COL_WORKOUT_ID))
+        } else {
+            null
+        }
+        cursor.close()
+        return workoutId
+    }
+
+    fun assignWorkoutToTraineeSlot(slotId: Int, workoutId: Int, startTime: String, endTime: String) {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put(COL_SLOT_WORKOUT_ID, workoutId)
+            put(COL_SLOT_START_TIME, startTime)
+            put(COL_SLOT_END_TIME, endTime)
+        }
+        db.update(TABLE_TRAINEE_CALENDAR_SLOT, values, "$COL_SLOT_ID = ?", arrayOf(slotId.toString()))
+    }
+
+    fun clearWorkoutFromTraineeSlot(slotId: Int) {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            putNull(COL_SLOT_WORKOUT_ID)
+        }
+        db.update(TABLE_TRAINEE_CALENDAR_SLOT, values, "$COL_SLOT_ID = ?", arrayOf(slotId.toString()))
+    }
+
     fun getUserTags(userId: Int): Cursor {
         val db = readableDatabase
         val query = """
