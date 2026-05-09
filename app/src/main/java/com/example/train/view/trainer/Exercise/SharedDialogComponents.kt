@@ -1,4 +1,4 @@
-package com.example.train.ui.components
+package com.example.train.view.trainer.exercise
 
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxWidth

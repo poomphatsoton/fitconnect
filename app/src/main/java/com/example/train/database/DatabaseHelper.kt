@@ -547,28 +547,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         )
     }
 
-    fun getWorkoutIdByName(workoutName: String): Int? {
-        val db = readableDatabase
-        val cursor = db.query(
-            TABLE_WORKOUTS,
-            arrayOf(COL_WORKOUT_ID),
-            "$COL_WORKOUT_NAME = ?",
-            arrayOf(workoutName),
-            null,
-            null,
-            null,
-            "1"
-        )
-
-        val workoutId = if (cursor.moveToFirst()) {
-            cursor.getInt(cursor.getColumnIndexOrThrow(COL_WORKOUT_ID))
-        } else {
-            null
-        }
-        cursor.close()
-        return workoutId
-    }
-
     fun assignWorkoutToTraineeSlot(slotId: Int, workoutId: Int, startTime: String, endTime: String) {
         val db = writableDatabase
         val values = ContentValues().apply {

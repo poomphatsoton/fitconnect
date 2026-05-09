@@ -20,6 +20,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.train.R
 import com.example.train.model.trainer.AssignedWorkout
+import com.example.train.model.trainer.WorkoutOption
 import com.example.train.viewmodel.trainer.CalendarViewModel
 import java.time.LocalDate
 import java.time.LocalDate.*
@@ -133,20 +134,23 @@ fun TraineeCalendarHeader(onBackClick: () -> Unit) {
 @Composable
 fun AssignWorkoutDialog(
     initialWorkout: AssignedWorkout? = null,
-    workoutOptions: List<String> = emptyList(),
+    workoutOptions: List<WorkoutOption> = emptyList(),
     onDismiss: () -> Unit,
     onAssign: (AssignedWorkout) -> Unit
 ) {
-    val defaultWorkoutName = initialWorkout?.name ?: workoutOptions.firstOrNull() ?: "Full Body Strength"
-    var workoutName by remember(initialWorkout, workoutOptions) { mutableStateOf(defaultWorkoutName) }
-    var startTime by remember { mutableStateOf(initialWorkout?.startTime ?: "08:00") }
-    var endTime by remember { mutableStateOf(initialWorkout?.endTime ?: "09:00") }
+    val selectedInitialWorkout = workoutOptions.firstOrNull { it.id == initialWorkout?.workoutId }
+        ?: workoutOptions.firstOrNull { it.name == initialWorkout?.name }
+        ?: workoutOptions.firstOrNull()
+    var selectedWorkout by remember(initialWorkout, workoutOptions) {
+        mutableStateOf(selectedInitialWorkout)
+    }
+    var startTime by remember(initialWorkout) { mutableStateOf(initialWorkout?.startTime ?: "08:00") }
+    var endTime by remember(initialWorkout) { mutableStateOf(initialWorkout?.endTime ?: "09:00") }
     
     var expandedWorkout by remember { mutableStateOf(false) }
     var expandedStart by remember { mutableStateOf(false) }
     var expandedEnd by remember { mutableStateOf(false) }
 
-    val availableWorkoutOptions = workoutOptions.ifEmpty { listOf(defaultWorkoutName) }
     val timeOptions = (5..22).flatMap { hour -> 
         listOf(
             String.format("%02d:00", hour),
@@ -191,9 +195,10 @@ fun AssignWorkoutDialog(
                         onExpandedChange = { expandedWorkout = !expandedWorkout }
                     ) {
                         OutlinedTextField(
-                            value = workoutName,
+                            value = selectedWorkout?.name ?: "No workouts available",
                             onValueChange = {},
                             readOnly = true,
+                            enabled = workoutOptions.isNotEmpty(),
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedWorkout) },
                             modifier = Modifier
                                 .menuAnchor()
@@ -205,11 +210,11 @@ fun AssignWorkoutDialog(
                             onDismissRequest = { expandedWorkout = false },
                             modifier = Modifier.background(Color.White)
                         ) {
-                            availableWorkoutOptions.forEach { option ->
+                            workoutOptions.forEach { option ->
                                 DropdownMenuItem(
-                                    text = { Text(text = option) },
+                                    text = { Text(text = option.name) },
                                     onClick = {
-                                        workoutName = option
+                                        selectedWorkout = option
                                         expandedWorkout = false
                                     },
                                     colors = MenuDefaults.itemColors(
@@ -320,9 +325,11 @@ fun AssignWorkoutDialog(
 
                     Button(
                         onClick = {
+                            val workout = selectedWorkout ?: return@Button
                             onAssign(
                                 AssignedWorkout(
-                                    name = workoutName,
+                                    workoutId = workout.id,
+                                    name = workout.name,
                                     startTime = startTime,
                                     endTime = endTime,
                                     tag = initialWorkout?.tag ?: "",
@@ -333,6 +340,7 @@ fun AssignWorkoutDialog(
                         modifier = Modifier
                             .weight(1f)
                             .height(56.dp),
+                        enabled = selectedWorkout != null,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF0F172A),
                             contentColor = Color.White

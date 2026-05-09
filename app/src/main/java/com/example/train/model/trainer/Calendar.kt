@@ -6,10 +6,15 @@ import java.time.LocalTime
 
 data class CalendarUiState(
     val traineeSlots: List<TraineeSlot> = emptyList(),
-    val workoutOptions: List<String> = emptyList(),
+    val workoutOptions: List<WorkoutOption> = emptyList(),
     val showAssignDialog: Boolean = false,
     val editingWorkout: AssignedWorkout? = null,
     val selectedSlot: TraineeSlot? = null
+)
+
+data class WorkoutOption(
+    val id: Int,
+    val name: String
 )
 
 data class TraineeSlot(
@@ -23,6 +28,7 @@ data class TraineeSlot(
 )
 
 data class AssignedWorkout(
+    val workoutId: Int?,
     val name: String,
     val startTime: String,
     val endTime: String,

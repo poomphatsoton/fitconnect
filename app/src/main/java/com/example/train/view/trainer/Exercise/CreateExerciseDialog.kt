@@ -24,8 +24,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.train.model.Tag
 import com.example.train.model.trainer.Exercise
-import com.example.train.ui.components.DialogBlackButton
-import com.example.train.ui.components.DialogInputField
 
 @Composable
 fun CreateExerciseDialog(

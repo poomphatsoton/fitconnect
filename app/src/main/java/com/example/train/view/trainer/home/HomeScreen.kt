@@ -26,11 +26,10 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.train.ui.components.CreateButtons
-import com.example.train.ui.components.CreateWorkoutDialogHost
 import com.example.train.ui.components.NavigationBar
 import com.example.train.ui.components.NoTraineesCard
-import com.example.train.ui.components.OverviewCard
 import com.example.train.ui.components.TrainerProfileCard
+import com.example.train.view.trainer.exercise.CreateWorkoutDialogHost
 import com.example.train.viewmodel.trainer.ExercisesViewModel
 import com.example.train.viewmodel.trainer.TrainerHomeViewModel
 import com.example.train.viewmodel.trainer.WorkoutsViewModel
@@ -107,22 +106,6 @@ fun HomeScreen(
                     }
                 )
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OverviewCard(
-                activeTrainees = uiState.activeTrainees,
-                exercises = uiState.exercises,
-                workouts = uiState.workouts,
-                pendingRequests = uiState.pendingRequests,
-                onPendingClick = {
-                    Toast.makeText(
-                        context,
-                        "Pending Requests Clicked!",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            )
 
             Spacer(modifier = Modifier.height(16.dp))
 

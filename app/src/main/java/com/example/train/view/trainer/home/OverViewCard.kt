@@ -29,8 +29,6 @@ fun OverviewCard(
     activeTrainees: Int,
     exercises: Int,
     workouts: Int,
-    pendingRequests: Int,
-    onPendingClick: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -72,24 +70,6 @@ fun OverviewCard(
             )
 
             Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedButton(
-                onClick = onPendingClick,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_notification),
-                    contentDescription = "Pending Requests"
-                )
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Text(
-                    text = "$pendingRequests Pending Request${if (pendingRequests > 1) "s" else ""}",
-                    color = Color.Black
-                )
-            }
         }
     }
 }

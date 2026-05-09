@@ -10,6 +10,7 @@ import com.example.train.model.trainer.AssignedWorkout
 import com.example.train.database.DatabaseHelper
 import com.example.train.model.trainer.CalendarUiState
 import com.example.train.model.trainer.TraineeSlot
+import com.example.train.model.trainer.WorkoutOption
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -45,6 +46,7 @@ class CalendarViewModel(
     }
 
     fun showAssignDialog(slot: TraineeSlot) {
+        loadWorkoutOptions()
         uiState.value = uiState.value.copy(
             showAssignDialog = true,
             editingWorkout = null,
@@ -54,9 +56,11 @@ class CalendarViewModel(
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun showEditDialog(slot: TraineeSlot) {
+        loadWorkoutOptions()
         uiState.value = uiState.value.copy(
             showAssignDialog = false,
             editingWorkout = AssignedWorkout(
+                workoutId = slot.workoutId,
                 name = slot.workoutName ?: "",
                 startTime = slot.startTime.toString(),
                 endTime = slot.endTime.toString(),
@@ -78,7 +82,7 @@ class CalendarViewModel(
     @RequiresApi(Build.VERSION_CODES.O)
     fun assignWorkout(assignedWorkout: AssignedWorkout, traineeId: Int, date: LocalDate) {
         val selectedSlot = findSelectedSlot() ?: return dismissAssignDialog()
-        val workoutId = dbHelper.getWorkoutIdByName(assignedWorkout.name) ?: return dismissAssignDialog()
+        val workoutId = assignedWorkout.workoutId ?: return dismissAssignDialog()
 
         dbHelper.assignWorkoutToTraineeSlot(
             slotId = selectedSlot.slotId,
@@ -93,7 +97,7 @@ class CalendarViewModel(
     @RequiresApi(Build.VERSION_CODES.O)
     fun updateAssignedWorkout(assignedWorkout: AssignedWorkout, traineeId: Int, date: LocalDate) {
         val selectedSlot = findSelectedSlot() ?: return dismissEditDialog()
-        val workoutId = dbHelper.getWorkoutIdByName(assignedWorkout.name) ?: return dismissEditDialog()
+        val workoutId = assignedWorkout.workoutId ?: return dismissEditDialog()
 
         dbHelper.assignWorkoutToTraineeSlot(
             slotId = selectedSlot.slotId,
@@ -112,10 +116,15 @@ class CalendarViewModel(
     }
 
     private fun loadWorkoutOptions() {
-        val options = mutableListOf<String>()
+        val options = mutableListOf<WorkoutOption>()
         dbHelper.getWorkoutOptions().use { cursor ->
             while (cursor.moveToNext()) {
-                options.add(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_NAME)))
+                options.add(
+                    WorkoutOption(
+                        id = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_ID)),
+                        name = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_NAME))
+                    )
+                )
             }
         }
         uiState.value = uiState.value.copy(workoutOptions = options)

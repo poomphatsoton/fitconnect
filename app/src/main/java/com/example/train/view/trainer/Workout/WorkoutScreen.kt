@@ -35,7 +35,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.train.R
 import com.example.train.model.trainer.WorkoutExerciseDetail
 import com.example.train.model.trainer.WorkoutUiItem
-import com.example.train.ui.components.CreateWorkoutDialogHost
+import com.example.train.view.trainer.exercise.CreateWorkoutDialogHost
 import com.example.train.viewmodel.trainer.WorkoutsViewModel
 
 @Composable
