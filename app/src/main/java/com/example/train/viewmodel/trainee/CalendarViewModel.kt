@@ -99,11 +99,13 @@ class TraineeCalendarViewModel(
     @RequiresApi(Build.VERSION_CODES.O)
     private fun Cursor.toTraineeSlot(): TraineeSlot {
         val workoutIdIndex = getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_WORKOUT_ID)
+        val assignmentIdIndex = getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_ASSIGNMENT_ID)
         val workoutNameIndex = getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_NAME)
 
         return TraineeSlot(
             slotId = getInt(getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_ID)),
             workoutId = if (isNull(workoutIdIndex)) null else getInt(workoutIdIndex),
+            assignmentId = if (isNull(assignmentIdIndex)) null else getInt(assignmentIdIndex),
             workoutName = if (isNull(workoutNameIndex)) null else getString(workoutNameIndex),
             status = getInt(getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_STATUS)),
             startTime = LocalTime.parse(getString(getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_START_TIME))),

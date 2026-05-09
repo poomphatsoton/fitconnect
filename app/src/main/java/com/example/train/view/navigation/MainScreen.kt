@@ -12,6 +12,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import androidx.navigation.NavType
 import com.example.train.R
 import com.example.train.ui.components.BottomNavigationBar
 import com.example.train.view.trainer.exercise.ExercisesScreen
@@ -22,7 +24,9 @@ object MainRoutes {
     const val EXERCISES = "exercises"
     const val WORKOUTS = "workouts"
     const val TRAINEES = "trainees"
-    const val TRAINEE_CALENDAR = "trainee_calendar"
+    const val TRAINEE_CALENDAR = "trainee_calendar/{traineeId}"
+
+    fun traineeCalendar(traineeId: Int): String = "trainee_calendar/$traineeId"
 }
 
 data class BottomNavItem(
@@ -95,13 +99,18 @@ fun MainScreen(
             composable(MainRoutes.TRAINEES) {
                 TraineesScreen(
                     onCalendarClick = { traineeId ->
-                        navController.navigate(MainRoutes.TRAINEE_CALENDAR)
+                        navController.navigate(MainRoutes.traineeCalendar(traineeId))
                     }
                 )
             }
 
-            composable(MainRoutes.TRAINEE_CALENDAR) {
+            composable(
+                route = MainRoutes.TRAINEE_CALENDAR,
+                arguments = listOf(navArgument("traineeId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val traineeId = backStackEntry.arguments?.getInt("traineeId") ?: -1
                 TraineeCalendarScreen(
+                    traineeId = traineeId,
                     onBackClick = {
                         navController.popBackStack()
                     }

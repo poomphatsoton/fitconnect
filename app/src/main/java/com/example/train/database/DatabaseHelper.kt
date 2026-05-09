@@ -14,7 +14,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     companion object {
         private const val DATABASE_NAME = "FitConnect.db"
-        private const val DATABASE_VERSION = 24
+        private const val DATABASE_VERSION = 26
 
         // Users
         const val TABLE_USERS = "users"
@@ -86,6 +86,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val COL_SLOT_ID = "slot_id"
         const val COL_TRAINEE_ID = "trainee_id"
         const val COL_SLOT_WORKOUT_ID = "workout_id"
+        const val COL_SLOT_ASSIGNMENT_ID = "assignment_id"
         const val COL_SLOT_STATUS = "slot_status"
         const val COL_SLOT_START_TIME = "start_time"
         const val COL_SLOT_END_TIME = "end_time"
@@ -244,6 +245,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             $COL_SLOT_ID INTEGER PRIMARY KEY AUTOINCREMENT,
             $COL_TRAINEE_ID INTEGER,
             $COL_SLOT_WORKOUT_ID INTEGER,
+            $COL_SLOT_ASSIGNMENT_ID INTEGER,
             $COL_SLOT_STATUS INTEGER,
             $COL_SLOT_START_TIME TEXT,
             $COL_SLOT_END_TIME TEXT,
@@ -317,7 +319,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         val today = java.time.LocalDate.now().toString()
 
         // 1. IDEAL with Workout
-        db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (2, 1, 0, '$today', '08:00', '09:00')")
+        db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_ASSIGNMENT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (2, 1, 1, 0, '$today', '08:00', '09:00')")
 
         // 2. MAYBE without Workout (Available)
         db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (2, NULL, 1, '$today', '10:00', '11:00')")
@@ -329,7 +331,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (2, NULL, 0, '$today', '15:00', '16:00')")
 
         // 5. MAYBE with Workout
-        db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (2, 1, 1, '$today', '17:00', '18:00')")
+        db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_ASSIGNMENT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (2, 1, 2, 1, '$today', '17:00', '18:00')")
 
         // Mock Tags
         db.execSQL("INSERT INTO $TABLE_TAGS ($COL_TAG_NAME) VALUES ('strength')") // ID 1
@@ -367,8 +369,10 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.execSQL("INSERT INTO $TABLE_TRAINEE_REQUESTS ($COL_REQUEST_TRAINER_ID, $COL_REQUEST_TRAINEE_ID, $COL_REQUEST_STATUS) VALUES (9, 10, '$STATUS_ACCEPTED')")
         db.execSQL("INSERT INTO $TABLE_TRAINER_TRAINEES ($COL_TT_TRAINER_ID, $COL_TT_TRAINEE_ID) VALUES (9, 10)")
         db.execSQL("INSERT INTO $TABLE_TRAINEE_TRAINER ($COL_TTR_TRAINEE_ID, $COL_TTR_TRAINER_ID) VALUES (10, 9)")
-        db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (10, 1, 0, '$today', '18:30', '19:30')")
-        db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (10, 1, 1, '$today', '20:00', '20:45')")
+        db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_ASSIGNMENT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (10, NULL, NULL, 0, '$today', '08:00', '09:00')")
+        db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_ASSIGNMENT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (10, NULL, NULL, 1, '$today', '09:00', '10:00')")
+        db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_ASSIGNMENT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (10, NULL, NULL, 0, '$today', '13:00', '14:00')")
+        db.execSQL("INSERT INTO $TABLE_TRAINEE_CALENDAR_SLOT ($COL_TRAINEE_ID, $COL_SLOT_WORKOUT_ID, $COL_SLOT_ASSIGNMENT_ID, $COL_SLOT_STATUS, $COL_SLOT_DATE, $COL_SLOT_START_TIME, $COL_SLOT_END_TIME) VALUES (10, NULL, NULL, 2, '$today', '15:00', '16:00')")
 
         db.execSQL("INSERT INTO $TABLE_TRAINEE_REQUESTS ($COL_REQUEST_TRAINER_ID, $COL_REQUEST_TRAINEE_ID, $COL_REQUEST_STATUS) VALUES (1, 6, '$STATUS_PENDING')")
         db.execSQL("INSERT INTO $TABLE_TRAINEE_REQUESTS ($COL_REQUEST_TRAINER_ID, $COL_REQUEST_TRAINEE_ID, $COL_REQUEST_STATUS) VALUES (1, 7, '$STATUS_PENDING')")
@@ -654,6 +658,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
             val slotValues = ContentValues().apply {
                 putNull(COL_SLOT_WORKOUT_ID)
+                putNull(COL_SLOT_ASSIGNMENT_ID)
             }
             db.update(
                 TABLE_TRAINEE_CALENDAR_SLOT,
@@ -694,6 +699,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             ON s.$COL_SLOT_WORKOUT_ID = w.$COL_WORKOUT_ID
         WHERE s.$COL_TRAINEE_ID = ?
         AND s.$COL_SLOT_DATE = ?
+        ORDER BY s.$COL_SLOT_START_TIME ASC, s.$COL_SLOT_END_TIME ASC
     """.trimIndent()
 
         return db.rawQuery(
@@ -709,7 +715,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         val db = readableDatabase
         return db.query(
             TABLE_WORKOUTS,
-            arrayOf(COL_WORKOUT_ID, COL_WORKOUT_NAME),
+            arrayOf(COL_WORKOUT_ID, COL_WORKOUT_NAME, COL_WORKOUT_DURATION),
             null,
             null,
             null,
@@ -718,24 +724,135 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         )
     }
 
-    fun assignWorkoutToTraineeSlot(slotId: Int, workoutId: Int, startTime: String, endTime: String) {
+    fun assignWorkoutToTraineeSlot(slotId: Int, workoutId: Int) {
         val db = writableDatabase
         val values = ContentValues().apply {
             put(COL_SLOT_WORKOUT_ID, workoutId)
-            put(COL_SLOT_START_TIME, startTime)
-            put(COL_SLOT_END_TIME, endTime)
+            put(COL_SLOT_ASSIGNMENT_ID, getNextAssignmentId(db))
         }
         db.update(TABLE_TRAINEE_CALENDAR_SLOT, values, "$COL_SLOT_ID = ?", arrayOf(slotId.toString()))
         db.delete(TABLE_WORKOUT_EXERCISE_COMPLETIONS, "$COL_COMPLETION_SLOT_ID = ?", arrayOf(slotId.toString()))
+    }
+
+    fun assignWorkoutToTraineeSlots(slotIds: List<Int>, workoutId: Int): Boolean {
+        if (slotIds.isEmpty()) return false
+
+        val db = writableDatabase
+        return try {
+            db.beginTransaction()
+            val assignmentId = getNextAssignmentId(db)
+            slotIds.forEach { slotId ->
+                val values = ContentValues().apply {
+                    put(COL_SLOT_WORKOUT_ID, workoutId)
+                    put(COL_SLOT_ASSIGNMENT_ID, assignmentId)
+                }
+                db.update(TABLE_TRAINEE_CALENDAR_SLOT, values, "$COL_SLOT_ID = ?", arrayOf(slotId.toString()))
+                db.delete(TABLE_WORKOUT_EXERCISE_COMPLETIONS, "$COL_COMPLETION_SLOT_ID = ?", arrayOf(slotId.toString()))
+            }
+            db.setTransactionSuccessful()
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        } finally {
+            db.endTransaction()
+        }
+    }
+
+    fun replaceWorkoutOnTraineeSlots(oldSlotIds: List<Int>, newSlotIds: List<Int>, workoutId: Int): Boolean {
+        if (newSlotIds.isEmpty()) return false
+
+        val db = writableDatabase
+        return try {
+            db.beginTransaction()
+            val assignmentId = getAssignmentIdForSlots(db, oldSlotIds) ?: getNextAssignmentId(db)
+            oldSlotIds.forEach { slotId ->
+                val values = ContentValues().apply {
+                    putNull(COL_SLOT_WORKOUT_ID)
+                    putNull(COL_SLOT_ASSIGNMENT_ID)
+                }
+                db.update(TABLE_TRAINEE_CALENDAR_SLOT, values, "$COL_SLOT_ID = ?", arrayOf(slotId.toString()))
+                db.delete(TABLE_WORKOUT_EXERCISE_COMPLETIONS, "$COL_COMPLETION_SLOT_ID = ?", arrayOf(slotId.toString()))
+            }
+            newSlotIds.forEach { slotId ->
+                val values = ContentValues().apply {
+                    put(COL_SLOT_WORKOUT_ID, workoutId)
+                    put(COL_SLOT_ASSIGNMENT_ID, assignmentId)
+                }
+                db.update(TABLE_TRAINEE_CALENDAR_SLOT, values, "$COL_SLOT_ID = ?", arrayOf(slotId.toString()))
+                db.delete(TABLE_WORKOUT_EXERCISE_COMPLETIONS, "$COL_COMPLETION_SLOT_ID = ?", arrayOf(slotId.toString()))
+            }
+            db.setTransactionSuccessful()
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        } finally {
+            db.endTransaction()
+        }
+    }
+
+    fun clearWorkoutFromTraineeSlots(slotIds: List<Int>): Boolean {
+        if (slotIds.isEmpty()) return false
+
+        val db = writableDatabase
+        return try {
+            db.beginTransaction()
+            slotIds.forEach { slotId ->
+                val values = ContentValues().apply {
+                    putNull(COL_SLOT_WORKOUT_ID)
+                    putNull(COL_SLOT_ASSIGNMENT_ID)
+                }
+                db.update(TABLE_TRAINEE_CALENDAR_SLOT, values, "$COL_SLOT_ID = ?", arrayOf(slotId.toString()))
+                db.delete(TABLE_WORKOUT_EXERCISE_COMPLETIONS, "$COL_COMPLETION_SLOT_ID = ?", arrayOf(slotId.toString()))
+            }
+            db.setTransactionSuccessful()
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        } finally {
+            db.endTransaction()
+        }
     }
 
     fun clearWorkoutFromTraineeSlot(slotId: Int) {
         val db = writableDatabase
         val values = ContentValues().apply {
             putNull(COL_SLOT_WORKOUT_ID)
+            putNull(COL_SLOT_ASSIGNMENT_ID)
         }
         db.update(TABLE_TRAINEE_CALENDAR_SLOT, values, "$COL_SLOT_ID = ?", arrayOf(slotId.toString()))
         db.delete(TABLE_WORKOUT_EXERCISE_COMPLETIONS, "$COL_COMPLETION_SLOT_ID = ?", arrayOf(slotId.toString()))
+    }
+
+    private fun getNextAssignmentId(db: SQLiteDatabase): Int {
+        val cursor = db.rawQuery(
+            "SELECT COALESCE(MAX($COL_SLOT_ASSIGNMENT_ID), 0) + 1 FROM $TABLE_TRAINEE_CALENDAR_SLOT",
+            null
+        )
+        val assignmentId = if (cursor.moveToFirst()) cursor.getInt(0) else 1
+        cursor.close()
+        return assignmentId
+    }
+
+    private fun getAssignmentIdForSlots(db: SQLiteDatabase, slotIds: List<Int>): Int? {
+        if (slotIds.isEmpty()) return null
+
+        val placeholders = slotIds.joinToString(",") { "?" }
+        val cursor = db.rawQuery(
+            """
+                SELECT $COL_SLOT_ASSIGNMENT_ID
+                FROM $TABLE_TRAINEE_CALENDAR_SLOT
+                WHERE $COL_SLOT_ID IN ($placeholders)
+                AND $COL_SLOT_ASSIGNMENT_ID IS NOT NULL
+                LIMIT 1
+            """.trimIndent(),
+            slotIds.map { it.toString() }.toTypedArray()
+        )
+        val assignmentId = if (cursor.moveToFirst()) cursor.getInt(0) else null
+        cursor.close()
+        return assignmentId
     }
 
     fun addTraineeCalendarSlot(
@@ -753,6 +870,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         val values = ContentValues().apply {
             put(COL_TRAINEE_ID, traineeId)
             putNull(COL_SLOT_WORKOUT_ID)
+            putNull(COL_SLOT_ASSIGNMENT_ID)
             put(COL_SLOT_STATUS, status)
             put(COL_SLOT_DATE, date.toString())
             put(COL_SLOT_START_TIME, startTime)
