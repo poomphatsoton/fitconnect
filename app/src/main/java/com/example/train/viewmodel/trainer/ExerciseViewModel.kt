@@ -9,6 +9,7 @@ import androidx.lifecycle.AndroidViewModel
 import com.example.train.database.DatabaseHelper
 import com.example.train.model.Tag
 import com.example.train.model.trainer.Exercise
+import kotlin.math.roundToInt
 
 class ExercisesViewModel(
     application: Application
@@ -96,8 +97,8 @@ class ExercisesViewModel(
             return "Please fill required fields"
         }
 
-        val timePerRep = trimmedTime.toIntOrNull()
-            ?: return "Time must be a number"
+        val timePerRep = parseMinutesToSeconds(trimmedTime)
+            ?: return "Time must be a number of minutes"
 
         dbHelper.insertExercise(
             name = trimmedName,
@@ -131,8 +132,8 @@ class ExercisesViewModel(
             return "Please fill required fields"
         }
 
-        val timePerRep = trimmedTime.toIntOrNull()
-            ?: return "Time must be a number"
+        val timePerRep = parseMinutesToSeconds(trimmedTime)
+            ?: return "Time must be a number of minutes"
 
         dbHelper.updateExercise(
             id = id,
@@ -145,5 +146,11 @@ class ExercisesViewModel(
         loadExercises()
 
         return null
+    }
+
+    private fun parseMinutesToSeconds(value: String): Int? {
+        val minutes = value.toDoubleOrNull() ?: return null
+        if (minutes <= 0.0) return null
+        return (minutes * 60).roundToInt()
     }
 }

@@ -269,11 +269,21 @@ fun ExerciseCard(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "${exercise.timePerRep}s/rep",
+            text = "${exercise.timePerRep.toMinuteText()}/rep",
             fontSize = 12.sp,
             color = Color(0xFF757575)
         )
     }
+}
+
+private fun Int.toMinuteText(): String {
+    val minutes = this / 60.0
+    val value = if (minutes % 1.0 == 0.0) {
+        minutes.toInt().toString()
+    } else {
+        String.format("%.2f", minutes).trimEnd('0').trimEnd('.')
+    }
+    return "$value min"
 }
 
 @Composable

@@ -17,7 +17,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,7 +41,9 @@ fun CreateExerciseDialog(
 ) {
     var name by remember { mutableStateOf(initialExercise?.name ?: "") }
     var description by remember { mutableStateOf(initialExercise?.description ?: "") }
-    var timePerRep by remember { mutableStateOf(initialExercise?.timePerRep?.toString() ?: "") }
+    var timePerRep by remember {
+        mutableStateOf(initialExercise?.timePerRep?.toMinuteText() ?: "")
+    }
 
     var selectedTags by remember { mutableStateOf(initialTags) }
     val sampleTags: List<Tag> = listOf(
@@ -75,7 +79,7 @@ fun CreateExerciseDialog(
             DialogInputField(
                 value = name,
                 onValueChange = { name = it },
-                placeholder = "Name"
+                placeholder = "Exercise name"
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -105,11 +109,35 @@ fun CreateExerciseDialog(
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            DialogInputField(
-                value = timePerRep,
-                onValueChange = { timePerRep = it },
-                placeholder = "Time per rep"
+            Text(
+                text = "Time per rep",
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFF374151),
+                modifier = Modifier.padding(bottom = 8.dp)
             )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+            ) {
+                DialogInputField(
+                    value = timePerRep,
+                    onValueChange = { timePerRep = it },
+                    placeholder = "Enter minutes",
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.weight(1f)
+                )
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Text(
+                    text = "mins",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF6B7280)
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -138,5 +166,14 @@ fun CreateExerciseDialog(
                 )
             }
         }
+    }
+}
+
+private fun Int.toMinuteText(): String {
+    val minutes = this / 60.0
+    return if (minutes % 1.0 == 0.0) {
+        minutes.toInt().toString()
+    } else {
+        String.format("%.2f", minutes).trimEnd('0').trimEnd('.')
     }
 }
