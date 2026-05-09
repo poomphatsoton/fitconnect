@@ -8,13 +8,14 @@ import android.database.sqlite.SQLiteOpenHelper
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.example.train.model.Tag
+import com.example.train.security.PasswordHasher
 import java.time.LocalDate
 
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
     companion object {
         private const val DATABASE_NAME = "FitConnect.db"
-        private const val DATABASE_VERSION = 29
+        private const val DATABASE_VERSION = 30
 
         // Users
         const val TABLE_USERS = "users"
@@ -323,13 +324,13 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     @RequiresApi(Build.VERSION_CODES.O)
     private fun insertDemoData(db: SQLiteDatabase) {
         // Trainer (ID 1)
-        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO, $COL_USER_MAX_TRAINEES) VALUES ('trainer', 'trainer123', 'trainer', 'John Smith', 'Certified personal trainer with 10 years of experience', 10)")
+        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO, $COL_USER_MAX_TRAINEES) VALUES ('trainer', '${PasswordHasher.hash("trainer123")}', 'trainer', 'John Smith', 'Certified personal trainer with 10 years of experience', 10)")
 
         // 4 Active Trainees (IDs 2, 3, 4, 5)
-        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee1', 'pass123', 'trainee', 'Sarah Johnson', 'Looking to build strength')")
-        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee2', 'pass123', 'trainee', 'Mike Wilson', 'Former athlete getting back into shape')")
-        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee3', 'pass123', 'trainee', 'Emily Davis', 'Focusing on weight loss')")
-        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee4', 'pass123', 'trainee', 'Chris Brown', 'Improving endurance')")
+        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee1', '${PasswordHasher.hash("pass123")}', 'trainee', 'Sarah Johnson', 'Looking to build strength')")
+        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee2', '${PasswordHasher.hash("pass123")}', 'trainee', 'Mike Wilson', 'Former athlete getting back into shape')")
+        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee3', '${PasswordHasher.hash("pass123")}', 'trainee', 'Emily Davis', 'Focusing on weight loss')")
+        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee4', '${PasswordHasher.hash("pass123")}', 'trainee', 'Chris Brown', 'Improving endurance')")
 
         db.execSQL("INSERT INTO $TABLE_EXERCISES ($COL_EXERCISE_NAME, $COL_EXERCISE_DESC, $COL_EXERCISE_TIME_PER_REP) VALUES ('Push-ups', 'Standard push-ups with proper form. Keep body straight, lower chest to ground.', 3)")
         db.execSQL("INSERT INTO $TABLE_EXERCISES ($COL_EXERCISE_NAME, $COL_EXERCISE_DESC, $COL_EXERCISE_TIME_PER_REP) VALUES ('Squats', 'Bodyweight squats. Keep back straight, lower until thighs are parallel to ground.', 4)")
@@ -404,19 +405,19 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.execSQL("INSERT INTO $TABLE_USERS_TAGS ($COL_USER_ID, $COL_TAG_ID) VALUES (3, 3)")
 
         // Request data
-        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee5', 'pass123', 'trainee', 'Anna Lee', 'Interested in cardio training')")
-        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee6', 'pass123', 'trainee', 'David Kim', 'Wants to improve flexibility')")
+        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee5', '${PasswordHasher.hash("pass123")}', 'trainee', 'Anna Lee', 'Interested in cardio training')")
+        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee6', '${PasswordHasher.hash("pass123")}', 'trainee', 'David Kim', 'Wants to improve flexibility')")
 
         // Additional mock trainers (IDs 8, 9)
-        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO, $COL_USER_MAX_TRAINEES) VALUES ('trainer2', 'trainer123', 'trainer', 'Maya Chen', 'Strength and mobility coach focused on sustainable progress', 8)")
-        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO, $COL_USER_MAX_TRAINEES) VALUES ('trainer3', 'trainer123', 'trainer', 'Alex Rivera', 'Cardio and weight-loss specialist for beginner-friendly programs', 12)")
+        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO, $COL_USER_MAX_TRAINEES) VALUES ('trainer2', '${PasswordHasher.hash("trainer123")}', 'trainer', 'Maya Chen', 'Strength and mobility coach focused on sustainable progress', 8)")
+        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO, $COL_USER_MAX_TRAINEES) VALUES ('trainer3', '${PasswordHasher.hash("trainer123")}', 'trainer', 'Alex Rivera', 'Cardio and weight-loss specialist for beginner-friendly programs', 12)")
         db.execSQL("INSERT INTO $TABLE_USERS_TAGS ($COL_USER_ID, $COL_TAG_ID) VALUES (8, 1)")
         db.execSQL("INSERT INTO $TABLE_USERS_TAGS ($COL_USER_ID, $COL_TAG_ID) VALUES (8, 5)")
         db.execSQL("INSERT INTO $TABLE_USERS_TAGS ($COL_USER_ID, $COL_TAG_ID) VALUES (9, 2)")
         db.execSQL("INSERT INTO $TABLE_USERS_TAGS ($COL_USER_ID, $COL_TAG_ID) VALUES (9, 4)")
 
         // Login test trainee account
-        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee', '123456', 'trainee', 'Test Trainee', 'Ready to find a trainer')")
+        db.execSQL("INSERT INTO $TABLE_USERS ($COL_USER_USERNAME, $COL_USER_PASSWORD, $COL_USER_ROLE, $COL_USER_NAME, $COL_USER_BIO) VALUES ('trainee', '${PasswordHasher.hash("123456")}', 'trainee', 'Test Trainee', 'Ready to find a trainer')")
 
         // Test trainee is enrolled with Alex Rivera (trainer ID 9, trainee ID 10)
         db.execSQL("INSERT INTO $TABLE_TRAINEE_REQUESTS ($COL_REQUEST_TRAINER_ID, $COL_REQUEST_TRAINEE_ID, $COL_REQUEST_STATUS) VALUES (9, 10, '$STATUS_ACCEPTED')")
@@ -1283,7 +1284,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 put(COL_USER_MAX_TRAINEES, maxTrainees)
             }
             if (password != null) {
-                put(COL_USER_PASSWORD, password)
+                put(COL_USER_PASSWORD, PasswordHasher.hash(password))
             }
         }
         db.update(TABLE_USERS, values, "$COL_USER_ID = ?", arrayOf(userId.toString()))

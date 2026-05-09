@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import com.example.train.database.DatabaseHelper
+import com.example.train.security.PasswordHasher
 
 class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -63,7 +64,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                     it.getColumnIndexOrThrow(DatabaseHelper.COL_USER_PASSWORD)
                 )
 
-                if (storedPassword != trimmedPassword) {
+                if (!PasswordHasher.verify(trimmedPassword, storedPassword)) {
                     showInvalidLogin()
                     return
                 }

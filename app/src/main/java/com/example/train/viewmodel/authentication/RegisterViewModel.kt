@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.ContentValues
 import androidx.lifecycle.AndroidViewModel
 import com.example.train.database.DatabaseHelper
+import com.example.train.security.PasswordHasher
 
 class RegistrationViewModel(
     application: Application
@@ -32,7 +33,7 @@ class RegistrationViewModel(
 
         val values = ContentValues().apply {
             put(DatabaseHelper.COL_USER_USERNAME, trimmedUsername)
-            put(DatabaseHelper.COL_USER_PASSWORD, trimmedPassword)
+            put(DatabaseHelper.COL_USER_PASSWORD, PasswordHasher.hash(trimmedPassword))
             put(DatabaseHelper.COL_USER_ROLE, role)
             put(DatabaseHelper.COL_USER_NAME, trimmedName)
             put(DatabaseHelper.COL_USER_BIO, trimmedBio)

@@ -36,7 +36,6 @@ class TrainerHomeViewModel(
         val projection = arrayOf(
             DatabaseHelper.COL_USER_NAME,
             DatabaseHelper.COL_USER_BIO,
-            DatabaseHelper.COL_USER_PASSWORD,
             DatabaseHelper.COL_USER_MAX_TRAINEES
         )
 
@@ -62,10 +61,6 @@ class TrainerHomeViewModel(
                 cursor.getColumnIndexOrThrow(DatabaseHelper.COL_USER_BIO)
             )
 
-            val password = cursor.getString(
-                cursor.getColumnIndexOrThrow(DatabaseHelper.COL_USER_PASSWORD)
-            )
-
             val maxTrainees = cursor.getInt(
                 cursor.getColumnIndexOrThrow(DatabaseHelper.COL_USER_MAX_TRAINEES)
             )
@@ -73,7 +68,7 @@ class TrainerHomeViewModel(
             uiState.value = uiState.value.copy(
                 trainerName = name,
                 trainerBio = bio,
-                trainerPassword = password,
+                trainerPassword = "",
                 trainerTags = loadUserTags(userId),
                 availableTags = loadAllTags(),
                 maxTrainees = maxTrainees
