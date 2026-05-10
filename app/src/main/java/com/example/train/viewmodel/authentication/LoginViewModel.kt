@@ -32,31 +32,25 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     ) {
         val trimmedUsername = username.trim()
         val trimmedPassword = password.trim()
-
         if (trimmedUsername.isEmpty() || trimmedPassword.isEmpty()) {
             showInvalidLogin()
             return
         }
-
         dbHelper.getUserByUsername(trimmedUsername).use {
             if (it.moveToFirst()) {
                 val storedPassword = it.getString(
                     it.getColumnIndexOrThrow(DatabaseHelper.COL_USER_PASSWORD)
                 )
-
                 if (!PasswordHasher.verify(trimmedPassword, storedPassword)) {
                     showInvalidLogin()
                     return
                 }
-
                 val userId = it.getInt(
                     it.getColumnIndexOrThrow(DatabaseHelper.COL_USER_ID)
                 )
-
                 val role = it.getString(
                     it.getColumnIndexOrThrow(DatabaseHelper.COL_USER_ROLE)
                 )
-
                 saveUserSession(userId, role)
                 onSuccess()
             } else {

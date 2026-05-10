@@ -9,10 +9,7 @@ data class TrainerHomeUiState(
     val trainerTags: List<Tag> = emptyList(),
     val availableTags: List<Tag> = emptyList(),
     val maxTrainees: Int = 10,
-    val activeTrainees: Int = 0,
-    val exercises: Int = 0,
-    val workouts: Int = 0,
-    val pendingRequests: Int = 0
+    val activeTrainees: Int = 0
 )
 
 

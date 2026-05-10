@@ -87,15 +87,9 @@ class TrainerHomeViewModel(
         if (userId == -1) return
 
         val active = dbHelper.getActiveTraineesCount(userId)
-        val exercises = dbHelper.getExercisesCount()
-        val workouts = dbHelper.getWorkoutsCount()
-        val pending = dbHelper.getPendingRequestsCount(userId)
 
         uiState.value = uiState.value.copy(
-            activeTrainees = active,
-            exercises = exercises,
-            workouts = workouts,
-            pendingRequests = pending
+            activeTrainees = active
         )
     }
 
