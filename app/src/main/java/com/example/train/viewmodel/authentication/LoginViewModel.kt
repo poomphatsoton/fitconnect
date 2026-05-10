@@ -1,7 +1,6 @@
 package com.example.train.viewmodel.authentication
 
 import android.app.Application
-import android.database.Cursor
 import android.widget.Toast
 import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
@@ -39,26 +38,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
 
-        val projection = arrayOf(
-            DatabaseHelper.COL_USER_ID,
-            DatabaseHelper.COL_USER_ROLE,
-            DatabaseHelper.COL_USER_PASSWORD
-        )
-
-        val selection = "${DatabaseHelper.COL_USER_USERNAME} = ?"
-        val selectionArgs = arrayOf(trimmedUsername)
-
-        val cursor: Cursor? = dbHelper.readableDatabase.query(
-            DatabaseHelper.TABLE_USERS,
-            projection,
-            selection,
-            selectionArgs,
-            null,
-            null,
-            null
-        )
-
-        cursor?.use {
+        dbHelper.getUserByUsername(trimmedUsername).use {
             if (it.moveToFirst()) {
                 val storedPassword = it.getString(
                     it.getColumnIndexOrThrow(DatabaseHelper.COL_USER_PASSWORD)

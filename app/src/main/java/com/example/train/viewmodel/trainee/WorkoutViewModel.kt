@@ -95,15 +95,7 @@ class TraineeWorkoutViewModel(
     }
 
     private fun loadWorkoutById(workoutId: Int, assignmentId: Int?): WorkoutUiItem? {
-        val cursor = dbHelper.readableDatabase.query(
-            DatabaseHelper.TABLE_WORKOUTS,
-            null,
-            "${DatabaseHelper.COL_WORKOUT_ID} = ?",
-            arrayOf(workoutId.toString()),
-            null,
-            null,
-            null
-        )
+        val cursor = dbHelper.getWorkoutById(workoutId)
 
         cursor.use {
             if (!it.moveToFirst()) return null

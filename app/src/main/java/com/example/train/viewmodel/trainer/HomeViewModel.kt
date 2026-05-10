@@ -33,24 +33,7 @@ class TrainerHomeViewModel(
     fun loadTrainerProfile() {
         if (userId == -1) return
 
-        val projection = arrayOf(
-            DatabaseHelper.COL_USER_NAME,
-            DatabaseHelper.COL_USER_BIO,
-            DatabaseHelper.COL_USER_MAX_TRAINEES
-        )
-
-        val selection = "${DatabaseHelper.COL_USER_ID} = ?"
-        val args = arrayOf(userId.toString())
-
-        val cursor = dbHelper.readableDatabase.query(
-            DatabaseHelper.TABLE_USERS,
-            projection,
-            selection,
-            args,
-            null,
-            null,
-            null
-        )
+        val cursor = dbHelper.getUserById(userId)
 
         if (cursor.moveToFirst()) {
             val name = cursor.getString(

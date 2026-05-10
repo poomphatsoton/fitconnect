@@ -32,15 +32,7 @@ class DashboardViewModel(
     }
 
     private fun loadTraineeProfile(traineeId: Int): TraineeDashboardProfile? {
-        val cursor = dbHelper.readableDatabase.query(
-            DatabaseHelper.TABLE_USERS,
-            null,
-            "${DatabaseHelper.COL_USER_ID} = ? AND ${DatabaseHelper.COL_USER_ROLE} = ?",
-            arrayOf(traineeId.toString(), "trainee"),
-            null,
-            null,
-            null
-        )
+        val cursor = dbHelper.getTraineeUserById(traineeId)
 
         return cursor.use {
             if (!it.moveToFirst()) return null
@@ -67,28 +59,7 @@ class DashboardViewModel(
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun loadDashboardWorkouts(traineeId: Int): List<TraineeDashboardWorkout> {
-        val query = """
-            SELECT
-                s.${DatabaseHelper.COL_SLOT_ASSIGNMENT_ID},
-                s.${DatabaseHelper.COL_SLOT_WORKOUT_ID},
-                w.${DatabaseHelper.COL_WORKOUT_NAME},
-                s.${DatabaseHelper.COL_SLOT_DATE},
-                MIN(s.${DatabaseHelper.COL_SLOT_START_TIME}) AS start_time,
-                MAX(s.${DatabaseHelper.COL_SLOT_END_TIME}) AS end_time,
-                COALESCE(p.${DatabaseHelper.COL_PROGRESS_COMPLETED_EXERCISE_TIME}, 0) AS completed_time,
-                COALESCE(p.${DatabaseHelper.COL_PROGRESS_TOTAL_EXERCISE_TIME}, 0) AS total_time
-            FROM ${DatabaseHelper.TABLE_TRAINEE_CALENDAR_SLOT} s
-            LEFT JOIN ${DatabaseHelper.TABLE_WORKOUTS} w
-                ON s.${DatabaseHelper.COL_SLOT_WORKOUT_ID} = w.${DatabaseHelper.COL_WORKOUT_ID}
-            LEFT JOIN ${DatabaseHelper.TABLE_WORKOUT_ASSIGNMENT_PROGRESS} p
-                ON s.${DatabaseHelper.COL_SLOT_ASSIGNMENT_ID} = p.${DatabaseHelper.COL_PROGRESS_ASSIGNMENT_ID}
-            WHERE s.${DatabaseHelper.COL_TRAINEE_ID} = ?
-            AND s.${DatabaseHelper.COL_SLOT_ASSIGNMENT_ID} IS NOT NULL
-            GROUP BY s.${DatabaseHelper.COL_SLOT_ASSIGNMENT_ID}
-            ORDER BY s.${DatabaseHelper.COL_SLOT_DATE} ASC, start_time ASC
-        """.trimIndent()
-
-        return dbHelper.readableDatabase.rawQuery(query, arrayOf(traineeId.toString())).use { cursor ->
+        return dbHelper.getTraineeDashboardWorkouts(traineeId).use { cursor ->
             cursor.mapToList { toDashboardWorkout() }
         }
     }
@@ -99,11 +70,13 @@ class DashboardViewModel(
             assignmentId = getInt(getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_ASSIGNMENT_ID)),
             workoutId = getInt(getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_WORKOUT_ID)),
             workoutName = getString(getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_NAME)) ?: "Deleted workout",
-            date = LocalDate.parse(getString(getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_DATE))),
+            date = LocalDate.parse(getString(getColumnIndexOrThrow("first_date"))),
+            lastDate = LocalDate.parse(getString(getColumnIndexOrThrow("last_date"))),
             startTime = LocalTime.parse(getString(getColumnIndexOrThrow("start_time"))),
             endTime = LocalTime.parse(getString(getColumnIndexOrThrow("end_time"))),
             completedExerciseTime = getInt(getColumnIndexOrThrow("completed_time")),
-            totalExerciseTime = getInt(getColumnIndexOrThrow("total_time"))
+            totalExerciseTime = getInt(getColumnIndexOrThrow("total_time")),
+            assignmentCount = getInt(getColumnIndexOrThrow("assignment_count"))
         )
     }
 }

@@ -22,10 +22,12 @@ data class TraineeDashboardWorkout(
     val workoutId: Int,
     val workoutName: String,
     val date: LocalDate,
+    val lastDate: LocalDate = date,
     val startTime: LocalTime,
     val endTime: LocalTime,
     val completedExerciseTime: Int,
-    val totalExerciseTime: Int
+    val totalExerciseTime: Int,
+    val assignmentCount: Int = 1
 ) {
     val completionPercent: Float
         get() = if (totalExerciseTime <= 0) 0f else

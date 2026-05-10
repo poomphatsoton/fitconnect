@@ -1,7 +1,6 @@
 package com.example.train.viewmodel.trainer
 
 import android.app.Application
-import android.content.ContentValues
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.AndroidViewModel
 import com.example.train.database.DatabaseHelper
@@ -24,15 +23,7 @@ class WorkoutsViewModel(
     fun loadWorkouts() {
         workouts.clear()
 
-        val workoutCursor = dbHelper.readableDatabase.query(
-            DatabaseHelper.TABLE_WORKOUTS,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-        )
+        val workoutCursor = dbHelper.getAllWorkouts()
 
         if (workoutCursor.moveToFirst()) {
             do {
@@ -78,18 +69,7 @@ class WorkoutsViewModel(
     ): List<Exercise> {
         val exercises = mutableListOf<Exercise>()
 
-        val selection = "${DatabaseHelper.COL_WE_WORKOUT_ID} = ?"
-        val args = arrayOf(workoutId.toString())
-
-        val workoutExerciseCursor = dbHelper.readableDatabase.query(
-            DatabaseHelper.TABLE_WORKOUT_EXERCISES,
-            null,
-            selection,
-            args,
-            null,
-            null,
-            null
-        )
+        val workoutExerciseCursor = dbHelper.getWorkoutExercises(workoutId)
 
         if (workoutExerciseCursor.moveToFirst()) {
             do {
@@ -116,18 +96,7 @@ class WorkoutsViewModel(
     private fun loadExerciseById(
         exerciseId: Int
     ): Exercise? {
-        val selection = "${DatabaseHelper.COL_EXERCISE_ID} = ?"
-        val args = arrayOf(exerciseId.toString())
-
-        val cursor = dbHelper.readableDatabase.query(
-            DatabaseHelper.TABLE_EXERCISES,
-            null,
-            selection,
-            args,
-            null,
-            null,
-            null
-        )
+        val cursor = dbHelper.getExerciseById(exerciseId)
 
         var exercise: Exercise? = null
 
@@ -367,35 +336,15 @@ class WorkoutsViewModel(
             return "Please select at least one exercise"
         }
 
-        // 1. Update main workout info
-        val values = ContentValues().apply {
-            put(DatabaseHelper.COL_WORKOUT_NAME, trimmedName)
-            put(DatabaseHelper.COL_WORKOUT_DESC, trimmedDescription)
-        }
-        dbHelper.writableDatabase.update(
-            DatabaseHelper.TABLE_WORKOUTS,
-            values,
-            "${DatabaseHelper.COL_WORKOUT_ID} = ?",
-            arrayOf(workoutId.toString())
+        dbHelper.replaceWorkoutExercises(
+            workoutId = workoutId,
+            name = trimmedName,
+            desc = trimmedDescription,
+            exercises = selectedExercises.map { item ->
+                item.id to (item.reps.toIntOrNull() ?: 0)
+            }
         )
 
-        // 2. Clear existing exercises for this workout
-        dbHelper.writableDatabase.delete(
-            DatabaseHelper.TABLE_WORKOUT_EXERCISES,
-            "${DatabaseHelper.COL_WE_WORKOUT_ID} = ?",
-            arrayOf(workoutId.toString())
-        )
-
-        // 3. Re-add selected exercises
-        selectedExercises.forEach { item ->
-            dbHelper.addExerciseToWorkout(
-                workoutId = workoutId.toLong(),
-                exerciseId = item.id,
-                reps = item.reps.toIntOrNull() ?: 0
-            )
-        }
-
-        // 4. Recalculate duration
         val totalDuration = dbHelper.calculateWorkoutTotalDuration(workoutId.toLong())
         dbHelper.updateWorkoutDuration(workoutId.toLong(), totalDuration)
 

@@ -197,6 +197,16 @@ private fun TraineeDetailCard(trainee: TraineeDashboardProfile) {
 private fun WorkoutProgressCard(workout: TraineeDashboardWorkout) {
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
     val percent = workout.completionPercent
+    val scheduleText = if (workout.assignmentCount > 1) {
+        val dateText = if (workout.date == workout.lastDate) {
+            workout.date.toString()
+        } else {
+            "${workout.date} - ${workout.lastDate}"
+        }
+        "${workout.assignmentCount} assignments  $dateText"
+    } else {
+        "${workout.date}  ${workout.startTime.format(timeFormatter)} - ${workout.endTime.format(timeFormatter)}"
+    }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -217,7 +227,7 @@ private fun WorkoutProgressCard(workout: TraineeDashboardWorkout) {
                         color = Color(0xFF111827)
                     )
                     Text(
-                        text = "${workout.date}  ${workout.startTime.format(timeFormatter)} - ${workout.endTime.format(timeFormatter)}",
+                        text = scheduleText,
                         fontSize = 13.sp,
                         color = Color.Gray
                     )

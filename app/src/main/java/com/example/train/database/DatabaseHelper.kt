@@ -13,7 +13,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     companion object {
         private const val DATABASE_NAME = "FitConnect.db"
-        private const val DATABASE_VERSION = 36
+        private const val DATABASE_VERSION = 37
 
         // Users
         const val TABLE_USERS = "users"
@@ -367,6 +367,57 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         return count
     }
 
+    fun getUserByUsername(username: String): Cursor {
+        val db = readableDatabase
+        return db.query(
+            TABLE_USERS,
+            arrayOf(COL_USER_ID, COL_USER_ROLE, COL_USER_PASSWORD),
+            "$COL_USER_USERNAME = ?",
+            arrayOf(username),
+            null,
+            null,
+            null
+        )
+    }
+
+    fun getUserById(userId: Int): Cursor {
+        val db = readableDatabase
+        return db.query(
+            TABLE_USERS,
+            null,
+            "$COL_USER_ID = ?",
+            arrayOf(userId.toString()),
+            null,
+            null,
+            null
+        )
+    }
+
+    fun getTraineeUserById(traineeId: Int): Cursor {
+        val db = readableDatabase
+        return db.query(
+            TABLE_USERS,
+            null,
+            "$COL_USER_ID = ? AND $COL_USER_ROLE = ?",
+            arrayOf(traineeId.toString(), "trainee"),
+            null,
+            null,
+            null
+        )
+    }
+
+    fun insertUser(username: String, password: String, role: String, name: String, bio: String): Long {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put(COL_USER_USERNAME, username)
+            put(COL_USER_PASSWORD, PasswordHasher.hash(password))
+            put(COL_USER_ROLE, role)
+            put(COL_USER_NAME, name)
+            put(COL_USER_BIO, bio)
+        }
+        return db.insert(TABLE_USERS, null, values)
+    }
+
     fun insertExercise(name: String, desc: String, timePerRep: Int, tags: List<Tag>) {
         val db = writableDatabase
         val values = ContentValues().apply {
@@ -410,6 +461,77 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     fun getAllExercises(): Cursor {
         val db = readableDatabase
         return db.query(TABLE_EXERCISES, null, null, null, null, null, COL_EXERCISE_NAME)
+    }
+
+    fun getExerciseById(exerciseId: Int): Cursor {
+        val db = readableDatabase
+        return db.query(
+            TABLE_EXERCISES,
+            null,
+            "$COL_EXERCISE_ID = ?",
+            arrayOf(exerciseId.toString()),
+            null,
+            null,
+            null
+        )
+    }
+
+    fun getAllWorkouts(): Cursor {
+        val db = readableDatabase
+        return db.query(TABLE_WORKOUTS, null, null, null, null, null, null)
+    }
+
+    fun getWorkoutById(workoutId: Int): Cursor {
+        val db = readableDatabase
+        return db.query(
+            TABLE_WORKOUTS,
+            null,
+            "$COL_WORKOUT_ID = ?",
+            arrayOf(workoutId.toString()),
+            null,
+            null,
+            null
+        )
+    }
+
+    fun getWorkoutExercises(workoutId: Int): Cursor {
+        val db = readableDatabase
+        return db.query(
+            TABLE_WORKOUT_EXERCISES,
+            null,
+            "$COL_WE_WORKOUT_ID = ?",
+            arrayOf(workoutId.toString()),
+            null,
+            null,
+            null
+        )
+    }
+
+    fun replaceWorkoutExercises(workoutId: Int, name: String, desc: String, exercises: List<Pair<Long, Int>>) {
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            val values = ContentValues().apply {
+                put(COL_WORKOUT_NAME, name)
+                put(COL_WORKOUT_DESC, desc)
+            }
+            db.update(TABLE_WORKOUTS, values, "$COL_WORKOUT_ID = ?", arrayOf(workoutId.toString()))
+
+            db.delete(TABLE_WORKOUT_EXERCISES, "$COL_WE_WORKOUT_ID = ?", arrayOf(workoutId.toString()))
+
+            exercises.forEach { (exerciseId, reps) ->
+                val exerciseValues = ContentValues().apply {
+                    put(COL_WE_WORKOUT_ID, workoutId)
+                    put(COL_WE_EXERCISE_ID, exerciseId)
+                    put(COL_WE_REPS, reps)
+                }
+                db.insert(TABLE_WORKOUT_EXERCISES, null, exerciseValues)
+            }
+
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
     }
 
     fun calculateWorkoutTotalDuration(workoutId: Long): Int {
@@ -681,6 +803,43 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             null,
             COL_WORKOUT_NAME
         )
+    }
+
+    fun getTraineeDashboardWorkouts(traineeId: Int): Cursor {
+        val db = readableDatabase
+        val query = """
+            SELECT
+                MIN(a.$COL_SLOT_ASSIGNMENT_ID) AS $COL_SLOT_ASSIGNMENT_ID,
+                a.$COL_SLOT_WORKOUT_ID,
+                w.$COL_WORKOUT_NAME,
+                MIN(a.first_date) AS first_date,
+                MAX(a.last_date) AS last_date,
+                MIN(a.start_time) AS start_time,
+                MAX(a.end_time) AS end_time,
+                COUNT(a.$COL_SLOT_ASSIGNMENT_ID) AS assignment_count,
+                SUM(COALESCE(p.$COL_PROGRESS_COMPLETED_EXERCISE_TIME, 0)) AS completed_time,
+                SUM(COALESCE(p.$COL_PROGRESS_TOTAL_EXERCISE_TIME, 0)) AS total_time
+            FROM (
+                SELECT
+                    $COL_SLOT_ASSIGNMENT_ID,
+                    $COL_SLOT_WORKOUT_ID,
+                    MIN($COL_SLOT_DATE) AS first_date,
+                    MAX($COL_SLOT_DATE) AS last_date,
+                    MIN($COL_SLOT_START_TIME) AS start_time,
+                    MAX($COL_SLOT_END_TIME) AS end_time
+                FROM $TABLE_TRAINEE_CALENDAR_SLOT
+                WHERE $COL_TRAINEE_ID = ?
+                AND $COL_SLOT_ASSIGNMENT_ID IS NOT NULL
+                GROUP BY $COL_SLOT_ASSIGNMENT_ID, $COL_SLOT_WORKOUT_ID
+            ) a
+            LEFT JOIN $TABLE_WORKOUTS w
+                ON a.$COL_SLOT_WORKOUT_ID = w.$COL_WORKOUT_ID
+            LEFT JOIN $TABLE_WORKOUT_ASSIGNMENT_PROGRESS p
+                ON a.$COL_SLOT_ASSIGNMENT_ID = p.$COL_PROGRESS_ASSIGNMENT_ID
+            GROUP BY a.$COL_SLOT_WORKOUT_ID, w.$COL_WORKOUT_NAME
+            ORDER BY first_date ASC, start_time ASC
+        """.trimIndent()
+        return db.rawQuery(query, arrayOf(traineeId.toString()))
     }
 
     fun assignWorkoutToTraineeSlots(slotIds: List<Int>, workoutId: Int): Boolean {

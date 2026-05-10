@@ -28,20 +28,7 @@ class TraineeHomeViewModel(
     fun loadHomeData() {
         if (userId == -1) return
 
-        val projection = arrayOf(
-            DatabaseHelper.COL_USER_NAME,
-            DatabaseHelper.COL_USER_BIO
-        )
-
-        val cursor = dbHelper.readableDatabase.query(
-            DatabaseHelper.TABLE_USERS,
-            projection,
-            "${DatabaseHelper.COL_USER_ID} = ?",
-            arrayOf(userId.toString()),
-            null,
-            null,
-            null
-        )
+        val cursor = dbHelper.getUserById(userId)
 
         cursor.use {
             if (it.moveToFirst()) {
