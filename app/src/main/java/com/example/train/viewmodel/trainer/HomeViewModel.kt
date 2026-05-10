@@ -33,32 +33,18 @@ class TrainerHomeViewModel(
     fun loadTrainerProfile() {
         if (userId == -1) return
 
-        val cursor = dbHelper.getUserById(userId)
-
-        if (cursor.moveToFirst()) {
-            val name = cursor.getString(
-                cursor.getColumnIndexOrThrow(DatabaseHelper.COL_USER_NAME)
-            )
-
-            val bio = cursor.getString(
-                cursor.getColumnIndexOrThrow(DatabaseHelper.COL_USER_BIO)
-            )
-
-            val maxTrainees = cursor.getInt(
-                cursor.getColumnIndexOrThrow(DatabaseHelper.COL_USER_MAX_TRAINEES)
-            )
-
-            uiState.value = uiState.value.copy(
-                trainerName = name,
-                trainerBio = bio,
-                trainerPassword = "",
-                trainerTags = loadUserTags(userId),
-                availableTags = loadAllTags(),
-                maxTrainees = maxTrainees
-            )
+        dbHelper.getUserById(userId).use { cursor ->
+            if (cursor.moveToFirst()) {
+                uiState.value = uiState.value.copy(
+                    trainerName = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_USER_NAME)),
+                    trainerBio = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_USER_BIO)),
+                    trainerPassword = "",
+                    trainerTags = loadUserTags(userId),
+                    availableTags = loadAllTags(),
+                    maxTrainees = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_USER_MAX_TRAINEES))
+                )
+            }
         }
-
-        cursor.close()
     }
 
     fun updateTrainerProfile(

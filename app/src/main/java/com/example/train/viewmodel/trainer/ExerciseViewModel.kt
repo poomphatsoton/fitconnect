@@ -24,10 +24,8 @@ class ExercisesViewModel(
         exercises.clear()
         val newTagsMap = mutableMapOf<Int, List<Tag>>()
 
-        val cursor = dbHelper.getAllExercises()
-
-        if (cursor.moveToFirst()) {
-            do {
+        dbHelper.getAllExercises().use { cursor ->
+            while (cursor.moveToNext()) {
                 val exercise = Exercise(
                     id = cursor.getInt(
                         cursor.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_ID)
@@ -45,7 +43,7 @@ class ExercisesViewModel(
 
                 exercises.add(exercise)
                 newTagsMap[exercise.id] = getTagsByExerciseId(exercise.id)
-            } while (cursor.moveToNext())
+            }
         }
 
         exerciseTagsMap = newTagsMap

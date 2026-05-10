@@ -54,6 +54,9 @@ fun AppNavigation() {
                             inclusive = true
                         }
                     }
+                },
+                onBackToLogin = {
+                    navController.popBackStack()
                 }
             )
         }

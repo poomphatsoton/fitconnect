@@ -13,6 +13,7 @@ class RegistrationViewModel(
     fun register(
         username: String,
         password: String,
+        confirmPassword: String,
         name: String,
         bio: String,
         role: String,
@@ -21,11 +22,17 @@ class RegistrationViewModel(
     ) {
         val trimmedUsername = username.trim()
         val trimmedPassword = password.trim()
+        val trimmedConfirmPassword = confirmPassword.trim()
         val trimmedName = name.trim()
         val trimmedBio = bio.trim()
 
         if (trimmedUsername.isEmpty() || trimmedPassword.isEmpty()) {
             onError("Username and password cannot be empty")
+            return
+        }
+
+        if (trimmedPassword != trimmedConfirmPassword) {
+            onError("Passwords do not match")
             return
         }
 

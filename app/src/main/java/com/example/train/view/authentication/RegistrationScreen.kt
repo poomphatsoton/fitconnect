@@ -15,6 +15,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -38,12 +39,14 @@ import com.example.train.viewmodel.authentication.RegistrationViewModel
 @Composable
 fun RegistrationScreen(
     onRegisterSuccess: () -> Unit,
+    onBackToLogin: () -> Unit,
     viewModel: RegistrationViewModel = viewModel()
 ) {
     val context = LocalContext.current
 
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     var fullName by remember { mutableStateOf("") }
     var bio by remember { mutableStateOf("") }
     var selectedRole by remember { mutableStateOf("trainer") }
@@ -74,6 +77,15 @@ fun RegistrationScreen(
             value = password,
             onValueChange = { password = it },
             label = "Password",
+            isPassword = true
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        RegisterTextField(
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it },
+            label = "Confirm Password",
             isPassword = true
         )
 
@@ -129,6 +141,7 @@ fun RegistrationScreen(
                 viewModel.register(
                     username = username,
                     password = password,
+                    confirmPassword = confirmPassword,
                     name = fullName,
                     bio = bio,
                     role = selectedRole,
@@ -160,6 +173,21 @@ fun RegistrationScreen(
             shape = RoundedCornerShape(28.dp)
         ) {
             Text(text = "Create Account")
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        OutlinedButton(
+            onClick = onBackToLogin,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = Color.Black
+            ),
+            shape = RoundedCornerShape(28.dp)
+        ) {
+            Text(text = "Back to Login")
         }
     }
 }
