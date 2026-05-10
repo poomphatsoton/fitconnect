@@ -1,8 +1,6 @@
 package com.example.train.model.trainer
 
 import com.example.train.model.Tag
-import java.time.LocalDate
-import java.time.LocalTime
 
 data class TraineeDashboardUiState(
     val trainee: TraineeDashboardProfile? = null,
@@ -18,16 +16,10 @@ data class TraineeDashboardProfile(
 )
 
 data class TraineeDashboardWorkout(
-    val assignmentId: Int,
     val workoutId: Int,
     val workoutName: String,
-    val date: LocalDate,
-    val lastDate: LocalDate = date,
-    val startTime: LocalTime,
-    val endTime: LocalTime,
     val completedExerciseTime: Int,
-    val totalExerciseTime: Int,
-    val assignmentCount: Int = 1
+    val totalExerciseTime: Int
 ) {
     val completionPercent: Float
         get() = if (totalExerciseTime <= 0) 0f else

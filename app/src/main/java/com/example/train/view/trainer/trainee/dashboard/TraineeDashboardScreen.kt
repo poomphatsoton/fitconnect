@@ -46,7 +46,6 @@ import com.example.train.model.trainer.TraineeDashboardProfile
 import com.example.train.model.trainer.TraineeDashboardWorkout
 import com.example.train.view.reuseComponent.TraineeTag
 import com.example.train.viewmodel.trainer.DashboardViewModel
-import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -195,18 +194,7 @@ private fun TraineeDetailCard(trainee: TraineeDashboardProfile) {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun WorkoutProgressCard(workout: TraineeDashboardWorkout) {
-    val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
     val percent = workout.completionPercent
-    val scheduleText = if (workout.assignmentCount > 1) {
-        val dateText = if (workout.date == workout.lastDate) {
-            workout.date.toString()
-        } else {
-            "${workout.date} - ${workout.lastDate}"
-        }
-        "${workout.assignmentCount} assignments  $dateText"
-    } else {
-        "${workout.date}  ${workout.startTime.format(timeFormatter)} - ${workout.endTime.format(timeFormatter)}"
-    }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -225,11 +213,6 @@ private fun WorkoutProgressCard(workout: TraineeDashboardWorkout) {
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF111827)
-                    )
-                    Text(
-                        text = scheduleText,
-                        fontSize = 13.sp,
-                        color = Color.Gray
                     )
                 }
 

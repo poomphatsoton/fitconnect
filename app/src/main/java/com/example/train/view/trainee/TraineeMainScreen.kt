@@ -105,24 +105,3 @@ fun TraineeMainScreen(
         }
     }
 }
-
-@Composable
-private fun TraineePlaceholderScreen(
-    title: String
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF5F5F5))
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = title,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF0F172A)
-        )
-    }
-}

@@ -11,8 +11,6 @@ import com.example.train.model.Tag
 import com.example.train.model.trainer.TraineeDashboardProfile
 import com.example.train.model.trainer.TraineeDashboardUiState
 import com.example.train.model.trainer.TraineeDashboardWorkout
-import java.time.LocalDate
-import java.time.LocalTime
 
 class DashboardViewModel(
     application: Application
@@ -57,26 +55,18 @@ class DashboardViewModel(
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun loadDashboardWorkouts(traineeId: Int): List<TraineeDashboardWorkout> {
         return dbHelper.getTraineeDashboardWorkouts(traineeId).use { cursor ->
             cursor.mapToList { toDashboardWorkout() }
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun Cursor.toDashboardWorkout(): TraineeDashboardWorkout {
         return TraineeDashboardWorkout(
-            assignmentId = getInt(getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_ASSIGNMENT_ID)),
             workoutId = getInt(getColumnIndexOrThrow(DatabaseHelper.COL_SLOT_WORKOUT_ID)),
             workoutName = getString(getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_NAME)) ?: "Deleted workout",
-            date = LocalDate.parse(getString(getColumnIndexOrThrow("first_date"))),
-            lastDate = LocalDate.parse(getString(getColumnIndexOrThrow("last_date"))),
-            startTime = LocalTime.parse(getString(getColumnIndexOrThrow("start_time"))),
-            endTime = LocalTime.parse(getString(getColumnIndexOrThrow("end_time"))),
             completedExerciseTime = getInt(getColumnIndexOrThrow("completed_time")),
-            totalExerciseTime = getInt(getColumnIndexOrThrow("total_time")),
-            assignmentCount = getInt(getColumnIndexOrThrow("assignment_count"))
+            totalExerciseTime = getInt(getColumnIndexOrThrow("total_time"))
         )
     }
 }

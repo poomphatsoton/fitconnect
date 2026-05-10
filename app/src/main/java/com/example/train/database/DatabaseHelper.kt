@@ -1,12 +1,17 @@
 package com.example.train.database
 
-import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import com.example.train.database.helper.CalendarHelper
+import com.example.train.database.helper.DashboardHelper
+import com.example.train.database.helper.ExerciseHelper
+import com.example.train.database.helper.TagHelper
+import com.example.train.database.helper.TrainerTraineeHelper
+import com.example.train.database.helper.UserHelper
+import com.example.train.database.helper.WorkoutHelper
 import com.example.train.model.Tag
-import com.example.train.security.PasswordHasher
 import java.time.LocalDate
 
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
@@ -319,746 +324,112 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         )
     """.trimIndent()
 
-    fun getActiveTraineesCount(trainerId: Int): Int {
-        val db = readableDatabase
-        val selection = "$COL_REQUEST_TRAINER_ID = ? AND $COL_REQUEST_STATUS = 'accepted'"
-        val cursor = db.query(TABLE_TRAINEE_REQUESTS, null, selection, arrayOf(trainerId.toString()), null, null, null)
-        val count = cursor.count
-        cursor.close()
-        return count
-    }
-
-    fun getExercisesCount(): Int {
-        val db = readableDatabase
-        val cursor = db.query(TABLE_EXERCISES, null, null, null, null, null, null)
-        val count = cursor.count
-        cursor.close()
-        return count
-    }
-
-    fun getWorkoutsCount(): Int {
-        val db = readableDatabase
-        val cursor = db.query(TABLE_WORKOUTS, null, null, null, null, null, null)
-        val count = cursor.count
-        cursor.close()
-        return count
-    }
-
-    fun getPendingRequest(trainerId: Int): Cursor {
-        val db = readableDatabase
-        val query = """
-            SELECT w.*
-            FROM $TABLE_TRAINEE_REQUESTS s
-                LEFT JOIN $TABLE_USERS w
-                ON s.$COL_REQUEST_TRAINEE_ID = w.$COL_USER_ID
-            WHERE s.$COL_REQUEST_TRAINER_ID = ?
-            AND s.$COL_REQUEST_STATUS = ?
-        """.trimIndent()
-        val cursor = db.rawQuery(query, arrayOf(trainerId.toString(), STATUS_PENDING))
-        return cursor
-    }
-
-    fun getPendingRequestsCount(trainerId: Int): Int {
-        val db = readableDatabase
-        val selection = "$COL_REQUEST_TRAINER_ID = ? AND $COL_REQUEST_STATUS = 'pending'"
-        val cursor = db.query(TABLE_TRAINEE_REQUESTS, null, selection, arrayOf(trainerId.toString()), null, null, null)
-        val count = cursor.count
-        cursor.close()
-        return count
-    }
-
-    fun getUserByUsername(username: String): Cursor {
-        val db = readableDatabase
-        return db.query(
-            TABLE_USERS,
-            arrayOf(COL_USER_ID, COL_USER_ROLE, COL_USER_PASSWORD),
-            "$COL_USER_USERNAME = ?",
-            arrayOf(username),
-            null,
-            null,
-            null
-        )
-    }
-
-    fun getUserById(userId: Int): Cursor {
-        val db = readableDatabase
-        return db.query(
-            TABLE_USERS,
-            null,
-            "$COL_USER_ID = ?",
-            arrayOf(userId.toString()),
-            null,
-            null,
-            null
-        )
-    }
-
-    fun getTraineeUserById(traineeId: Int): Cursor {
-        val db = readableDatabase
-        return db.query(
-            TABLE_USERS,
-            null,
-            "$COL_USER_ID = ? AND $COL_USER_ROLE = ?",
-            arrayOf(traineeId.toString(), "trainee"),
-            null,
-            null,
-            null
-        )
-    }
-
-    fun insertUser(username: String, password: String, role: String, name: String, bio: String): Long {
-        val db = writableDatabase
-        val values = ContentValues().apply {
-            put(COL_USER_USERNAME, username)
-            put(COL_USER_PASSWORD, PasswordHasher.hash(password))
-            put(COL_USER_ROLE, role)
-            put(COL_USER_NAME, name)
-            put(COL_USER_BIO, bio)
-        }
-        return db.insert(TABLE_USERS, null, values)
-    }
-
-    fun insertExercise(name: String, desc: String, timePerRep: Int, tags: List<Tag>) {
-        val db = writableDatabase
-        val values = ContentValues().apply {
-            put(COL_EXERCISE_NAME, name)
-            put(COL_EXERCISE_DESC, desc)
-            put(COL_EXERCISE_TIME_PER_REP, timePerRep)
-        }
-        val exerciseId = db.insert(TABLE_EXERCISES, null, values)
-
-        tags.forEach { tag ->
-            val valueTag = ContentValues().apply {
-                put(COL_EXERCISE_ID, exerciseId)
-                put(COL_TAG_ID, tag.tagId)
-            }
-
-            db.insert(TABLE_EXERCISE_TAGS, null, valueTag)
-        }
-    }
-
-    fun insertWorkout(name: String, desc: String, duration: Int): Long {
-        val db = writableDatabase
-        val values = ContentValues().apply {
-            put(COL_WORKOUT_NAME, name)
-            put(COL_WORKOUT_DESC, desc)
-            put(COL_WORKOUT_DURATION, duration)
-        }
-        val insertId = db.insert(TABLE_WORKOUTS, null, values)
-        return insertId
-    }
-
-    fun addExerciseToWorkout(workoutId: Long, exerciseId: Long, reps: Int) {
-        val db = writableDatabase
-        val values = ContentValues().apply {
-            put(COL_WE_WORKOUT_ID, workoutId)
-            put(COL_WE_EXERCISE_ID, exerciseId)
-            put(COL_WE_REPS, reps)
-        }
-        db.insert(TABLE_WORKOUT_EXERCISES, null, values)
-    }
-
-    fun getAllExercises(): Cursor {
-        val db = readableDatabase
-        return db.query(TABLE_EXERCISES, null, null, null, null, null, COL_EXERCISE_NAME)
-    }
-
-    fun getExerciseById(exerciseId: Int): Cursor {
-        val db = readableDatabase
-        return db.query(
-            TABLE_EXERCISES,
-            null,
-            "$COL_EXERCISE_ID = ?",
-            arrayOf(exerciseId.toString()),
-            null,
-            null,
-            null
-        )
-    }
-
-    fun getAllWorkouts(): Cursor {
-        val db = readableDatabase
-        return db.query(TABLE_WORKOUTS, null, null, null, null, null, null)
-    }
-
-    fun getWorkoutById(workoutId: Int): Cursor {
-        val db = readableDatabase
-        return db.query(
-            TABLE_WORKOUTS,
-            null,
-            "$COL_WORKOUT_ID = ?",
-            arrayOf(workoutId.toString()),
-            null,
-            null,
-            null
-        )
-    }
-
-    fun getWorkoutExercises(workoutId: Int): Cursor {
-        val db = readableDatabase
-        return db.query(
-            TABLE_WORKOUT_EXERCISES,
-            null,
-            "$COL_WE_WORKOUT_ID = ?",
-            arrayOf(workoutId.toString()),
-            null,
-            null,
-            null
-        )
-    }
-
-    fun replaceWorkoutExercises(workoutId: Int, name: String, desc: String, exercises: List<Pair<Long, Int>>) {
-        val db = writableDatabase
-        db.beginTransaction()
-        try {
-            val values = ContentValues().apply {
-                put(COL_WORKOUT_NAME, name)
-                put(COL_WORKOUT_DESC, desc)
-            }
-            db.update(TABLE_WORKOUTS, values, "$COL_WORKOUT_ID = ?", arrayOf(workoutId.toString()))
-
-            db.delete(TABLE_WORKOUT_EXERCISES, "$COL_WE_WORKOUT_ID = ?", arrayOf(workoutId.toString()))
-
-            exercises.forEach { (exerciseId, reps) ->
-                val exerciseValues = ContentValues().apply {
-                    put(COL_WE_WORKOUT_ID, workoutId)
-                    put(COL_WE_EXERCISE_ID, exerciseId)
-                    put(COL_WE_REPS, reps)
-                }
-                db.insert(TABLE_WORKOUT_EXERCISES, null, exerciseValues)
-            }
-
-            db.setTransactionSuccessful()
-        } finally {
-            db.endTransaction()
-        }
-    }
-
-    fun calculateWorkoutTotalDuration(workoutId: Long): Int {
-        val db = readableDatabase
-        val query = """
-            SELECT SUM(e.$COL_EXERCISE_TIME_PER_REP * we.$COL_WE_REPS)
-            FROM $TABLE_WORKOUT_EXERCISES we
-            JOIN $TABLE_EXERCISES e ON we.$COL_WE_EXERCISE_ID = e.$COL_EXERCISE_ID
-            WHERE we.$COL_WE_WORKOUT_ID = ?
-        """.trimIndent()
-        val cursor = db.rawQuery(query, arrayOf(workoutId.toString()))
-        var total = 0
-        if (cursor.moveToFirst()) total = cursor.getInt(0)
-        cursor.close()
-        return total
-    }
-
-    fun updateWorkoutDuration(workoutId: Long, duration: Int) {
-        val db = writableDatabase
-        val values = ContentValues().apply {
-            put(COL_WORKOUT_DURATION, duration)
-        }
-        db.update(TABLE_WORKOUTS, values, "$COL_WORKOUT_ID=?", arrayOf(workoutId.toString()))
-    }
-
-    fun getWorkoutExerciseDetails(workoutId: Long): Cursor {
-        val db = readableDatabase
-        val query = """
-            SELECT e.$COL_EXERCISE_ID, e.$COL_EXERCISE_NAME, we.$COL_WE_REPS, e.$COL_EXERCISE_TIME_PER_REP, e.$COL_EXERCISE_DESC
-            FROM $TABLE_WORKOUT_EXERCISES we
-            JOIN $TABLE_EXERCISES e ON we.$COL_WE_EXERCISE_ID = e.$COL_EXERCISE_ID
-            WHERE we.$COL_WE_WORKOUT_ID = ?
-        """.trimIndent()
-        return db.rawQuery(query, arrayOf(workoutId.toString()))
-    }
-
-    fun getWorkoutExerciseTagTimes(workoutId: Long): Cursor {
-        val db = readableDatabase
-        val query = """
-            SELECT
-                e.$COL_EXERCISE_ID,
-                (we.$COL_WE_REPS * e.$COL_EXERCISE_TIME_PER_REP) AS exercise_time,
-                t.$COL_TAG_NAME
-            FROM $TABLE_WORKOUT_EXERCISES we
-            JOIN $TABLE_EXERCISES e
-                ON we.$COL_WE_EXERCISE_ID = e.$COL_EXERCISE_ID
-            JOIN $TABLE_EXERCISE_TAGS et
-                ON e.$COL_EXERCISE_ID = et.$COL_EXERCISE_ID
-            JOIN $TABLE_TAGS t
-                ON et.$COL_TAG_ID = t.$COL_TAG_ID
-            WHERE we.$COL_WE_WORKOUT_ID = ?
-        """.trimIndent()
-        return db.rawQuery(query, arrayOf(workoutId.toString()))
-    }
-
-    fun getSnapshotWorkoutExerciseDetails(assignmentId: Int): Cursor {
-        val db = readableDatabase
-        val query = """
-            SELECT
-                $COL_SNAPSHOT_EXERCISE_ID AS $COL_EXERCISE_ID,
-                $COL_SNAPSHOT_EXERCISE_NAME AS $COL_EXERCISE_NAME,
-                $COL_SNAPSHOT_REPS AS $COL_WE_REPS,
-                $COL_SNAPSHOT_TIME_PER_REP AS $COL_EXERCISE_TIME_PER_REP,
-                $COL_SNAPSHOT_EXERCISE_DESC AS $COL_EXERCISE_DESC
-            FROM $TABLE_SNAPSHOT_WORKOUT
-            WHERE $COL_SNAPSHOT_ASSIGNMENT_ID = ?
-            ORDER BY $COL_SNAPSHOT_ID ASC
-        """.trimIndent()
-        return db.rawQuery(query, arrayOf(assignmentId.toString()))
-    }
-
-    fun getAllTraineesForTrainer(trainerId: Int): Cursor {
-        val db = readableDatabase
-        val query = """
-            SELECT u.* 
-            FROM $TABLE_USERS u
-            JOIN $TABLE_TRAINER_TRAINEES tt ON u.$COL_USER_ID = tt.$COL_TT_TRAINEE_ID
-            WHERE tt.$COL_TT_TRAINER_ID = ?
-        """.trimIndent()
-        return db.rawQuery(query, arrayOf(trainerId.toString()))
-    }
-
-    fun getAllTrainers(): Cursor {
-        val db = readableDatabase
-        return db.query(
-            TABLE_USERS,
-            null,
-            "$COL_USER_ROLE = ?",
-            arrayOf("trainer"),
-            null,
-            null,
-            COL_USER_NAME
-        )
-    }
-
-    fun getTrainerById(trainerId: Int): Cursor {
-        val db = readableDatabase
-        return db.query(
-            TABLE_USERS,
-            null,
-            "$COL_USER_ID = ? AND $COL_USER_ROLE = ?",
-            arrayOf(trainerId.toString(), "trainer"),
-            null,
-            null,
-            null
-        )
-    }
-
-    fun getMyTrainerID(traineeUserId: Int): Int {
-        val db = readableDatabase
-        val query = "SELECT $COL_TTR_TRAINER_ID FROM $TABLE_TRAINEE_TRAINER WHERE $COL_TTR_TRAINEE_ID = ?"
-        val cursor = db.rawQuery(query, arrayOf(traineeUserId.toString()))
-        var trainerId = -1
-        if (cursor.moveToFirst()) {
-            trainerId = cursor.getInt(0)
-        }
-        cursor.close()
-        return trainerId
-    }
-
-    fun getPendingTrainerRequestId(traineeUserId: Int): Int {
-        val db = readableDatabase
-        val query = """
-            SELECT $COL_REQUEST_TRAINER_ID
-            FROM $TABLE_TRAINEE_REQUESTS
-            WHERE $COL_REQUEST_TRAINEE_ID = ?
-            AND $COL_REQUEST_STATUS = ?
-            LIMIT 1
-        """.trimIndent()
-        val cursor = db.rawQuery(query, arrayOf(traineeUserId.toString(), STATUS_PENDING))
-        val trainerId = if (cursor.moveToFirst()) {
-            cursor.getInt(0)
-        } else {
-            -1
-        }
-        cursor.close()
-        return trainerId
-    }
-
-    fun requestTrainer(trainerId: Int, traineeId: Int): Boolean {
-        if (getMyTrainerID(traineeId) != -1 || getPendingTrainerRequestId(traineeId) != -1) {
-            return false
-        }
-
-        val db = writableDatabase
-        val values = ContentValues().apply {
-            put(COL_REQUEST_TRAINER_ID, trainerId)
-            put(COL_REQUEST_TRAINEE_ID, traineeId)
-            put(COL_REQUEST_STATUS, STATUS_PENDING)
-        }
-        return db.insert(TABLE_TRAINEE_REQUESTS, null, values) != -1L
-    }
-
-    fun cancelTrainerRequest(trainerId: Int, traineeId: Int): Boolean {
-        val db = writableDatabase
-        val values = ContentValues().apply {
-            put(COL_REQUEST_STATUS, STATUS_REJECTED)
-        }
-        val condition = """
-            $COL_REQUEST_TRAINER_ID = ?
-            AND $COL_REQUEST_TRAINEE_ID = ?
-            AND $COL_REQUEST_STATUS = ?
-        """.trimIndent()
-        return db.update(
-            TABLE_TRAINEE_REQUESTS,
-            values,
-            condition,
-            arrayOf(trainerId.toString(), traineeId.toString(), STATUS_PENDING)
-        ) > 0
-    }
-
-    fun unrollTrainer(trainerId: Int, traineeId: Int): Boolean {
-        val db = writableDatabase
-        return try {
-            db.beginTransaction()
-
-            db.delete(
-                TABLE_TRAINER_TRAINEES,
-                "$COL_TT_TRAINER_ID = ? AND $COL_TT_TRAINEE_ID = ?",
-                arrayOf(trainerId.toString(), traineeId.toString())
-            )
-
-            db.delete(
-                TABLE_TRAINEE_TRAINER,
-                "$COL_TTR_TRAINER_ID = ? AND $COL_TTR_TRAINEE_ID = ?",
-                arrayOf(trainerId.toString(), traineeId.toString())
-            )
-
-            db.delete(
-                TABLE_TRAINEE_REQUESTS,
-                "$COL_REQUEST_TRAINER_ID = ? AND $COL_REQUEST_TRAINEE_ID = ?",
-                arrayOf(trainerId.toString(), traineeId.toString())
-            )
-
-            db.delete(
-                TABLE_WORKOUT_SCHEDULES,
-                "$COL_SCHEDULE_TRAINEE_ID = ?",
-                arrayOf(traineeId.toString())
-            )
-
-            db.delete(
-                TABLE_WORKOUT_EXERCISE_COMPLETIONS,
-                "$COL_COMPLETION_SLOT_ID IN (SELECT $COL_SLOT_ID FROM $TABLE_TRAINEE_CALENDAR_SLOT WHERE $COL_TRAINEE_ID = ?)",
-                arrayOf(traineeId.toString())
-            )
-
-            db.delete(
-                TABLE_SNAPSHOT_WORKOUT,
-                "$COL_SNAPSHOT_ASSIGNMENT_ID IN (SELECT $COL_SLOT_ASSIGNMENT_ID FROM $TABLE_TRAINEE_CALENDAR_SLOT WHERE $COL_TRAINEE_ID = ? AND $COL_SLOT_ASSIGNMENT_ID IS NOT NULL)",
-                arrayOf(traineeId.toString())
-            )
-            db.delete(
-                TABLE_WORKOUT_ASSIGNMENT_PROGRESS,
-                "$COL_PROGRESS_ASSIGNMENT_ID IN (SELECT $COL_SLOT_ASSIGNMENT_ID FROM $TABLE_TRAINEE_CALENDAR_SLOT WHERE $COL_TRAINEE_ID = ? AND $COL_SLOT_ASSIGNMENT_ID IS NOT NULL)",
-                arrayOf(traineeId.toString())
-            )
-
-            val slotValues = ContentValues().apply {
-                putNull(COL_SLOT_WORKOUT_ID)
-                putNull(COL_SLOT_ASSIGNMENT_ID)
-            }
-            db.update(
-                TABLE_TRAINEE_CALENDAR_SLOT,
-                slotValues,
-                "$COL_TRAINEE_ID = ?",
-                arrayOf(traineeId.toString())
-            )
-
-            db.setTransactionSuccessful()
-            true
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false
-        } finally {
-            db.endTransaction()
-        }
-    }
-
-    fun getTraineeSlots(traineeId: Int, date: LocalDate): Cursor {
-        val db = readableDatabase
-
-        val query = """
-        SELECT s.*, w.$COL_WORKOUT_NAME
-        FROM $TABLE_TRAINEE_CALENDAR_SLOT s
-        LEFT JOIN $TABLE_WORKOUTS w 
-            ON s.$COL_SLOT_WORKOUT_ID = w.$COL_WORKOUT_ID
-        WHERE s.$COL_TRAINEE_ID = ?
-        AND s.$COL_SLOT_DATE = ?
-        ORDER BY s.$COL_SLOT_START_TIME ASC, s.$COL_SLOT_END_TIME ASC
-    """.trimIndent()
-
-        return db.rawQuery(
-            query,
-            arrayOf(
-                traineeId.toString(),
-                date.toString()
-            )
-        )
-    }
-
-    fun getWorkoutOptions(): Cursor {
-        val db = readableDatabase
-        return db.query(
-            TABLE_WORKOUTS,
-            arrayOf(COL_WORKOUT_ID, COL_WORKOUT_NAME, COL_WORKOUT_DURATION),
-            null,
-            null,
-            null,
-            null,
-            COL_WORKOUT_NAME
-        )
-    }
-
-    fun getTraineeDashboardWorkouts(traineeId: Int): Cursor {
-        val db = readableDatabase
-        val query = """
-            SELECT
-                MIN(a.$COL_SLOT_ASSIGNMENT_ID) AS $COL_SLOT_ASSIGNMENT_ID,
-                a.$COL_SLOT_WORKOUT_ID,
-                w.$COL_WORKOUT_NAME,
-                MIN(a.first_date) AS first_date,
-                MAX(a.last_date) AS last_date,
-                MIN(a.start_time) AS start_time,
-                MAX(a.end_time) AS end_time,
-                COUNT(a.$COL_SLOT_ASSIGNMENT_ID) AS assignment_count,
-                SUM(COALESCE(p.$COL_PROGRESS_COMPLETED_EXERCISE_TIME, 0)) AS completed_time,
-                SUM(COALESCE(p.$COL_PROGRESS_TOTAL_EXERCISE_TIME, 0)) AS total_time
-            FROM (
-                SELECT
-                    $COL_SLOT_ASSIGNMENT_ID,
-                    $COL_SLOT_WORKOUT_ID,
-                    MIN($COL_SLOT_DATE) AS first_date,
-                    MAX($COL_SLOT_DATE) AS last_date,
-                    MIN($COL_SLOT_START_TIME) AS start_time,
-                    MAX($COL_SLOT_END_TIME) AS end_time
-                FROM $TABLE_TRAINEE_CALENDAR_SLOT
-                WHERE $COL_TRAINEE_ID = ?
-                AND $COL_SLOT_ASSIGNMENT_ID IS NOT NULL
-                GROUP BY $COL_SLOT_ASSIGNMENT_ID, $COL_SLOT_WORKOUT_ID
-            ) a
-            LEFT JOIN $TABLE_WORKOUTS w
-                ON a.$COL_SLOT_WORKOUT_ID = w.$COL_WORKOUT_ID
-            LEFT JOIN $TABLE_WORKOUT_ASSIGNMENT_PROGRESS p
-                ON a.$COL_SLOT_ASSIGNMENT_ID = p.$COL_PROGRESS_ASSIGNMENT_ID
-            GROUP BY a.$COL_SLOT_WORKOUT_ID, w.$COL_WORKOUT_NAME
-            ORDER BY first_date ASC, start_time ASC
-        """.trimIndent()
-        return db.rawQuery(query, arrayOf(traineeId.toString()))
-    }
-
-    fun assignWorkoutToTraineeSlots(slotIds: List<Int>, workoutId: Int): Boolean {
-        if (slotIds.isEmpty()) return false
-
-        val db = writableDatabase
-        return try {
-            db.beginTransaction()
-            val assignmentId = getNextAssignmentId(db)
-            createSnapshotWorkout(db, assignmentId, workoutId)
-            createWorkoutAssignmentProgress(db, assignmentId, workoutId)
-            slotIds.forEach { slotId ->
-                val values = ContentValues().apply {
-                    put(COL_SLOT_WORKOUT_ID, workoutId)
-                    put(COL_SLOT_ASSIGNMENT_ID, assignmentId)
-                }
-                db.update(TABLE_TRAINEE_CALENDAR_SLOT, values, "$COL_SLOT_ID = ?", arrayOf(slotId.toString()))
-                db.delete(TABLE_WORKOUT_EXERCISE_COMPLETIONS, "$COL_COMPLETION_SLOT_ID = ?", arrayOf(slotId.toString()))
-            }
-            db.setTransactionSuccessful()
-            true
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false
-        } finally {
-            db.endTransaction()
-        }
-    }
-
-    fun replaceWorkoutOnTraineeSlots(oldSlotIds: List<Int>, newSlotIds: List<Int>, workoutId: Int): Boolean {
-        if (newSlotIds.isEmpty()) return false
-
-        val db = writableDatabase
-        return try {
-            db.beginTransaction()
-            val assignmentId = getAssignmentIdForSlots(db, oldSlotIds) ?: getNextAssignmentId(db)
-            deleteSnapshotsForAssignments(db, listOf(assignmentId))
-            createSnapshotWorkout(db, assignmentId, workoutId)
-            createWorkoutAssignmentProgress(db, assignmentId, workoutId)
-            oldSlotIds.forEach { slotId ->
-                val values = ContentValues().apply {
-                    putNull(COL_SLOT_WORKOUT_ID)
-                    putNull(COL_SLOT_ASSIGNMENT_ID)
-                }
-                db.update(TABLE_TRAINEE_CALENDAR_SLOT, values, "$COL_SLOT_ID = ?", arrayOf(slotId.toString()))
-                db.delete(TABLE_WORKOUT_EXERCISE_COMPLETIONS, "$COL_COMPLETION_SLOT_ID = ?", arrayOf(slotId.toString()))
-            }
-            newSlotIds.forEach { slotId ->
-                val values = ContentValues().apply {
-                    put(COL_SLOT_WORKOUT_ID, workoutId)
-                    put(COL_SLOT_ASSIGNMENT_ID, assignmentId)
-                }
-                db.update(TABLE_TRAINEE_CALENDAR_SLOT, values, "$COL_SLOT_ID = ?", arrayOf(slotId.toString()))
-                db.delete(TABLE_WORKOUT_EXERCISE_COMPLETIONS, "$COL_COMPLETION_SLOT_ID = ?", arrayOf(slotId.toString()))
-            }
-            db.setTransactionSuccessful()
-            true
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false
-        } finally {
-            db.endTransaction()
-        }
-    }
-
-    fun clearWorkoutFromTraineeSlots(slotIds: List<Int>): Boolean {
-        if (slotIds.isEmpty()) return false
-
-        val db = writableDatabase
-        return try {
-            db.beginTransaction()
-            val assignmentIds = getAssignmentIdsForSlots(db, slotIds)
-            slotIds.forEach { slotId ->
-                val values = ContentValues().apply {
-                    putNull(COL_SLOT_WORKOUT_ID)
-                    putNull(COL_SLOT_ASSIGNMENT_ID)
-                }
-                db.update(TABLE_TRAINEE_CALENDAR_SLOT, values, "$COL_SLOT_ID = ?", arrayOf(slotId.toString()))
-                db.delete(TABLE_WORKOUT_EXERCISE_COMPLETIONS, "$COL_COMPLETION_SLOT_ID = ?", arrayOf(slotId.toString()))
-            }
-            deleteSnapshotsForAssignments(db, assignmentIds)
-            deleteProgressForAssignments(db, assignmentIds)
-            db.setTransactionSuccessful()
-            true
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false
-        } finally {
-            db.endTransaction()
-        }
-    }
-
-    private fun getNextAssignmentId(db: SQLiteDatabase): Int {
-        val cursor = db.rawQuery(
-            "SELECT COALESCE(MAX($COL_SLOT_ASSIGNMENT_ID), 0) + 1 FROM $TABLE_TRAINEE_CALENDAR_SLOT",
-            null
-        )
-        val assignmentId = if (cursor.moveToFirst()) cursor.getInt(0) else 1
-        cursor.close()
-        return assignmentId
-    }
-
-    private fun getAssignmentIdForSlots(db: SQLiteDatabase, slotIds: List<Int>): Int? {
-        if (slotIds.isEmpty()) return null
-
-        val placeholders = slotIds.joinToString(",") { "?" }
-        val cursor = db.rawQuery(
-            """
-                SELECT $COL_SLOT_ASSIGNMENT_ID
-                FROM $TABLE_TRAINEE_CALENDAR_SLOT
-                WHERE $COL_SLOT_ID IN ($placeholders)
-                AND $COL_SLOT_ASSIGNMENT_ID IS NOT NULL
-                LIMIT 1
-            """.trimIndent(),
-            slotIds.map { it.toString() }.toTypedArray()
-        )
-        val assignmentId = if (cursor.moveToFirst()) cursor.getInt(0) else null
-        cursor.close()
-        return assignmentId
-    }
-
-    private fun getAssignmentIdsForSlots(db: SQLiteDatabase, slotIds: List<Int>): List<Int> {
-        if (slotIds.isEmpty()) return emptyList()
-
-        val placeholders = slotIds.joinToString(",") { "?" }
-        val cursor = db.rawQuery(
-            """
-                SELECT DISTINCT $COL_SLOT_ASSIGNMENT_ID
-                FROM $TABLE_TRAINEE_CALENDAR_SLOT
-                WHERE $COL_SLOT_ID IN ($placeholders)
-                AND $COL_SLOT_ASSIGNMENT_ID IS NOT NULL
-            """.trimIndent(),
-            slotIds.map { it.toString() }.toTypedArray()
-        )
-        val assignmentIds = mutableListOf<Int>()
-        cursor.use {
-            while (it.moveToNext()) {
-                assignmentIds.add(it.getInt(0))
-            }
-        }
-        return assignmentIds
-    }
-
-    private fun createSnapshotWorkout(db: SQLiteDatabase, assignmentId: Int, workoutId: Int) {
-        db.delete(TABLE_SNAPSHOT_WORKOUT, "$COL_SNAPSHOT_ASSIGNMENT_ID = ?", arrayOf(assignmentId.toString()))
-
-        val query = """
-            SELECT e.$COL_EXERCISE_ID, e.$COL_EXERCISE_NAME, e.$COL_EXERCISE_DESC,
-                   e.$COL_EXERCISE_TIME_PER_REP, we.$COL_WE_REPS
-            FROM $TABLE_WORKOUT_EXERCISES we
-            JOIN $TABLE_EXERCISES e ON we.$COL_WE_EXERCISE_ID = e.$COL_EXERCISE_ID
-            WHERE we.$COL_WE_WORKOUT_ID = ?
-        """.trimIndent()
-        db.rawQuery(query, arrayOf(workoutId.toString())).use { cursor ->
-            while (cursor.moveToNext()) {
-                val timePerRep = cursor.getInt(cursor.getColumnIndexOrThrow(COL_EXERCISE_TIME_PER_REP))
-                val reps = cursor.getInt(cursor.getColumnIndexOrThrow(COL_WE_REPS))
-                val values = ContentValues().apply {
-                    put(COL_SNAPSHOT_ASSIGNMENT_ID, assignmentId)
-                    put(COL_SNAPSHOT_WORKOUT_ID, workoutId)
-                    put(COL_SNAPSHOT_EXERCISE_ID, cursor.getInt(cursor.getColumnIndexOrThrow(COL_EXERCISE_ID)))
-                    put(COL_SNAPSHOT_EXERCISE_NAME, cursor.getString(cursor.getColumnIndexOrThrow(COL_EXERCISE_NAME)))
-                    put(COL_SNAPSHOT_EXERCISE_DESC, cursor.getString(cursor.getColumnIndexOrThrow(COL_EXERCISE_DESC)))
-                    put(COL_SNAPSHOT_TIME_PER_REP, timePerRep)
-                    put(COL_SNAPSHOT_REPS, reps)
-                    put(COL_SNAPSHOT_EXERCISE_TOTAL_TIME, timePerRep * reps)
-                }
-                db.insert(TABLE_SNAPSHOT_WORKOUT, null, values)
-            }
-        }
-    }
-
-    private fun createWorkoutAssignmentProgress(db: SQLiteDatabase, assignmentId: Int, workoutId: Int) {
-        val totalTime = getSnapshotTotalExerciseTime(db, assignmentId)
-        val values = ContentValues().apply {
-            put(COL_PROGRESS_ASSIGNMENT_ID, assignmentId)
-            put(COL_PROGRESS_WORKOUT_ID, workoutId)
-            put(COL_PROGRESS_COMPLETED_EXERCISE_TIME, 0)
-            put(COL_PROGRESS_TOTAL_EXERCISE_TIME, totalTime)
-        }
-        db.insertWithOnConflict(
-            TABLE_WORKOUT_ASSIGNMENT_PROGRESS,
-            null,
-            values,
-            SQLiteDatabase.CONFLICT_REPLACE
-        )
-    }
-
-    private fun getSnapshotTotalExerciseTime(db: SQLiteDatabase, assignmentId: Int): Int {
-        val cursor = db.rawQuery(
-            "SELECT COALESCE(SUM($COL_SNAPSHOT_EXERCISE_TOTAL_TIME), 0) FROM $TABLE_SNAPSHOT_WORKOUT WHERE $COL_SNAPSHOT_ASSIGNMENT_ID = ?",
-            arrayOf(assignmentId.toString())
-        )
-        val totalTime = if (cursor.moveToFirst()) cursor.getInt(0) else 0
-        cursor.close()
-        return totalTime
-    }
-
-    private fun deleteSnapshotsForAssignments(db: SQLiteDatabase, assignmentIds: List<Int>) {
-        if (assignmentIds.isEmpty()) return
-
-        val placeholders = assignmentIds.joinToString(",") { "?" }
-        db.delete(
-            TABLE_SNAPSHOT_WORKOUT,
-            "$COL_SNAPSHOT_ASSIGNMENT_ID IN ($placeholders)",
-            assignmentIds.map { it.toString() }.toTypedArray()
-        )
-    }
-
-    private fun deleteProgressForAssignments(db: SQLiteDatabase, assignmentIds: List<Int>) {
-        if (assignmentIds.isEmpty()) return
-
-        val placeholders = assignmentIds.joinToString(",") { "?" }
-        db.delete(
-            TABLE_WORKOUT_ASSIGNMENT_PROGRESS,
-            "$COL_PROGRESS_ASSIGNMENT_ID IN ($placeholders)",
-            assignmentIds.map { it.toString() }.toTypedArray()
-        )
-    }
+    private val dashboardHelper by lazy { DashboardHelper(this) }
+    private val userHelper by lazy { UserHelper(this) }
+    private val exerciseHelper by lazy { ExerciseHelper(this) }
+    private val workoutHelper by lazy { WorkoutHelper(this) }
+    private val trainerTraineeHelper by lazy { TrainerTraineeHelper(this) }
+    private val calendarHelper by lazy { CalendarHelper(this) }
+    private val tagHelper by lazy { TagHelper(this) }
+
+    fun getActiveTraineesCount(trainerId: Int): Int = dashboardHelper.getActiveTraineesCount(trainerId)
+
+    fun getExercisesCount(): Int = dashboardHelper.getExercisesCount()
+
+    fun getWorkoutsCount(): Int = dashboardHelper.getWorkoutsCount()
+
+    fun getPendingRequestsCount(trainerId: Int): Int = dashboardHelper.getPendingRequestsCount(trainerId)
+
+    fun getTraineeDashboardWorkouts(traineeId: Int): Cursor = dashboardHelper.getTraineeDashboardWorkouts(traineeId)
+
+    fun getUserByUsername(username: String): Cursor = userHelper.getUserByUsername(username)
+
+    fun getUserById(userId: Int): Cursor = userHelper.getUserById(userId)
+
+    fun getTraineeUserById(traineeId: Int): Cursor = userHelper.getTraineeUserById(traineeId)
+
+    fun insertUser(username: String, password: String, role: String, name: String, bio: String): Long =
+        userHelper.insertUser(username, password, role, name, bio)
+
+    fun updateUserProfile(userId: Int, name: String, bio: String, maxTrainees: Int? = null, password: String?) =
+        userHelper.updateUserProfile(userId, name, bio, maxTrainees, password)
+
+    fun insertExercise(name: String, desc: String, timePerRep: Int, tags: List<Tag>) =
+        exerciseHelper.insertExercise(name, desc, timePerRep, tags)
+
+    fun getAllExercises(): Cursor = exerciseHelper.getAllExercises()
+
+    fun getExerciseById(exerciseId: Int): Cursor = exerciseHelper.getExerciseById(exerciseId)
+
+    fun deleteExercise(exerciseId: Int) = exerciseHelper.deleteExercise(exerciseId)
+
+    fun updateExercise(id: Int, name: String, desc: String, timePerRep: Int, tags: List<Tag>) =
+        exerciseHelper.updateExercise(id, name, desc, timePerRep, tags)
+
+    fun insertWorkout(name: String, desc: String, duration: Int): Long = workoutHelper.insertWorkout(name, desc, duration)
+
+    fun addExerciseToWorkout(workoutId: Long, exerciseId: Long, reps: Int) =
+        workoutHelper.addExerciseToWorkout(workoutId, exerciseId, reps)
+
+    fun getAllWorkouts(): Cursor = workoutHelper.getAllWorkouts()
+
+    fun getWorkoutById(workoutId: Int): Cursor = workoutHelper.getWorkoutById(workoutId)
+
+    fun getWorkoutExercises(workoutId: Int): Cursor = workoutHelper.getWorkoutExercises(workoutId)
+
+    fun replaceWorkoutExercises(workoutId: Int, name: String, desc: String, exercises: List<Pair<Long, Int>>) =
+        workoutHelper.replaceWorkoutExercises(workoutId, name, desc, exercises)
+
+    fun calculateWorkoutTotalDuration(workoutId: Long): Int = workoutHelper.calculateWorkoutTotalDuration(workoutId)
+
+    fun updateWorkoutDuration(workoutId: Long, duration: Int) = workoutHelper.updateWorkoutDuration(workoutId, duration)
+
+    fun getWorkoutExerciseDetails(workoutId: Long): Cursor = workoutHelper.getWorkoutExerciseDetails(workoutId)
+
+    fun getWorkoutExerciseTagTimes(workoutId: Long): Cursor = workoutHelper.getWorkoutExerciseTagTimes(workoutId)
+
+    fun getWorkoutOptions(): Cursor = workoutHelper.getWorkoutOptions()
+
+    fun deleteWorkout(workoutId: Int) = workoutHelper.deleteWorkout(workoutId)
+
+    fun getPendingRequest(trainerId: Int): Cursor = trainerTraineeHelper.getPendingRequest(trainerId)
+
+    fun getAllTraineesForTrainer(trainerId: Int): Cursor = trainerTraineeHelper.getAllTraineesForTrainer(trainerId)
+
+    fun getAllTrainers(): Cursor = trainerTraineeHelper.getAllTrainers()
+
+    fun getTrainerById(trainerId: Int): Cursor = trainerTraineeHelper.getTrainerById(trainerId)
+
+    fun getMyTrainerID(traineeUserId: Int): Int = trainerTraineeHelper.getMyTrainerID(traineeUserId)
+
+    fun getPendingTrainerRequestId(traineeUserId: Int): Int =
+        trainerTraineeHelper.getPendingTrainerRequestId(traineeUserId)
+
+    fun requestTrainer(trainerId: Int, traineeId: Int): Boolean = trainerTraineeHelper.requestTrainer(trainerId, traineeId)
+
+    fun cancelTrainerRequest(trainerId: Int, traineeId: Int): Boolean =
+        trainerTraineeHelper.cancelTrainerRequest(trainerId, traineeId)
+
+    fun unrollTrainer(trainerId: Int, traineeId: Int): Boolean = trainerTraineeHelper.unrollTrainer(trainerId, traineeId)
+
+    fun getTrainerMaxTrainees(trainerId: Int): Int = trainerTraineeHelper.getTrainerMaxTrainees(trainerId)
+
+    fun acceptTrainee(trainerId: Int, traineeId: Int): Boolean = trainerTraineeHelper.acceptTrainee(trainerId, traineeId)
+
+    fun denyTrainee(trainerId: Int, traineeId: Int): Boolean = trainerTraineeHelper.denyTrainee(trainerId, traineeId)
+
+    fun getSnapshotWorkoutExerciseDetails(assignmentId: Int): Cursor =
+        calendarHelper.getSnapshotWorkoutExerciseDetails(assignmentId)
+
+    fun getTraineeSlots(traineeId: Int, date: LocalDate): Cursor = calendarHelper.getTraineeSlots(traineeId, date)
+
+    fun assignWorkoutToTraineeSlots(slotIds: List<Int>, workoutId: Int): Boolean =
+        calendarHelper.assignWorkoutToTraineeSlots(slotIds, workoutId)
+
+    fun replaceWorkoutOnTraineeSlots(oldSlotIds: List<Int>, newSlotIds: List<Int>, workoutId: Int): Boolean =
+        calendarHelper.replaceWorkoutOnTraineeSlots(oldSlotIds, newSlotIds, workoutId)
+
+    fun clearWorkoutFromTraineeSlots(slotIds: List<Int>): Boolean = calendarHelper.clearWorkoutFromTraineeSlots(slotIds)
 
     fun addTraineeCalendarSlot(
         traineeId: Int,
@@ -1066,23 +437,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         startTime: String,
         endTime: String,
         status: Int
-    ): Boolean {
-        if (hasTraineeSlotAtTime(traineeId, date, startTime, endTime)) {
-            return false
-        }
-
-        val db = writableDatabase
-        val values = ContentValues().apply {
-            put(COL_TRAINEE_ID, traineeId)
-            putNull(COL_SLOT_WORKOUT_ID)
-            putNull(COL_SLOT_ASSIGNMENT_ID)
-            put(COL_SLOT_STATUS, status)
-            put(COL_SLOT_DATE, date.toString())
-            put(COL_SLOT_START_TIME, startTime)
-            put(COL_SLOT_END_TIME, endTime)
-        }
-        return db.insert(TABLE_TRAINEE_CALENDAR_SLOT, null, values) != -1L
-    }
+    ): Boolean = calendarHelper.addTraineeCalendarSlot(traineeId, date, startTime, endTime, status)
 
     fun updateTraineeCalendarSlot(
         slotId: Int,
@@ -1091,372 +446,20 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         startTime: String,
         endTime: String,
         status: Int
-    ): Boolean {
-        if (hasTraineeSlotAtTime(traineeId, date, startTime, endTime, excludedSlotId = slotId)) {
-            return false
-        }
+    ): Boolean = calendarHelper.updateTraineeCalendarSlot(slotId, traineeId, date, startTime, endTime, status)
 
-        val db = writableDatabase
-        val values = ContentValues().apply {
-            put(COL_SLOT_STATUS, status)
-            put(COL_SLOT_START_TIME, startTime)
-            put(COL_SLOT_END_TIME, endTime)
-        }
-        return db.update(TABLE_TRAINEE_CALENDAR_SLOT, values, "$COL_SLOT_ID = ?", arrayOf(slotId.toString())) > 0
-    }
+    fun deleteTraineeCalendarSlot(slotId: Int): Boolean = calendarHelper.deleteTraineeCalendarSlot(slotId)
 
-    fun deleteTraineeCalendarSlot(slotId: Int): Boolean {
-        val db = writableDatabase
-        val assignmentIds = getAssignmentIdsForSlots(db, listOf(slotId))
-        db.delete(TABLE_WORKOUT_EXERCISE_COMPLETIONS, "$COL_COMPLETION_SLOT_ID = ?", arrayOf(slotId.toString()))
-        deleteSnapshotsForAssignments(db, assignmentIds)
-        deleteProgressForAssignments(db, assignmentIds)
-        return db.delete(TABLE_TRAINEE_CALENDAR_SLOT, "$COL_SLOT_ID = ?", arrayOf(slotId.toString())) > 0
-    }
+    fun getCompletedExerciseIdsForSlot(slotId: Int): Cursor = calendarHelper.getCompletedExerciseIdsForSlot(slotId)
 
-    private fun hasTraineeSlotAtTime(
-        traineeId: Int,
-        date: LocalDate,
-        startTime: String,
-        endTime: String,
-        excludedSlotId: Int? = null
-    ): Boolean {
-        val db = readableDatabase
-        val selection = buildString {
-            append("$COL_TRAINEE_ID = ? AND $COL_SLOT_DATE = ? AND $COL_SLOT_START_TIME = ? AND $COL_SLOT_END_TIME = ?")
-            if (excludedSlotId != null) {
-                append(" AND $COL_SLOT_ID != ?")
-            }
-        }
-        val args = mutableListOf(traineeId.toString(), date.toString(), startTime, endTime)
-        if (excludedSlotId != null) {
-            args.add(excludedSlotId.toString())
-        }
-        val cursor = db.query(
-            TABLE_TRAINEE_CALENDAR_SLOT,
-            arrayOf(COL_SLOT_ID),
-            selection,
-            args.toTypedArray(),
-            null,
-            null,
-            null
-        )
-        val exists = cursor.moveToFirst()
-        cursor.close()
-        return exists
-    }
+    fun markWorkoutExerciseComplete(slotId: Int, exerciseId: Long): Boolean =
+        calendarHelper.markWorkoutExerciseComplete(slotId, exerciseId)
 
-    fun getCompletedExerciseIdsForSlot(slotId: Int): Cursor {
-        val db = readableDatabase
-        return db.query(
-            TABLE_WORKOUT_EXERCISE_COMPLETIONS,
-            arrayOf(COL_COMPLETION_EXERCISE_ID),
-            "$COL_COMPLETION_SLOT_ID = ?",
-            arrayOf(slotId.toString()),
-            null,
-            null,
-            null
-        )
-    }
+    fun getUserTags(userId: Int): Cursor = tagHelper.getUserTags(userId)
 
-    fun markWorkoutExerciseComplete(slotId: Int, exerciseId: Long): Boolean {
-        val db = writableDatabase
-        return try {
-            db.beginTransaction()
+    fun getAllTags(): Cursor = tagHelper.getAllTags()
 
-            val assignmentId = getAssignmentIdForSlots(db, listOf(slotId))
-            val shouldUpdateProgress = assignmentId == null ||
-                !hasCompletedExerciseForAssignment(db, assignmentId, exerciseId)
+    fun updateUserTags(userId: Int, tags: List<Tag>) = tagHelper.updateUserTags(userId, tags)
 
-            val values = ContentValues().apply {
-                put(COL_COMPLETION_SLOT_ID, slotId)
-                put(COL_COMPLETION_EXERCISE_ID, exerciseId)
-                put(COL_COMPLETION_COMPLETED_AT, System.currentTimeMillis().toString())
-            }
-            val isInserted = db.insertWithOnConflict(
-                TABLE_WORKOUT_EXERCISE_COMPLETIONS,
-                null,
-                values,
-                SQLiteDatabase.CONFLICT_IGNORE
-            ) != -1L
-
-            if (isInserted && shouldUpdateProgress && assignmentId != null) {
-                addCompletedExerciseTime(db, assignmentId, exerciseId)
-            }
-
-            db.setTransactionSuccessful()
-            isInserted
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false
-        } finally {
-            db.endTransaction()
-        }
-    }
-
-    private fun hasCompletedExerciseForAssignment(
-        db: SQLiteDatabase,
-        assignmentId: Int,
-        exerciseId: Long
-    ): Boolean {
-        val query = """
-            SELECT c.$COL_COMPLETION_EXERCISE_ID
-            FROM $TABLE_WORKOUT_EXERCISE_COMPLETIONS c
-            JOIN $TABLE_TRAINEE_CALENDAR_SLOT s
-                ON c.$COL_COMPLETION_SLOT_ID = s.$COL_SLOT_ID
-            WHERE s.$COL_SLOT_ASSIGNMENT_ID = ?
-            AND c.$COL_COMPLETION_EXERCISE_ID = ?
-            LIMIT 1
-        """.trimIndent()
-        val cursor = db.rawQuery(query, arrayOf(assignmentId.toString(), exerciseId.toString()))
-        val exists = cursor.moveToFirst()
-        cursor.close()
-        return exists
-    }
-
-    private fun addCompletedExerciseTime(
-        db: SQLiteDatabase,
-        assignmentId: Int,
-        exerciseId: Long
-    ) {
-        val cursor = db.query(
-            TABLE_SNAPSHOT_WORKOUT,
-            arrayOf(COL_SNAPSHOT_EXERCISE_TOTAL_TIME),
-            "$COL_SNAPSHOT_ASSIGNMENT_ID = ? AND $COL_SNAPSHOT_EXERCISE_ID = ?",
-            arrayOf(assignmentId.toString(), exerciseId.toString()),
-            null,
-            null,
-            null
-        )
-        val exerciseTime = if (cursor.moveToFirst()) cursor.getInt(0) else 0
-        cursor.close()
-        if (exerciseTime <= 0) return
-
-        db.execSQL(
-            """
-                UPDATE $TABLE_WORKOUT_ASSIGNMENT_PROGRESS
-                SET $COL_PROGRESS_COMPLETED_EXERCISE_TIME =
-                    MIN($COL_PROGRESS_COMPLETED_EXERCISE_TIME + ?, $COL_PROGRESS_TOTAL_EXERCISE_TIME)
-                WHERE $COL_PROGRESS_ASSIGNMENT_ID = ?
-            """.trimIndent(),
-            arrayOf(exerciseTime, assignmentId)
-        )
-    }
-
-    fun getUserTags(userId: Int): Cursor {
-        val db = readableDatabase
-        val query = """
-            SELECT s.$COL_USER_ID, w.$COL_TAG_ID, w.$COL_TAG_NAME
-            FROM $TABLE_USERS_TAGS s
-            LEFT JOIN $TABLE_TAGS w
-                ON s.$COL_TAG_ID = w.$COL_TAG_ID
-            WHERE s.$COL_USER_ID = ?
-            
-        """.trimIndent()
-
-        return db.rawQuery(
-            query,
-            arrayOf(
-                userId.toString()
-            )
-        )
-    }
-
-    fun getAllTags(): Cursor {
-        val db = readableDatabase
-        return db.query(
-            TABLE_TAGS,
-            null,
-            null,
-            null,
-            null,
-            null,
-            COL_TAG_NAME
-        )
-    }
-
-    fun updateUserProfile(userId: Int, name: String, bio: String, maxTrainees: Int? = null, password: String?) {
-        val db = writableDatabase
-        val values = ContentValues().apply {
-            put(COL_USER_NAME, name)
-            put(COL_USER_BIO, bio)
-            if (maxTrainees != null) {
-                put(COL_USER_MAX_TRAINEES, maxTrainees)
-            }
-            if (password != null) {
-                put(COL_USER_PASSWORD, PasswordHasher.hash(password))
-            }
-        }
-        db.update(TABLE_USERS, values, "$COL_USER_ID = ?", arrayOf(userId.toString()))
-    }
-
-    fun updateUserTags(userId: Int, tags: List<Tag>) {
-        val db = writableDatabase
-        db.delete(TABLE_USERS_TAGS, "$COL_USER_ID = ?", arrayOf(userId.toString()))
-
-        tags.forEach { tag ->
-            val values = ContentValues().apply {
-                put(COL_USER_ID, userId)
-                put(COL_TAG_ID, tag.tagId)
-            }
-            db.insert(TABLE_USERS_TAGS, null, values)
-        }
-    }
-
-    fun getTrainerMaxTrainees(trainerId: Int): Int {
-        val db = readableDatabase
-        val cursor = db.query(
-            TABLE_USERS,
-            arrayOf(COL_USER_MAX_TRAINEES),
-            "$COL_USER_ID = ?",
-            arrayOf(trainerId.toString()),
-            null,
-            null,
-            null
-        )
-
-        val maxTrainees = if (cursor.moveToFirst()) {
-            cursor.getInt(cursor.getColumnIndexOrThrow(COL_USER_MAX_TRAINEES))
-        } else {
-            0
-        }
-        cursor.close()
-        return maxTrainees
-    }
-
-    fun acceptTrainee(trainerId: Int, traineeId: Int): Boolean {
-        val db = writableDatabase
-        val maxTrainees = getTrainerMaxTrainees(trainerId)
-        if (maxTrainees > 0 && getActiveTraineesCount(trainerId) >= maxTrainees) {
-            return false
-        }
-
-        return try {
-            db.beginTransaction()
-            val query = ContentValues().apply {
-                put(COL_TT_TRAINER_ID, trainerId)
-                put(COL_TT_TRAINEE_ID, traineeId)
-            }
-            db.insert(TABLE_TRAINER_TRAINEES, null, query)
-
-            val query2 = ContentValues().apply {
-                put(COL_TTR_TRAINER_ID, trainerId)
-                put(COL_TTR_TRAINEE_ID, traineeId)
-            }
-            db.insert(TABLE_TRAINEE_TRAINER, null, query2)
-
-            val query3 = ContentValues().apply {
-                put(COL_REQUEST_STATUS, STATUS_ACCEPTED)
-            }
-            val condition = "$COL_REQUEST_TRAINER_ID = ? AND $COL_REQUEST_TRAINEE_ID = ?"
-            db.update(TABLE_TRAINEE_REQUESTS, query3, condition, arrayOf(trainerId.toString(), traineeId.toString()))
-
-            db.setTransactionSuccessful()
-            true
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false
-        } finally {
-            db.endTransaction()
-        }
-    }
-
-    fun denyTrainee(trainerId: Int, traineeId: Int): Boolean  {
-        val db = writableDatabase
-        return try {
-            db.beginTransaction()
-            val query = ContentValues().apply {
-                put(COL_REQUEST_STATUS, STATUS_REJECTED)
-            }
-            val condition = "$COL_REQUEST_TRAINER_ID = ? AND $COL_REQUEST_TRAINEE_ID = ?"
-            db.update(TABLE_TRAINEE_REQUESTS, query, condition, arrayOf(trainerId.toString(), traineeId.toString()))
-
-            db.setTransactionSuccessful()
-            true
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false
-        } finally {
-            db.endTransaction()
-        }
-    }
-
-    fun getExerciseTags(exerciseId: Long): Cursor {
-        val db = readableDatabase
-        val query = """
-            SELECT w.$COL_TAG_ID, w.$COL_TAG_NAME
-            FROM $TABLE_EXERCISE_TAGS s
-            LEFT JOIN $TABLE_TAGS w
-                ON s.$COL_TAG_ID = w.$COL_TAG_ID
-            WHERE s.$COL_EXERCISE_ID = ?
-        """.trimIndent()
-
-        return db.rawQuery(
-            query,
-            arrayOf(exerciseId.toString())
-        )
-    }
-
-    fun deleteWorkout(workoutId: Int) {
-        val db = writableDatabase
-        db.delete(TABLE_WORKOUT_EXERCISES, "$COL_WE_WORKOUT_ID = ?", arrayOf(workoutId.toString()))
-        db.delete(TABLE_WORKOUT_SCHEDULES, "$COL_SCHEDULE_WORKOUT_ID = ?", arrayOf(workoutId.toString()))
-        db.delete(TABLE_WORKOUTS, "$COL_WORKOUT_ID = ?", arrayOf(workoutId.toString()))
-    }
-
-    fun deleteExercise(exerciseId: Int) {
-        val db = writableDatabase
-        val affectedWorkoutIds = getWorkoutIdsForExercise(db, exerciseId)
-        db.delete(TABLE_EXERCISE_TAGS, "$COL_EXERCISE_ID = ?", arrayOf(exerciseId.toString()))
-        db.delete(TABLE_WORKOUT_EXERCISES, "$COL_WE_EXERCISE_ID = ?", arrayOf(exerciseId.toString()))
-        db.delete(TABLE_EXERCISES, "$COL_EXERCISE_ID = ?", arrayOf(exerciseId.toString()))
-        affectedWorkoutIds.forEach { workoutId ->
-            updateWorkoutDuration(workoutId, calculateWorkoutTotalDuration(workoutId))
-        }
-    }
-
-    fun updateExercise(id: Int, name: String, desc: String, timePerRep: Int, tags: List<Tag>) {
-        val db = writableDatabase
-        val affectedWorkoutIds = getWorkoutIdsForExercise(db, id)
-        val values = ContentValues().apply {
-            put(COL_EXERCISE_NAME, name)
-            put(COL_EXERCISE_DESC, desc)
-            put(COL_EXERCISE_TIME_PER_REP, timePerRep)
-        }
-        db.update(TABLE_EXERCISES, values, "$COL_EXERCISE_ID = ?", arrayOf(id.toString()))
-
-        // Update tags: clear and re-add
-        db.delete(TABLE_EXERCISE_TAGS, "$COL_EXERCISE_ID = ?", arrayOf(id.toString()))
-        tags.forEach { tag ->
-            val valueTag = ContentValues().apply {
-                put(COL_EXERCISE_ID, id)
-                put(COL_TAG_ID, tag.tagId)
-            }
-            db.insert(TABLE_EXERCISE_TAGS, null, valueTag)
-        }
-        affectedWorkoutIds.forEach { workoutId ->
-            updateWorkoutDuration(workoutId, calculateWorkoutTotalDuration(workoutId))
-        }
-    }
-
-    private fun getWorkoutIdsForExercise(db: SQLiteDatabase, exerciseId: Int): List<Long> {
-        val workoutIds = mutableListOf<Long>()
-        val cursor = db.query(
-            TABLE_WORKOUT_EXERCISES,
-            arrayOf(COL_WE_WORKOUT_ID),
-            "$COL_WE_EXERCISE_ID = ?",
-            arrayOf(exerciseId.toString()),
-            null,
-            null,
-            null
-        )
-
-        cursor.use {
-            while (it.moveToNext()) {
-                workoutIds.add(it.getLong(it.getColumnIndexOrThrow(COL_WE_WORKOUT_ID)))
-            }
-        }
-
-        return workoutIds
-    }
+    fun getExerciseTags(exerciseId: Long): Cursor = tagHelper.getExerciseTags(exerciseId)
 }
