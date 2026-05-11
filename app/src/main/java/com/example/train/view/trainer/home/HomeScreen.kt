@@ -152,18 +152,26 @@ fun HomeScreen(
 
     if (showCreateExerciseDialog) {
         CreateExerciseDialog(
+            availableTags = uiState.availableTags,
             onDismiss = {
                 showCreateExerciseDialog = false
             },
-            onConfirm = { name, description, time, tags ->
+            onConfirm = { name, description, time, tags, videoUri ->
                 val error = exercisesViewModel.createExercise(
                     name = name,
                     description = description,
                     timePerRepText = time,
-                    tags = tags
+                    tags = tags,
+                    videoUri = videoUri
                 )
 
-                if (error == null) {
+                if (error != null) {
+                    Toast.makeText(
+                        context,
+                        error,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
                     Toast.makeText(
                         context,
                         "Created successfully",
@@ -172,12 +180,6 @@ fun HomeScreen(
 
                     showCreateExerciseDialog = false
                     viewModel.loadOverviewData()
-                } else {
-                    Toast.makeText(
-                        context,
-                        error,
-                        Toast.LENGTH_SHORT
-                    ).show()
                 }
             }
         )

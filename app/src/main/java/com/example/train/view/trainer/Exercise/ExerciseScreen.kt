@@ -100,44 +100,51 @@ fun ExercisesScreen(
     }
 
     if (showCreateDialog) {
+        val exerciseToEdit = editingExercise
+
         CreateExerciseDialog(
-            initialExercise = editingExercise,
-            initialTags = if (editingExercise != null) viewModel.exerciseTagsMap[editingExercise!!.id].orEmpty() else emptyList(),
+            initialExercise = exerciseToEdit,
+            initialTags = if (exerciseToEdit != null) viewModel.exerciseTagsMap[exerciseToEdit.id].orEmpty() else emptyList(),
+            availableTags = viewModel.availableTags,
             onDismiss = {
                 showCreateDialog = false
+                editingExercise = null
             },
-            onConfirm = { name, description, time, tags ->
-                val errorMessage = if (editingExercise != null) {
+            onConfirm = { name, description, time, tags, videoUri ->
+                val errorMessage = if (exerciseToEdit != null) {
                     viewModel.updateExercise(
-                        id = editingExercise!!.id,
+                        id = exerciseToEdit.id,
                         name = name,
                         description = description,
                         timePerRepText = time,
-                        tags = tags
+                        tags = tags,
+                        videoUri = videoUri
                     )
                 } else {
                     viewModel.createExercise(
                         name = name,
                         description = description,
                         timePerRepText = time,
-                        tags = tags
+                        tags = tags,
+                        videoUri = videoUri
                     )
                 }
 
-                if (errorMessage == null) {
-                    Toast.makeText(
-                        context,
-                        if (editingExercise != null) "Updated successfully" else "Created successfully",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                    showCreateDialog = false
-                } else {
+                if (errorMessage != null) {
                     Toast.makeText(
                         context,
                         errorMessage,
                         Toast.LENGTH_SHORT
                     ).show()
+                } else {
+                    Toast.makeText(
+                        context,
+                        if (exerciseToEdit != null) "Updated successfully" else "Created successfully",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    showCreateDialog = false
+                    editingExercise = null
                 }
             }
         )

@@ -8,7 +8,7 @@ import com.example.train.model.Tag
 
 class ExerciseHelper(private val dbHelper: DatabaseHelper) {
 
-    fun insertExercise(name: String, desc: String, timePerRep: Int, tags: List<Tag>) {
+    fun insertExercise(name: String, desc: String, timePerRep: Int, tags: List<Tag>): Long {
         val db = dbHelper.writableDatabase
         val values = ContentValues().apply {
             put(DatabaseHelper.COL_EXERCISE_NAME, name)
@@ -25,6 +25,8 @@ class ExerciseHelper(private val dbHelper: DatabaseHelper) {
 
             db.insert(DatabaseHelper.TABLE_EXERCISE_TAGS, null, valueTag)
         }
+
+        return exerciseId
     }
 
     fun getAllExercises(): Cursor {

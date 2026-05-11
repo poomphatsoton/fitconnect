@@ -1,5 +1,8 @@
 package com.example.train.view.trainer.exercise
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,6 +12,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,12 +36,14 @@ import com.example.train.model.trainer.Exercise
 fun CreateExerciseDialog(
     initialExercise: Exercise? = null,
     initialTags: List<Tag> = emptyList(),
+    availableTags: List<Tag> = emptyList(),
     onDismiss: () -> Unit,
     onConfirm: (
         name: String,
         description: String,
         timePerRep: String,
         tags: List<Tag>,
+        videoUri: Uri?
     ) -> Unit
 ) {
     var name by remember { mutableStateOf(initialExercise?.name ?: "") }
@@ -44,15 +51,8 @@ fun CreateExerciseDialog(
     var timePerRep by remember {
         mutableStateOf(initialExercise?.timePerRep?.toMinuteText() ?: "")
     }
-
+    var videoUri by remember { mutableStateOf<Uri?>(null) }
     var selectedTags by remember { mutableStateOf(initialTags) }
-    val sampleTags: List<Tag> = listOf(
-        Tag(1, "Chest"),
-        Tag(2, "Back"),
-        Tag(3, "Legs"),
-        Tag(4, "Arms"),
-        Tag(5, "Shoulders")
-    )
 
     Dialog(
         onDismissRequest = onDismiss
@@ -94,7 +94,7 @@ fun CreateExerciseDialog(
 
             TagDropdown(
                 selectedTags = selectedTags,
-                items = sampleTags,
+                items = availableTags,
                 onTagSelected = { tag ->
                     selectedTags =
                         if (selectedTags.any { it.tagId == tag.tagId }) {
@@ -143,6 +143,15 @@ fun CreateExerciseDialog(
                 )
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            VideoPickerField(
+                videoUri = videoUri,
+                onVideoSelected = { uri ->
+                    videoUri = uri
+                }
+            )
+
             Spacer(modifier = Modifier.height(24.dp))
 
             Row(
@@ -163,13 +172,46 @@ fun CreateExerciseDialog(
                             name,
                             description,
                             timePerRep,
-                            selectedTags
+                            selectedTags,
+                            videoUri
                         )
                     },
                     modifier = Modifier.weight(1f)
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun VideoPickerField(
+    videoUri: Uri?,
+    onVideoSelected: (Uri?) -> Unit
+) {
+    val videoPicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        onVideoSelected(uri)
+    }
+
+    Text(
+        text = if (videoUri == null) "No video selected" else "Video selected",
+        fontSize = 13.sp,
+        color = Color.Gray
+    )
+
+    Spacer(modifier = Modifier.height(8.dp))
+
+    Button(
+        onClick = {
+            videoPicker.launch("video/*")
+        },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Black,
+            contentColor = Color.White
+        )
+    ) {
+        Text(text = "Upload Video")
     }
 }
 

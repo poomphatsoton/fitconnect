@@ -1,28 +1,40 @@
 package com.example.train.viewmodel.trainer
 
 import android.app.Application
+import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.train.database.DatabaseHelper
+import com.example.train.database.helper.VideoStorageHelper
 import com.example.train.model.Tag
 import com.example.train.model.trainer.Exercise
+import kotlinx.coroutines.launch
 
 class ExercisesViewModel(
     application: Application
 ) : AndroidViewModel(application) {
 
+    private val logTag = "ExercisesViewModel"
     private val dbHelper = DatabaseHelper(application)
+    private val videoStorage = VideoStorageHelper(dbHelper)
 
     val exercises = mutableStateListOf<Exercise>()
     var exerciseTagsMap by mutableStateOf<Map<Int, List<Tag>>>(emptyMap())
+        private set
+    var availableTags by mutableStateOf<List<Tag>>(emptyList())
+        private set
+    var isUploadingVideo by mutableStateOf(false)
         private set
 
     fun loadExercises() {
         exercises.clear()
         val newTagsMap = mutableMapOf<Int, List<Tag>>()
+        availableTags = loadAllTags()
 
         dbHelper.getAllExercises().use { cursor ->
             while (cursor.moveToNext()) {
@@ -47,6 +59,27 @@ class ExercisesViewModel(
         }
 
         exerciseTagsMap = newTagsMap
+    }
+
+    private fun loadAllTags(): List<Tag> {
+        val tags = mutableListOf<Tag>()
+
+        dbHelper.getAllTags().use { cursor ->
+            while (cursor.moveToNext()) {
+                tags.add(
+                    Tag(
+                        tagId = cursor.getInt(
+                            cursor.getColumnIndexOrThrow(DatabaseHelper.COL_TAG_ID)
+                        ),
+                        tagName = cursor.getString(
+                            cursor.getColumnIndexOrThrow(DatabaseHelper.COL_TAG_NAME)
+                        )
+                    )
+                )
+            }
+        }
+
+        return tags
     }
 
     private fun getTagsByExerciseId(exerciseId: Int): List<Tag> {
@@ -76,7 +109,8 @@ class ExercisesViewModel(
         name: String,
         description: String,
         timePerRepText: String,
-        tags: List<Tag>
+        tags: List<Tag>,
+        videoUri: Uri? = null
     ): String? {
         val trimmedName = name.trim()
         val trimmedDescription = description.trim()
@@ -89,14 +123,21 @@ class ExercisesViewModel(
         val timePerRep = parseMinutesToSeconds(trimmedTime)
             ?: return "Time must be a whole number of minutes"
 
-        dbHelper.insertExercise(
+        val exerciseId = dbHelper.insertExercise(
             name = trimmedName,
             desc = trimmedDescription,
             timePerRep = timePerRep,
             tags = tags
         )
 
-        loadExercises()
+        if (exerciseId == -1L) {
+            return "Could not save exercise"
+        }
+
+        saveVideoIfSelected(
+            exerciseId = exerciseId.toInt(),
+            videoUri = videoUri
+        )
 
         return null
     }
@@ -111,7 +152,8 @@ class ExercisesViewModel(
         name: String,
         description: String,
         timePerRepText: String,
-        tags: List<Tag>
+        tags: List<Tag>,
+        videoUri: Uri? = null
     ): String? {
         val trimmedName = name.trim()
         val trimmedDescription = description.trim()
@@ -132,9 +174,35 @@ class ExercisesViewModel(
             tags = tags
         )
 
-        loadExercises()
+        saveVideoIfSelected(
+            exerciseId = id,
+            videoUri = videoUri
+        )
 
         return null
+    }
+
+    private fun saveVideoIfSelected(
+        exerciseId: Int,
+        videoUri: Uri?
+    ) {
+        loadExercises()
+
+        if (videoUri == null) {
+            return
+        }
+
+        isUploadingVideo = true
+        viewModelScope.launch {
+            try {
+                videoStorage.uploadExerciseVideo(exerciseId, videoUri)
+                loadExercises()
+            } catch (e: Exception) {
+                Log.e(logTag, "Video upload failed", e)
+            } finally {
+                isUploadingVideo = false
+            }
+        }
     }
 
     private fun parseMinutesToSeconds(value: String): Int? {

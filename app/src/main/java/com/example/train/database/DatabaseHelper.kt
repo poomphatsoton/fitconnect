@@ -47,6 +47,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val COL_EXERCISE_NAME = "name"
         const val COL_EXERCISE_DESC = "description"
         const val COL_EXERCISE_TIME_PER_REP = "time_per_rep"
+        const val COL_EXERCISE_VIDEO_URL = "video_url"
 
         // Workouts
         const val TABLE_WORKOUTS = "workouts"
@@ -207,7 +208,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             $COL_EXERCISE_ID INTEGER PRIMARY KEY AUTOINCREMENT,
             $COL_EXERCISE_NAME TEXT NOT NULL,
             $COL_EXERCISE_DESC TEXT,
-            $COL_EXERCISE_TIME_PER_REP INTEGER
+            $COL_EXERCISE_TIME_PER_REP INTEGER,
+            $COL_EXERCISE_VIDEO_URL TEXT
         )
     """.trimIndent()
 
@@ -354,7 +356,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     fun updateUserProfile(userId: Int, name: String, bio: String, maxTrainees: Int? = null, password: String?) =
         userHelper.updateUserProfile(userId, name, bio, maxTrainees, password)
 
-    fun insertExercise(name: String, desc: String, timePerRep: Int, tags: List<Tag>) =
+    fun insertExercise(name: String, desc: String, timePerRep: Int, tags: List<Tag>): Long =
         exerciseHelper.insertExercise(name, desc, timePerRep, tags)
 
     fun getAllExercises(): Cursor = exerciseHelper.getAllExercises()
