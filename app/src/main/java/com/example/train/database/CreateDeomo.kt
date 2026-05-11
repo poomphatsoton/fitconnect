@@ -288,12 +288,12 @@ object CreateDeomo {
             )
         }
 
-        // ─── TAGS ───────────────────────────────────────────────
+        // TAGS
         for (i in 1..10) {
             insertTag("tag$i")
         }
 
-        // ─── USERS ───────────────────────────────────────────────
+        // USERS
         insertTrainer("trainer1", "trainer1", "bio1", 10)
         insertTrainer("trainer2", "trainer2", "bio2", 8)
         insertTrainer("trainer3", "trainer3", "bio3", 12)
@@ -305,10 +305,9 @@ object CreateDeomo {
         insertTrainee("trainee5", "pass123", "trainee5", "bio8")
         insertTrainee("trainee6", "pass123", "trainee6", "bio9")
 
-        // Test login account
         insertTrainee("trainee", "123456", "trainee", "bio10")
 
-        // ─── USER TAGS ───────────────────────────────────────────
+        // USER TAGS
         insertUserTag(1, 1)
         insertUserTag(1, 5)
         insertUserTag(1, 3)
@@ -345,8 +344,7 @@ object CreateDeomo {
         insertUserTag(10, 2)
         insertUserTag(10, 4)
 
-        // ─── EXERCISES ───────────────────────────────────────────
-        // trainer1 (id=1) owns exercises 1-7
+        // EXERCISES
         insertExercise("exercise1", "description1", 60, trainerId = 1)
         insertExercise("exercise2", "description2", 60, trainerId = 1)
         insertExercise("exercise3", "description3", 120, trainerId = 1)
@@ -354,12 +352,11 @@ object CreateDeomo {
         insertExercise("exercise5", "description5", 120, trainerId = 1)
         insertExercise("exercise6", "description6", 60, trainerId = 1)
         insertExercise("exercise7", "description7", 60, trainerId = 1)
-        // trainer2 (id=2) owns exercises 8-10
         insertExercise("exercise8", "description8", 180, trainerId = 2)
         insertExercise("exercise9", "description9", 120, trainerId = 2)
         insertExercise("exercise10", "description10", 180, trainerId = 2)
 
-        // ─── EXERCISE TAGS ───────────────────────────────────────
+        // EXERCISE TAGS
         insertExerciseTag(1, 1)
         insertExerciseTag(1, 5)
         insertExerciseTag(1, 7)
@@ -397,15 +394,14 @@ object CreateDeomo {
         insertExerciseTag(10, 7)
         insertExerciseTag(10, 1)
 
-        // ─── WORKOUTS ────────────────────────────────────────────
-        // trainer1 (id=1) owns all demo workouts
+        // WORKOUTS
         insertWorkout("workout1", "description1", 235, trainerId = 1)
         insertWorkout("workout2", "description2", 150, trainerId = 1)
         insertWorkout("workout3", "description3", 3900, trainerId = 1)
         insertWorkout("workout4", "description4", 360, trainerId = 1)
         insertWorkout("workout5", "description5", 275, trainerId = 1)
 
-        // ─── WORKOUT EXERCISES ──────────────────────────────────
+        // WORKOUT EXERCISES
         insertWorkoutExercise(1, 1, 15)
         insertWorkoutExercise(1, 2, 12)
         insertWorkoutExercise(1, 4, 15)
@@ -429,7 +425,7 @@ object CreateDeomo {
         insertWorkoutExercise(5, 3, 15)
         insertWorkoutExercise(5, 1, 12)
 
-        // ─── TRAINEE REQUESTS ───────────────────────────────────
+        // TRAINEE REQUESTS
         insertRequest(1, 4, DatabaseHelper.STATUS_ACCEPTED)
         insertRequest(1, 5, DatabaseHelper.STATUS_ACCEPTED)
         insertRequest(1, 6, DatabaseHelper.STATUS_ACCEPTED)
@@ -439,7 +435,7 @@ object CreateDeomo {
         insertRequest(1, 8, DatabaseHelper.STATUS_PENDING)
         insertRequest(1, 9, DatabaseHelper.STATUS_PENDING)
 
-        // ─── ACTIVE MAPPINGS ────────────────────────────────────
+        // ACTIVE MAPPINGS
         insertTrainerTrainee(1, 4)
         insertTrainerTrainee(1, 5)
         insertTrainerTrainee(1, 6)
@@ -452,7 +448,7 @@ object CreateDeomo {
         insertTraineeTrainer(7, 1)
         insertTraineeTrainer(10, 1)
 
-        // ─── CALENDAR SLOTS: trainee ID 10 ──────────────────────
+        // CALENDAR SLOTS
         insertSlot(10, 1, 1, 0, "08:00", "09:00")
         insertSlot(10, 3, 2, 0, "09:00", "10:00")
         insertSlot(10, 3, 2, 1, "10:00", "11:00")
@@ -460,20 +456,20 @@ object CreateDeomo {
         insertSlot(10, null, null, 2, "15:00", "16:00")
         insertSlot(10, 5, 3, 0, "17:00", "18:00")
 
-        // ─── CALENDAR SLOTS: trainee ID 4 ───────────────────────
+        // CALENDAR SLOTS
         insertSlot(4, 2, 4, 0, "07:00", "08:00")
         insertSlot(4, null, null, 1, "10:00", "11:00")
         insertSlot(4, 4, 5, 0, "14:00", "15:00")
         insertSlot(4, null, null, 2, "16:00", "17:00")
 
-        // ─── SNAPSHOTS ──────────────────────────────────────────
+        // SNAPSHOTS
         createSnapshotWorkout(db, assignmentId = 1, workoutId = 1)
         createSnapshotWorkout(db, assignmentId = 2, workoutId = 3)
         createSnapshotWorkout(db, assignmentId = 3, workoutId = 5)
         createSnapshotWorkout(db, assignmentId = 4, workoutId = 2)
         createSnapshotWorkout(db, assignmentId = 5, workoutId = 4)
 
-        // ─── PROGRESS ───────────────────────────────────────────
+        // PROGRESS
         createWorkoutAssignmentProgress(
             db = db,
             assignmentId = 1,
@@ -507,7 +503,7 @@ object CreateDeomo {
             workoutId = 4
         )
 
-        // ─── COMPLETIONS ────────────────────────────────────────
+        // COMPLETE
         insertCompletion(traineeId = 10, startTime = "08:00", exerciseId = 1)
         insertCompletion(traineeId = 10, startTime = "08:00", exerciseId = 2)
 
