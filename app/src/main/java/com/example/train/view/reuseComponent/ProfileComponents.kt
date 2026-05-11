@@ -40,7 +40,6 @@ import androidx.compose.ui.unit.sp
 import com.example.train.R
 import com.example.train.model.Tag
 import com.example.train.view.trainer.exercise.TagDropdown
-import androidx.compose.foundation.border
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

@@ -57,7 +57,7 @@ fun CreateExerciseDialog(
         mutableStateOf(initialExercise?.timePerRep?.toMinuteText() ?: "")
     }
     var videoUri by remember { mutableStateOf<Uri?>(null) }
-    var selectedVideoName by remember { mutableStateOf<String?>(null) }
+    var newVideoName by remember { mutableStateOf<String?>(null) }
     var selectedTags by remember { mutableStateOf(initialTags) }
 
     Dialog(
@@ -156,12 +156,11 @@ fun CreateExerciseDialog(
             Spacer(modifier = Modifier.height(16.dp))
 
             VideoPickerField(
-                videoUri = videoUri,
-                videoName = selectedVideoName ?: initialExercise?.videoName,
+                fileName = newVideoName ?: initialExercise?.videoName,
                 enabled = !isSaving,
                 onVideoSelected = { uri ->
                     videoUri = uri
-                    selectedVideoName = uri?.getFileName(context)
+                    newVideoName = uri?.getFileName(context)
                 }
             )
 
@@ -169,7 +168,7 @@ fun CreateExerciseDialog(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "Uploading, please wait",
+                    text = "Uploading video...",
                     fontSize = 13.sp,
                     color = Color.Gray
                 )
@@ -210,8 +209,7 @@ fun CreateExerciseDialog(
 
 @Composable
 private fun VideoPickerField(
-    videoUri: Uri?,
-    videoName: String?,
+    fileName: String?,
     enabled: Boolean,
     onVideoSelected: (Uri?) -> Unit
 ) {
@@ -222,11 +220,7 @@ private fun VideoPickerField(
     }
 
     Text(
-        text = when {
-            videoUri != null -> videoName ?: "Selected video"
-            !videoName.isNullOrBlank() -> videoName
-            else -> "No video selected"
-        },
+        text = fileName ?: "No video",
         fontSize = 13.sp,
         color = Color.Gray
     )

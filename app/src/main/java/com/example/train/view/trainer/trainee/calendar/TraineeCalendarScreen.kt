@@ -56,7 +56,7 @@ import java.time.LocalDate.now
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun TraineeCalendarScreen(
-    traineeId: Int = 2,
+    traineeId: Int = -1,
     onBackClick: () -> Unit = {},
     viewModel: CalendarViewModel = viewModel(),
     calendarDate: LocalDate = now()

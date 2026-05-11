@@ -1,6 +1,5 @@
 package com.example.train.view.reuseComponent
 
-import android.graphics.Paint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
@@ -65,7 +64,7 @@ fun ScheduleSlotCard(
         hasWorkout -> slot.workoutName ?: workoutDetail?.workout?.name ?: "Assigned Workout"
         else -> "Available for Booking"
     }
-    var isShowWorkoutDetail by remember { mutableStateOf(false) }
+    var showDetails by remember { mutableStateOf(false) }
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -101,8 +100,7 @@ fun ScheduleSlotCard(
                     )
                 }
 
-                Column()
-                {
+                Column {
                     SlotActions(
                         slot = slot,
                         mode = mode,
@@ -112,7 +110,7 @@ fun ScheduleSlotCard(
                     )
                     if (hasWorkout) {
                         IconButton(
-                            onClick = { isShowWorkoutDetail = !isShowWorkoutDetail },
+                            onClick = { showDetails = !showDetails },
                             modifier = Modifier.align(Alignment.End)
                         ) {
                             Image(
@@ -126,7 +124,7 @@ fun ScheduleSlotCard(
             }
 
 
-            if (hasWorkout && showWorkoutDetail && workoutDetail != null && isShowWorkoutDetail) {
+            if (hasWorkout && showWorkoutDetail && workoutDetail != null && showDetails) {
                 WorkoutSlotDetail(workoutDetail)
             }
         }

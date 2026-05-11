@@ -116,14 +116,16 @@ fun ExercisesScreen(
             onConfirm = { name, description, time, tags, videoUri ->
                 isSavingExercise = true
 
-                val closeDialog: (Boolean) -> Unit = { uploadSuccess ->
+                val afterSave: (Boolean) -> Unit = { uploadSuccess ->
+                    val message = when {
+                        !uploadSuccess -> "Exercise saved, but video upload failed"
+                        exerciseToEdit != null -> "Updated successfully"
+                        else -> "Created successfully"
+                    }
+
                     Toast.makeText(
                         context,
-                        if (uploadSuccess) {
-                            if (exerciseToEdit != null) "Updated successfully" else "Created successfully"
-                        } else {
-                            "Exercise saved, but video upload failed"
-                        },
+                        message,
                         Toast.LENGTH_SHORT
                     ).show()
 
@@ -140,7 +142,7 @@ fun ExercisesScreen(
                         timePerRepText = time,
                         tags = tags,
                         videoUri = videoUri,
-                        onFinished = closeDialog
+                        onFinished = afterSave
                     )
                 } else {
                     viewModel.createExercise(
@@ -149,7 +151,7 @@ fun ExercisesScreen(
                         timePerRepText = time,
                         tags = tags,
                         videoUri = videoUri,
-                        onFinished = closeDialog
+                        onFinished = afterSave
                     )
                 }
 

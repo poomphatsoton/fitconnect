@@ -93,9 +93,15 @@ fun CreateWorkoutDialogHost(
                 }
 
                 if (error == null) {
+                    val message = if (editingWorkoutId != null) {
+                        "Workout updated successfully"
+                    } else {
+                        "Workout created successfully"
+                    }
+
                     Toast.makeText(
                         context,
-                        if (editingWorkoutId != null) "Workout updated successfully" else "Workout created successfully",
+                        message,
                         Toast.LENGTH_SHORT
                     ).show()
 
@@ -154,114 +160,113 @@ fun CreateWorkoutDialog(
             .padding(24.dp)
             .verticalScroll(rememberScrollState())
     ) {
-            Text(
-                text = if (isEdit) "Edit Workout" else "Create Workout",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 28.dp),
-                textAlign = TextAlign.Center
-            )
+        Text(
+            text = if (isEdit) "Edit Workout" else "Create Workout",
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 28.dp),
+            textAlign = TextAlign.Center
+        )
 
-            DialogInputField(
-                value = name,
-                onValueChange = { name = it },
-                placeholder = "Workout Name"
-            )
+        DialogInputField(
+            value = name,
+            onValueChange = { name = it },
+            placeholder = "Workout Name"
+        )
 
-            Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-            DialogInputField(
-                value = description,
-                onValueChange = { description = it },
-                placeholder = "Description"
-            )
+        DialogInputField(
+            value = description,
+            onValueChange = { description = it },
+            placeholder = "Description"
+        )
 
-            Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                val selectedExercises = selectedExerciseIds.mapNotNull { selectedId ->
-                    exercises.firstOrNull { it.id == selectedId && it.isSelected }
-                }
-
-                Button(
-                    onClick = {
-                        exercises.firstOrNull { !it.isSelected && it.id !in selectedExerciseIds }?.let { exercise ->
-                            selectedExerciseIds = selectedExerciseIds + exercise.id
-                            onExerciseSelectedChange(exercise.id, true)
-                        }
-                    },
-                    enabled = exercises.any { !it.isSelected && it.id !in selectedExerciseIds },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp)
-                        .height(48.dp),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF111827),
-                        contentColor = Color.White
-                    )
-                ) {
-                    Text(
-                        text = "+ Add exercise",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                selectedExercises.forEach { exercise ->
-                    ExerciseSelectRow(
-                        exercise = exercise,
-                        exerciseOptions = exercises,
-                        onExerciseChange = { selectedExercise ->
-                            if (selectedExercise.id != exercise.id) {
-                                selectedExerciseIds = selectedExerciseIds.map { selectedId ->
-                                    if (selectedId == exercise.id) selectedExercise.id else selectedId
-                                }
-                                onExerciseSelectedChange(exercise.id, false)
-                                onExerciseRepsChange(exercise.id, "")
-                                onExerciseSelectedChange(selectedExercise.id, true)
-                                onExerciseRepsChange(selectedExercise.id, exercise.reps)
-                            }
-                        },
-                        onRepsChange = { reps ->
-                            onExerciseRepsChange(exercise.id, reps)
-                        },
-                        onRemoveClick = {
-                            selectedExerciseIds = selectedExerciseIds.filter { it != exercise.id }
-                            onExerciseSelectedChange(exercise.id, false)
-                            onExerciseRepsChange(exercise.id, "")
-                        }
-                    )
-                }
+        Column(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            val selectedExercises = selectedExerciseIds.mapNotNull { selectedId ->
+                exercises.firstOrNull { it.id == selectedId && it.isSelected }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                DialogBlackButton(
-                    text = "Cancel",
-                    onClick = onDismiss,
-                    modifier = Modifier.weight(1f)
+            Button(
+                onClick = {
+                    exercises.firstOrNull { !it.isSelected && it.id !in selectedExerciseIds }?.let { exercise ->
+                        selectedExerciseIds = selectedExerciseIds + exercise.id
+                        onExerciseSelectedChange(exercise.id, true)
+                    }
+                },
+                enabled = exercises.any { !it.isSelected && it.id !in selectedExerciseIds },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+                    .height(48.dp),
+                shape = RoundedCornerShape(20.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF111827),
+                    contentColor = Color.White
                 )
+            ) {
+                Text(
+                    text = "+ Add exercise",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
 
-                Spacer(modifier = Modifier.width(16.dp))
-
-                DialogBlackButton(
-                    text = if (isEdit) "Update" else "Create",
-                    onClick = {
-                        onConfirm(name, description)
+            selectedExercises.forEach { exercise ->
+                ExerciseSelectRow(
+                    exercise = exercise,
+                    exerciseOptions = exercises,
+                    onExerciseChange = { selectedExercise ->
+                        if (selectedExercise.id != exercise.id) {
+                            selectedExerciseIds = selectedExerciseIds.map { selectedId ->
+                                if (selectedId == exercise.id) selectedExercise.id else selectedId
+                            }
+                            onExerciseSelectedChange(exercise.id, false)
+                            onExerciseRepsChange(exercise.id, "")
+                            onExerciseSelectedChange(selectedExercise.id, true)
+                            onExerciseRepsChange(selectedExercise.id, exercise.reps)
+                        }
                     },
-                    modifier = Modifier.weight(1f)
+                    onRepsChange = { reps ->
+                        onExerciseRepsChange(exercise.id, reps)
+                    },
+                    onRemoveClick = {
+                        selectedExerciseIds = selectedExerciseIds.filter { it != exercise.id }
+                        onExerciseSelectedChange(exercise.id, false)
+                        onExerciseRepsChange(exercise.id, "")
+                    }
                 )
             }
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            DialogBlackButton(
+                text = "Cancel",
+                onClick = onDismiss,
+                modifier = Modifier.weight(1f)
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            DialogBlackButton(
+                text = if (isEdit) "Update" else "Create",
+                onClick = {
+                    onConfirm(name, description)
+                },
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

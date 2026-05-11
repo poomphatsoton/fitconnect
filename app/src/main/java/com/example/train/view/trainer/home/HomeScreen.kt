@@ -169,9 +169,15 @@ fun HomeScreen(
                     tags = tags,
                     videoUri = videoUri,
                     onFinished = { uploadSuccess ->
+                        val message = if (uploadSuccess) {
+                            "Created successfully"
+                        } else {
+                            "Exercise saved, but video upload failed"
+                        }
+
                         Toast.makeText(
                             context,
-                            if (uploadSuccess) "Created successfully" else "Exercise saved, but video upload failed",
+                            message,
                             Toast.LENGTH_SHORT
                         ).show()
 
