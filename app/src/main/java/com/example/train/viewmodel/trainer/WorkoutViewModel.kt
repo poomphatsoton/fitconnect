@@ -17,13 +17,16 @@ class WorkoutsViewModel(
 ) : AndroidViewModel(application) {
 
     private val dbHelper = DatabaseHelper(application)
+    private val prefs = application.getSharedPreferences("FitConnect", android.content.Context.MODE_PRIVATE)
+    private val trainerId: Int
+        get() = prefs.getInt("userId", -1)
 
     val workouts = mutableStateListOf<WorkoutUiItem>()
 
     fun loadWorkouts() {
         workouts.clear()
 
-        dbHelper.getAllWorkouts().use { cursor ->
+        dbHelper.getWorkoutsByTrainer(trainerId).use { cursor ->
             while (cursor.moveToNext()) {
                 val workout = Workout().apply {
                     id = cursor.getInt(
@@ -156,7 +159,7 @@ class WorkoutsViewModel(
     fun loadAvailableExercises() {
         availableExercises.clear()
 
-        dbHelper.getAllExercises().use { cursor ->
+        dbHelper.getExercisesByTrainer(trainerId).use { cursor ->
             while (cursor.moveToNext()) {
                 val id = cursor.getLong(
                     cursor.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_ID)
@@ -212,7 +215,8 @@ class WorkoutsViewModel(
         val workoutId = dbHelper.insertWorkout(
             name = trimmedName,
             desc = trimmedDescription,
-            duration = 0
+            duration = 0,
+            trainerId = trainerId
         )
 
         selectedExercises.forEach { item ->

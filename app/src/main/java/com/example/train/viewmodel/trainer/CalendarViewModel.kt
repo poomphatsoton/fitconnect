@@ -21,6 +21,9 @@ class CalendarViewModel(
 
     private val dbHelper = DatabaseHelper(application)
     private val workoutDetailLoader = WorkoutDetailLoader(dbHelper)
+    private val prefs = application.getSharedPreferences("FitConnect", android.content.Context.MODE_PRIVATE)
+    private val trainerId: Int
+        get() = prefs.getInt("userId", -1)
 
     var uiState = mutableStateOf(CalendarUiState())
         private set
@@ -135,7 +138,7 @@ class CalendarViewModel(
 
     private fun loadWorkoutOptions() {
         val options = mutableListOf<WorkoutOption>()
-        dbHelper.getWorkoutOptions().use { cursor ->
+        dbHelper.getWorkoutOptionsByTrainer(trainerId).use { cursor ->
             while (cursor.moveToNext()) {
                 options.add(
                     WorkoutOption(

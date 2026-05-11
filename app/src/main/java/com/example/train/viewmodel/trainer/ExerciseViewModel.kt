@@ -23,6 +23,9 @@ class ExercisesViewModel(
     private val logTag = "ExercisesViewModel"
     private val dbHelper = DatabaseHelper(application)
     private val videoStorage = VideoStorageHelper(dbHelper)
+    private val prefs = application.getSharedPreferences("FitConnect", android.content.Context.MODE_PRIVATE)
+    private val trainerId: Int
+        get() = prefs.getInt("userId", -1)
 
     val exercises = mutableStateListOf<Exercise>()
     var exerciseTagsMap by mutableStateOf<Map<Int, List<Tag>>>(emptyMap())
@@ -37,7 +40,7 @@ class ExercisesViewModel(
         val newTagsMap = mutableMapOf<Int, List<Tag>>()
         availableTags = loadAllTags()
 
-        dbHelper.getAllExercises().use { cursor ->
+        dbHelper.getExercisesByTrainer(trainerId).use { cursor ->
             while (cursor.moveToNext()) {
                 val videoUrl = cursor.getString(
                     cursor.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_VIDEO_URL)
@@ -138,7 +141,8 @@ class ExercisesViewModel(
             name = trimmedName,
             desc = trimmedDescription,
             timePerRep = timePerRep,
-            tags = tags
+            tags = tags,
+            trainerId = trainerId
         )
 
         if (exerciseId == -1L) {

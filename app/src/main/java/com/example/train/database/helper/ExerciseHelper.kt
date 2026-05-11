@@ -8,12 +8,13 @@ import com.example.train.model.Tag
 
 class ExerciseHelper(private val dbHelper: DatabaseHelper) {
 
-    fun insertExercise(name: String, desc: String, timePerRep: Int, tags: List<Tag>): Long {
+    fun insertExercise(name: String, desc: String, timePerRep: Int, tags: List<Tag>, trainerId: Int): Long {
         val db = dbHelper.writableDatabase
         val values = ContentValues().apply {
             put(DatabaseHelper.COL_EXERCISE_NAME, name)
             put(DatabaseHelper.COL_EXERCISE_DESC, desc)
             put(DatabaseHelper.COL_EXERCISE_TIME_PER_REP, timePerRep)
+            put(DatabaseHelper.COL_EXERCISE_TRAINER_ID, trainerId)
         }
         val exerciseId = db.insert(DatabaseHelper.TABLE_EXERCISES, null, values)
 
@@ -29,13 +30,13 @@ class ExerciseHelper(private val dbHelper: DatabaseHelper) {
         return exerciseId
     }
 
-    fun getAllExercises(): Cursor {
+    fun getExercisesByTrainer(trainerId: Int): Cursor {
         val db = dbHelper.readableDatabase
         return db.query(
             DatabaseHelper.TABLE_EXERCISES,
             null,
-            null,
-            null,
+            "${DatabaseHelper.COL_EXERCISE_TRAINER_ID} = ?",
+            arrayOf(trainerId.toString()),
             null,
             null,
             DatabaseHelper.COL_EXERCISE_NAME

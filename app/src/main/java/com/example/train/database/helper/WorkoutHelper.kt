@@ -6,12 +6,13 @@ import com.example.train.database.DatabaseHelper
 
 class WorkoutHelper(private val dbHelper: DatabaseHelper) {
 
-    fun insertWorkout(name: String, desc: String, duration: Int): Long {
+    fun insertWorkout(name: String, desc: String, duration: Int, trainerId: Int): Long {
         val db = dbHelper.writableDatabase
         val values = ContentValues().apply {
             put(DatabaseHelper.COL_WORKOUT_NAME, name)
             put(DatabaseHelper.COL_WORKOUT_DESC, desc)
             put(DatabaseHelper.COL_WORKOUT_DURATION, duration)
+            put(DatabaseHelper.COL_WORKOUT_TRAINER_ID, trainerId)
         }
         return db.insert(DatabaseHelper.TABLE_WORKOUTS, null, values)
     }
@@ -26,9 +27,17 @@ class WorkoutHelper(private val dbHelper: DatabaseHelper) {
         db.insert(DatabaseHelper.TABLE_WORKOUT_EXERCISES, null, values)
     }
 
-    fun getAllWorkouts(): Cursor {
+    fun getWorkoutsByTrainer(trainerId: Int): Cursor {
         val db = dbHelper.readableDatabase
-        return db.query(DatabaseHelper.TABLE_WORKOUTS, null, null, null, null, null, null)
+        return db.query(
+            DatabaseHelper.TABLE_WORKOUTS,
+            null,
+            "${DatabaseHelper.COL_WORKOUT_TRAINER_ID} = ?",
+            arrayOf(trainerId.toString()),
+            null,
+            null,
+            null
+        )
     }
 
     fun getWorkoutById(workoutId: Int): Cursor {
@@ -137,7 +146,7 @@ class WorkoutHelper(private val dbHelper: DatabaseHelper) {
         return db.rawQuery(query, arrayOf(workoutId.toString()))
     }
 
-    fun getWorkoutOptions(): Cursor {
+    fun getWorkoutOptionsByTrainer(trainerId: Int): Cursor {
         val db = dbHelper.readableDatabase
         return db.query(
             DatabaseHelper.TABLE_WORKOUTS,
@@ -146,8 +155,8 @@ class WorkoutHelper(private val dbHelper: DatabaseHelper) {
                 DatabaseHelper.COL_WORKOUT_NAME,
                 DatabaseHelper.COL_WORKOUT_DURATION
             ),
-            null,
-            null,
+            "${DatabaseHelper.COL_WORKOUT_TRAINER_ID} = ?",
+            arrayOf(trainerId.toString()),
             null,
             null,
             DatabaseHelper.COL_WORKOUT_NAME

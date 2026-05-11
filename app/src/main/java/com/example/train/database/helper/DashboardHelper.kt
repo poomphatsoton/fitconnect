@@ -22,17 +22,33 @@ class DashboardHelper(private val dbHelper: DatabaseHelper) {
         return count
     }
 
-    fun getExercisesCount(): Int {
+    fun getExercisesCount(trainerId: Int): Int {
         val db = dbHelper.readableDatabase
-        val cursor = db.query(DatabaseHelper.TABLE_EXERCISES, null, null, null, null, null, null)
+        val cursor = db.query(
+            DatabaseHelper.TABLE_EXERCISES,
+            null,
+            "${DatabaseHelper.COL_EXERCISE_TRAINER_ID} = ?",
+            arrayOf(trainerId.toString()),
+            null,
+            null,
+            null
+        )
         val count = cursor.count
         cursor.close()
         return count
     }
 
-    fun getWorkoutsCount(): Int {
+    fun getWorkoutsCount(trainerId: Int): Int {
         val db = dbHelper.readableDatabase
-        val cursor = db.query(DatabaseHelper.TABLE_WORKOUTS, null, null, null, null, null, null)
+        val cursor = db.query(
+            DatabaseHelper.TABLE_WORKOUTS,
+            null,
+            "${DatabaseHelper.COL_WORKOUT_TRAINER_ID} = ?",
+            arrayOf(trainerId.toString()),
+            null,
+            null,
+            null
+        )
         val count = cursor.count
         cursor.close()
         return count

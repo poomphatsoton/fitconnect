@@ -18,7 +18,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     companion object {
         private const val DATABASE_NAME = "FitConnect.db"
-        private const val DATABASE_VERSION = 39
+        private const val DATABASE_VERSION = 40
 
         // Users
         const val TABLE_USERS = "users"
@@ -49,6 +49,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val COL_EXERCISE_TIME_PER_REP = "time_per_rep"
         const val COL_EXERCISE_VIDEO_URL = "video_url"
         const val COL_EXERCISE_VIDEO_NAME = "video_name"
+        const val COL_EXERCISE_TRAINER_ID = "trainer_id"
 
         // Workouts
         const val TABLE_WORKOUTS = "workouts"
@@ -56,6 +57,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val COL_WORKOUT_NAME = "name"
         const val COL_WORKOUT_DESC = "description"
         const val COL_WORKOUT_DURATION = "duration"
+        const val COL_WORKOUT_TRAINER_ID = "trainer_id"
 
         // Workout_Exercises
         const val TABLE_WORKOUT_EXERCISES = "workout_exercises"
@@ -211,7 +213,9 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             $COL_EXERCISE_DESC TEXT,
             $COL_EXERCISE_TIME_PER_REP INTEGER,
             $COL_EXERCISE_VIDEO_URL TEXT,
-            $COL_EXERCISE_VIDEO_NAME TEXT
+            $COL_EXERCISE_VIDEO_NAME TEXT,
+            $COL_EXERCISE_TRAINER_ID INTEGER,
+            FOREIGN KEY($COL_EXERCISE_TRAINER_ID) REFERENCES $TABLE_USERS($COL_USER_ID)
         )
     """.trimIndent()
 
@@ -220,7 +224,9 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             $COL_WORKOUT_ID INTEGER PRIMARY KEY AUTOINCREMENT,
             $COL_WORKOUT_NAME TEXT NOT NULL,
             $COL_WORKOUT_DESC TEXT,
-            $COL_WORKOUT_DURATION INTEGER
+            $COL_WORKOUT_DURATION INTEGER,
+            $COL_WORKOUT_TRAINER_ID INTEGER,
+            FOREIGN KEY($COL_WORKOUT_TRAINER_ID) REFERENCES $TABLE_USERS($COL_USER_ID)
         )
     """.trimIndent()
 
@@ -338,9 +344,9 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     fun getActiveTraineesCount(trainerId: Int): Int = dashboardHelper.getActiveTraineesCount(trainerId)
 
-    fun getExercisesCount(): Int = dashboardHelper.getExercisesCount()
+    fun getExercisesCount(trainerId: Int): Int = dashboardHelper.getExercisesCount(trainerId)
 
-    fun getWorkoutsCount(): Int = dashboardHelper.getWorkoutsCount()
+    fun getWorkoutsCount(trainerId: Int): Int = dashboardHelper.getWorkoutsCount(trainerId)
 
     fun getPendingRequestsCount(trainerId: Int): Int = dashboardHelper.getPendingRequestsCount(trainerId)
 
@@ -358,10 +364,10 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     fun updateUserProfile(userId: Int, name: String, bio: String, maxTrainees: Int? = null, password: String?) =
         userHelper.updateUserProfile(userId, name, bio, maxTrainees, password)
 
-    fun insertExercise(name: String, desc: String, timePerRep: Int, tags: List<Tag>): Long =
-        exerciseHelper.insertExercise(name, desc, timePerRep, tags)
+    fun insertExercise(name: String, desc: String, timePerRep: Int, tags: List<Tag>, trainerId: Int): Long =
+        exerciseHelper.insertExercise(name, desc, timePerRep, tags, trainerId)
 
-    fun getAllExercises(): Cursor = exerciseHelper.getAllExercises()
+    fun getExercisesByTrainer(trainerId: Int): Cursor = exerciseHelper.getExercisesByTrainer(trainerId)
 
     fun getExerciseById(exerciseId: Int): Cursor = exerciseHelper.getExerciseById(exerciseId)
 
@@ -370,12 +376,12 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     fun updateExercise(id: Int, name: String, desc: String, timePerRep: Int, tags: List<Tag>) =
         exerciseHelper.updateExercise(id, name, desc, timePerRep, tags)
 
-    fun insertWorkout(name: String, desc: String, duration: Int): Long = workoutHelper.insertWorkout(name, desc, duration)
+    fun insertWorkout(name: String, desc: String, duration: Int, trainerId: Int): Long = workoutHelper.insertWorkout(name, desc, duration, trainerId)
 
     fun addExerciseToWorkout(workoutId: Long, exerciseId: Long, reps: Int) =
         workoutHelper.addExerciseToWorkout(workoutId, exerciseId, reps)
 
-    fun getAllWorkouts(): Cursor = workoutHelper.getAllWorkouts()
+    fun getWorkoutsByTrainer(trainerId: Int): Cursor = workoutHelper.getWorkoutsByTrainer(trainerId)
 
     fun getWorkoutById(workoutId: Int): Cursor = workoutHelper.getWorkoutById(workoutId)
 
@@ -392,7 +398,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     fun getWorkoutExerciseTagTimes(workoutId: Long): Cursor = workoutHelper.getWorkoutExerciseTagTimes(workoutId)
 
-    fun getWorkoutOptions(): Cursor = workoutHelper.getWorkoutOptions()
+    fun getWorkoutOptionsByTrainer(trainerId: Int): Cursor = workoutHelper.getWorkoutOptionsByTrainer(trainerId)
 
     fun deleteWorkout(workoutId: Int) = workoutHelper.deleteWorkout(workoutId)
 

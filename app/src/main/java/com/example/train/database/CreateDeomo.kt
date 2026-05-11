@@ -96,7 +96,8 @@ object CreateDeomo {
         fun insertExercise(
             name: String,
             description: String,
-            timePerRep: Int
+            timePerRep: Int,
+            trainerId: Int
         ) {
             db.execSQL(
                 """
@@ -104,13 +105,15 @@ object CreateDeomo {
                 (
                     ${DatabaseHelper.COL_EXERCISE_NAME},
                     ${DatabaseHelper.COL_EXERCISE_DESC},
-                    ${DatabaseHelper.COL_EXERCISE_TIME_PER_REP}
+                    ${DatabaseHelper.COL_EXERCISE_TIME_PER_REP},
+                    ${DatabaseHelper.COL_EXERCISE_TRAINER_ID}
                 )
                 VALUES
                 (
                     '$name',
                     '$description',
-                    $timePerRep
+                    $timePerRep,
+                    $trainerId
                 )
                 """.trimIndent()
             )
@@ -132,7 +135,8 @@ object CreateDeomo {
         fun insertWorkout(
             name: String,
             description: String,
-            duration: Int
+            duration: Int,
+            trainerId: Int
         ) {
             db.execSQL(
                 """
@@ -140,13 +144,15 @@ object CreateDeomo {
                 (
                     ${DatabaseHelper.COL_WORKOUT_NAME},
                     ${DatabaseHelper.COL_WORKOUT_DESC},
-                    ${DatabaseHelper.COL_WORKOUT_DURATION}
+                    ${DatabaseHelper.COL_WORKOUT_DURATION},
+                    ${DatabaseHelper.COL_WORKOUT_TRAINER_ID}
                 )
                 VALUES
                 (
                     '$name',
                     '$description',
-                    $duration
+                    $duration,
+                    $trainerId
                 )
                 """.trimIndent()
             )
@@ -340,16 +346,18 @@ object CreateDeomo {
         insertUserTag(10, 4)
 
         // ─── EXERCISES ───────────────────────────────────────────
-        insertExercise("exercise1", "description1", 60)
-        insertExercise("exercise2", "description2", 60)
-        insertExercise("exercise3", "description3", 120)
-        insertExercise("exercise4", "description4", 60)
-        insertExercise("exercise5", "description5", 120)
-        insertExercise("exercise6", "description6", 60)
-        insertExercise("exercise7", "description7", 60)
-        insertExercise("exercise8", "description8", 180)
-        insertExercise("exercise9", "description9", 120)
-        insertExercise("exercise10", "description10", 180)
+        // trainer1 (id=1) owns exercises 1-7
+        insertExercise("exercise1", "description1", 60, trainerId = 1)
+        insertExercise("exercise2", "description2", 60, trainerId = 1)
+        insertExercise("exercise3", "description3", 120, trainerId = 1)
+        insertExercise("exercise4", "description4", 60, trainerId = 1)
+        insertExercise("exercise5", "description5", 120, trainerId = 1)
+        insertExercise("exercise6", "description6", 60, trainerId = 1)
+        insertExercise("exercise7", "description7", 60, trainerId = 1)
+        // trainer2 (id=2) owns exercises 8-10
+        insertExercise("exercise8", "description8", 180, trainerId = 2)
+        insertExercise("exercise9", "description9", 120, trainerId = 2)
+        insertExercise("exercise10", "description10", 180, trainerId = 2)
 
         // ─── EXERCISE TAGS ───────────────────────────────────────
         insertExerciseTag(1, 1)
@@ -390,11 +398,12 @@ object CreateDeomo {
         insertExerciseTag(10, 1)
 
         // ─── WORKOUTS ────────────────────────────────────────────
-        insertWorkout("workout1", "description1", 235)
-        insertWorkout("workout2", "description2", 150)
-        insertWorkout("workout3", "description3", 3900)
-        insertWorkout("workout4", "description4", 360)
-        insertWorkout("workout5", "description5", 275)
+        // trainer1 (id=1) owns all demo workouts
+        insertWorkout("workout1", "description1", 235, trainerId = 1)
+        insertWorkout("workout2", "description2", 150, trainerId = 1)
+        insertWorkout("workout3", "description3", 3900, trainerId = 1)
+        insertWorkout("workout4", "description4", 360, trainerId = 1)
+        insertWorkout("workout5", "description5", 275, trainerId = 1)
 
         // ─── WORKOUT EXERCISES ──────────────────────────────────
         insertWorkoutExercise(1, 1, 15)
