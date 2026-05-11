@@ -3,8 +3,8 @@ package com.example.train.model.trainer
 import com.example.train.model.Tag
 
 data class TrainerHomeUiState(
-    val trainerName: String = "John Smith",
-    val trainerBio: String = "Certified personal trainer with 10 years of experience",
+    val trainerName: String = "",
+    val trainerBio: String = "",
     val trainerPassword: String = "",
     val trainerTags: List<Tag> = emptyList(),
     val availableTags: List<Tag> = emptyList(),
