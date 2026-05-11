@@ -1,7 +1,7 @@
-package com.example.train.ui
+package com.example.train.view.trainer.workout
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,33 +14,33 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.train.R
-import com.example.train.model.trainer.WorkoutExerciseDetail
 import com.example.train.model.trainer.WorkoutUiItem
-import com.example.train.ui.components.CreateWorkoutDialogHost
+import com.example.train.view.reuseComponent.WorkoutDetailCard
+import com.example.train.view.trainer.exercise.CreateWorkoutDialogHost
 import com.example.train.viewmodel.trainer.WorkoutsViewModel
 
 @Composable
 fun WorkoutsScreen(
     viewModel: WorkoutsViewModel = viewModel()
 ) {
-    val context = LocalContext.current
     val workouts = viewModel.workouts
 
     LaunchedEffect(Unit) {
@@ -54,26 +54,35 @@ fun WorkoutsScreen(
     ) {
         CreateWorkoutDialogHost(
             viewModel = viewModel
-        ) { openCreateWorkoutDialog ->
+        ) { openCreateWorkoutDialog, openEditWorkoutDialog ->
 
             WorkoutHeader(
                 onCreateWorkoutClick = openCreateWorkoutDialog
             )
-        }
-        if (workouts.isEmpty()) {
-            EmptyWorkoutMessage()
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(
-                    items = workouts,
-                    key = { it.workout.id }
-                ) { item ->
-                    WorkoutCard(item = item)
+
+            if (workouts.isEmpty()) {
+                EmptyWorkoutMessage()
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(
+                        items = workouts,
+                        key = { it.workout.id }
+                    ) { item ->
+                        WorkoutCard(
+                            item = item,
+                            onEditClick = {
+                                openEditWorkoutDialog(item.workout.id)
+                            },
+                            onDeleteClick = {
+                                viewModel.deleteWorkout(item.workout.id)
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -107,10 +116,10 @@ fun WorkoutHeader(
             ),
             shape = RoundedCornerShape(24.dp)
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_add),
-                contentDescription = "Create Workout",
-                modifier = Modifier.size(18.dp)
+            Text(
+                text = "+",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
             )
 
             Spacer(modifier = Modifier.width(4.dp))
@@ -122,133 +131,36 @@ fun WorkoutHeader(
 
 @Composable
 fun WorkoutCard(
-    item: WorkoutUiItem
+    item: WorkoutUiItem,
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit
 ) {
-    val workout = item.workout
-    val totalSec = workout.duration
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                color = Color.White,
-                shape = RoundedCornerShape(16.dp)
-            )
-            .border(
-                width = 1.dp,
-                color = Color(0xFFEEEEEE),
-                shape = RoundedCornerShape(16.dp)
-            )
-            .padding(16.dp)
-    ) {
-        Text(
-            text = workout.name ?: "",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF212121)
-        )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Text(
-            text = workout.description ?: "",
-            fontSize = 16.sp,
-            color = Color(0xFF757575)
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
+    WorkoutDetailCard(item = item) {
+            IconButton(
+                onClick = onEditClick,
+                modifier = Modifier.size(24.dp)
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_fitness),
-                    contentDescription = "Exercise count",
-                    modifier = Modifier.size(20.dp),
-                    tint = Color(0xFF757575)
-                )
-
-                Spacer(modifier = Modifier.width(4.dp))
-
-                Text(
-                    text = "${workout.exercises.size} exercises",
-                    fontSize = 16.sp,
-                    color = Color(0xFF757575)
+                Image(
+                    painter = painterResource(id = R.drawable.edit),
+                    contentDescription = "Edit Workout",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit
                 )
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.width(8.dp))
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically
+            IconButton(
+                onClick = onDeleteClick,
+                modifier = Modifier.size(24.dp)
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_time),
-                    contentDescription = "Duration",
-                    modifier = Modifier.size(20.dp),
-                    tint = Color(0xFF757575)
-                )
-
-                Spacer(modifier = Modifier.width(4.dp))
-
-                Text(
-                    text = "${totalSec / 60}m ${totalSec % 60}s",
-                    fontSize = 16.sp,
-                    color = Color(0xFF757575)
+                Image(
+                    painter = painterResource(id = R.drawable.delete),
+                    contentDescription = "Delete Workout",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit
                 )
             }
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Spacer(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(Color(0xFFEEEEEE))
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text(
-            text = "Exercises:",
-            fontSize = 16.sp,
-            color = Color(0xFF757575)
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Column {
-            item.exerciseDetails.forEach { detail ->
-                WorkoutExerciseRow(detail = detail)
-            }
-        }
-    }
-}
-
-@Composable
-fun WorkoutExerciseRow(
-    detail: WorkoutExerciseDetail
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp)
-    ) {
-        Text(
-            text = detail.name,
-            fontSize = 14.sp,
-            modifier = Modifier.weight(1f)
-        )
-
-        Text(
-            text = "${detail.reps} reps",
-            fontSize = 14.sp
-        )
     }
 }
 

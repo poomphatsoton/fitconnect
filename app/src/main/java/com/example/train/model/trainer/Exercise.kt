@@ -7,6 +7,8 @@ data class Exercise(
     var name: String? = null,
     var description: String? = null,
     var timePerRep: Int = 0,
+    var videoUrl: String? = null,
+    var videoName: String? = null,
     var exerciseTags: List<Tag> = emptyList(),
 )
 

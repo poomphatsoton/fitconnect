@@ -11,12 +11,22 @@ data class Workout(
 ) : Serializable
 
 data class WorkoutExerciseDetail(
+    val exerciseId: Long,
     val name: String,
     val reps: Int,
     val timePerRep: Int,
+    val description: String = "",
+    val videoUrl: String? = null,
+    val videoName: String? = null
+)
+
+data class WorkoutTagPercent(
+    val tagName: String,
+    val percent: Int
 )
 
 data class WorkoutUiItem(
     val workout: Workout,
     val exerciseDetails: List<WorkoutExerciseDetail>,
+    val tagPercents: List<WorkoutTagPercent> = emptyList()
 )

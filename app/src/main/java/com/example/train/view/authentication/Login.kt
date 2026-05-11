@@ -31,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,6 +45,10 @@ fun LoginScreen(
 ) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+
+    fun submitLogin() {
+        onLoginClick(username, password)
+    }
 
     Box(
         modifier = modifier
@@ -83,71 +88,26 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        text = stringResource(R.string.username),
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-
-                    TextField(
+                    LoginTextField(
+                        label = stringResource(R.string.username),
                         value = username,
-                        onValueChange = { username = it },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(52.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color(0xFFF1F3F5),
-                            unfocusedContainerColor = Color(0xFFF1F3F5),
-                            disabledContainerColor = Color(0xFFF1F3F5),
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
-                            cursorColor = Color.Black
-                        ),
-                        singleLine = true
+                        onValueChange = { username = it }
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    Text(
-                        text = stringResource(R.string.password),
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-
-                    TextField(
+                    LoginTextField(
+                        label = stringResource(R.string.password),
                         value = password,
                         onValueChange = { password = it },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(52.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        visualTransformation = PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Password
-                        ),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color(0xFFF1F3F5),
-                            unfocusedContainerColor = Color(0xFFF1F3F5),
-                            disabledContainerColor = Color(0xFFF1F3F5),
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
-                            cursorColor = Color.Black
-                        ),
-                        singleLine = true
+                        isPassword = true
                     )
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Button(
-                    onClick = {
-                        onLoginClick(username, password)
-                    },
+                    onClick = { submitLogin() },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp),
@@ -167,9 +127,7 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedButton(
-                    onClick = {
-                        onCreateAccountClick()
-                    },
+                    onClick = onCreateAccountClick,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp),
@@ -190,6 +148,48 @@ fun LoginScreen(
             }
         }
     }
+}
+
+@Composable
+private fun LoginTextField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    isPassword: Boolean = false
+) {
+    Text(
+        text = label,
+        fontSize = 14.sp,
+        fontWeight = FontWeight.Bold,
+        color = Color.Black,
+        modifier = Modifier.padding(bottom = 8.dp)
+    )
+
+    TextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(52.dp),
+        shape = RoundedCornerShape(8.dp),
+        visualTransformation = if (isPassword) {
+            PasswordVisualTransformation()
+        } else {
+            VisualTransformation.None
+        },
+        keyboardOptions = KeyboardOptions(
+            keyboardType = if (isPassword) KeyboardType.Password else KeyboardType.Text
+        ),
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = Color(0xFFF1F3F5),
+            unfocusedContainerColor = Color(0xFFF1F3F5),
+            disabledContainerColor = Color(0xFFF1F3F5),
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            cursorColor = Color.Black
+        ),
+        singleLine = true
+    )
 }
 
 @Preview(showBackground = true)

@@ -1,7 +1,6 @@
 package com.example.train.viewmodel.authentication
 
 import android.app.Application
-import android.content.ContentValues
 import androidx.lifecycle.AndroidViewModel
 import com.example.train.database.DatabaseHelper
 
@@ -14,6 +13,7 @@ class RegistrationViewModel(
     fun register(
         username: String,
         password: String,
+        confirmPassword: String,
         name: String,
         bio: String,
         role: String,
@@ -22,6 +22,7 @@ class RegistrationViewModel(
     ) {
         val trimmedUsername = username.trim()
         val trimmedPassword = password.trim()
+        val trimmedConfirmPassword = confirmPassword.trim()
         val trimmedName = name.trim()
         val trimmedBio = bio.trim()
 
@@ -30,19 +31,18 @@ class RegistrationViewModel(
             return
         }
 
-        val values = ContentValues().apply {
-            put(DatabaseHelper.COL_USER_USERNAME, trimmedUsername)
-            put(DatabaseHelper.COL_USER_PASSWORD, trimmedPassword)
-            put(DatabaseHelper.COL_USER_ROLE, role)
-            put(DatabaseHelper.COL_USER_NAME, trimmedName)
-            put(DatabaseHelper.COL_USER_BIO, trimmedBio)
+        if (trimmedPassword != trimmedConfirmPassword) {
+            onError("Passwords do not match")
+            return
         }
 
         try {
-            val result = dbHelper.writableDatabase.insert(
-                DatabaseHelper.TABLE_USERS,
-                null,
-                values
+            val result = dbHelper.insertUser(
+                username = trimmedUsername,
+                password = trimmedPassword,
+                role = role,
+                name = trimmedName,
+                bio = trimmedBio
             )
 
             if (result != -1L) {

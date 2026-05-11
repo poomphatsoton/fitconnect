@@ -1,4 +1,4 @@
-package com.example.train.view.trainer.Exercise
+package com.example.train.view.trainer.exercise
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -70,7 +70,8 @@ fun TagDropdown(
                     .height(56.dp)
                     .clip(RoundedCornerShape(20.dp))
                     .background(Color(0xFFF7F7F7))
-                    .clickable { expanded = true },
+                    .clickable { expanded = true }
+                    .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(20.dp)),
                 contentAlignment = Alignment.CenterStart
             ) {
                 Text(
@@ -83,7 +84,6 @@ fun TagDropdown(
                     color = if (selectedTags.isEmpty()) Color(0xFF555555) else Color.Black,
                     fontSize = 16.sp
                 )
-
                 DropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
@@ -95,7 +95,6 @@ fun TagDropdown(
                         val isSelected = selectedTags.any {
                             it.tagId == tag.tagId
                         }
-
                         DropdownMenuItem(
                             text = {
                                 Row(
@@ -114,7 +113,6 @@ fun TagDropdown(
                                 onTagSelected(tag)
                             }
                         )
-
                         HorizontalDivider(
                             thickness = 1.dp,
                             color = Color(0xFFE0E0E0)

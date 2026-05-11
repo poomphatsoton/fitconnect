@@ -11,9 +11,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -28,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -38,15 +41,39 @@ import com.example.train.viewmodel.authentication.RegistrationViewModel
 @Composable
 fun RegistrationScreen(
     onRegisterSuccess: () -> Unit,
+    onBackToLogin: () -> Unit,
     viewModel: RegistrationViewModel = viewModel()
 ) {
     val context = LocalContext.current
 
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     var fullName by remember { mutableStateOf("") }
     var bio by remember { mutableStateOf("") }
     var selectedRole by remember { mutableStateOf("trainer") }
+
+    fun showToast(message: String) {
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+    }
+
+    fun submitForm() {
+        viewModel.register(
+            username = username,
+            password = password,
+            confirmPassword = confirmPassword,
+            name = fullName,
+            bio = bio,
+            role = selectedRole,
+            onSuccess = {
+                showToast("Account created successfully")
+                onRegisterSuccess()
+            },
+            onError = { message ->
+                showToast(message)
+            }
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -74,7 +101,18 @@ fun RegistrationScreen(
             value = password,
             onValueChange = { password = it },
             label = "Password",
-            isPassword = true
+            isPassword = true,
+            keyboardType = KeyboardType.Password
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        RegisterTextField(
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it },
+            label = "Confirm Password",
+            isPassword = true,
+            keyboardType = KeyboardType.Password
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -98,58 +136,24 @@ fun RegistrationScreen(
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                RadioButton(
-                    selected = selectedRole == "trainer",
-                    onClick = { selectedRole = "trainer" }
-                )
+            RoleOption(
+                text = "Trainer",
+                selected = selectedRole == "trainer",
+                onClick = { selectedRole = "trainer" }
+            )
 
-                Text(text = "Trainer")
-            }
-
-            Row(
-                modifier = Modifier.padding(start = 24.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                RadioButton(
-                    selected = selectedRole == "trainee",
-                    onClick = { selectedRole = "trainee" }
-                )
-
-                Text(text = "Trainee")
-            }
+            RoleOption(
+                text = "Trainee",
+                selected = selectedRole == "trainee",
+                onClick = { selectedRole = "trainee" },
+                modifier = Modifier.padding(start = 24.dp)
+            )
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
-            onClick = {
-                viewModel.register(
-                    username = username,
-                    password = password,
-                    name = fullName,
-                    bio = bio,
-                    role = selectedRole,
-                    onSuccess = {
-                        Toast.makeText(
-                            context,
-                            "Account created successfully",
-                            Toast.LENGTH_SHORT
-                        ).show()
-
-                        onRegisterSuccess()
-                    },
-                    onError = { message ->
-                        Toast.makeText(
-                            context,
-                            message,
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                )
-            },
+            onClick = { submitForm() },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
@@ -161,6 +165,41 @@ fun RegistrationScreen(
         ) {
             Text(text = "Create Account")
         }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        OutlinedButton(
+            onClick = onBackToLogin,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = Color.Black
+            ),
+            shape = RoundedCornerShape(28.dp)
+        ) {
+            Text(text = "Back to Login")
+        }
+    }
+}
+
+@Composable
+private fun RoleOption(
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        RadioButton(
+            selected = selected,
+            onClick = onClick
+        )
+
+        Text(text = text)
     }
 }
 
@@ -169,7 +208,8 @@ fun RegisterTextField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
-    isPassword: Boolean = false
+    isPassword: Boolean = false,
+    keyboardType: KeyboardType = KeyboardType.Text
 ) {
     OutlinedTextField(
         value = value,
@@ -185,6 +225,7 @@ fun RegisterTextField(
         } else {
             VisualTransformation.None
         },
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         colors = TextFieldDefaults.colors(
             focusedContainerColor = Color(0xFFF8F9FA),
             unfocusedContainerColor = Color(0xFFF8F9FA),

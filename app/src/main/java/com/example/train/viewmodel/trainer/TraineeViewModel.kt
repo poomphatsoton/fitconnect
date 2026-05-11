@@ -51,7 +51,7 @@ class TraineesViewModel(
         if (userId == -1) return
 
         val activeTrainees = loadTraineesFromCursor(
-            cursor = dbHelper.getAllTrainees(userId)
+            cursor = dbHelper.getAllTraineesForTrainer(userId)
         )
 
         val requestTrainees = loadTraineesFromCursor(

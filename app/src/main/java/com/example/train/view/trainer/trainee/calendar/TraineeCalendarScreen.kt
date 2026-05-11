@@ -1,17 +1,44 @@
 package com.example.train.ui
 
 import android.os.Build
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -20,27 +47,33 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.train.R
 import com.example.train.model.trainer.AssignedWorkout
+import com.example.train.model.trainer.WorkoutOption
+import com.example.train.view.reuseComponent.FitCalendarView
 import com.example.train.viewmodel.trainer.CalendarViewModel
 import java.time.LocalDate
-import java.time.LocalDate.*
-import java.time.LocalDateTime
+import java.time.LocalDate.now
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun TraineeCalendarScreen(
-    traineeId: Int = 2,
+    traineeId: Int = -1,
     onBackClick: () -> Unit = {},
     viewModel: CalendarViewModel = viewModel(),
     calendarDate: LocalDate = now()
 ) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState
     var selectedDate by remember { mutableStateOf(calendarDate) }
-    var showAssignDialog by remember { mutableStateOf(false) }
-    var editingWorkout by remember { mutableStateOf<AssignedWorkout?>(null) }
 
     LaunchedEffect(traineeId, selectedDate) {
         if (traineeId != -1) {
             viewModel.loadTraineeSlots(traineeId, selectedDate)
+        }
+    }
+    LaunchedEffect(uiState.errorMessage) {
+        uiState.errorMessage?.let { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            viewModel.clearError()
         }
     }
 
@@ -50,22 +83,19 @@ fun TraineeCalendarScreen(
             .background(Color(0xFFF9FAFB))
     ) {
         TraineeCalendarHeader(onBackClick)
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            TraineeCalendarView(
+            FitCalendarView(
                 selectedDate = selectedDate,
                 onSelectedDate = { newDate ->
                     selectedDate = newDate
                 }
             )
-
             Spacer(modifier = Modifier.height(24.dp))
-
             Text(
                 text = "Schedule",
                 fontSize = 20.sp,
@@ -73,36 +103,35 @@ fun TraineeCalendarScreen(
                 color = Color.Black,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
-
             DailyScheduleContent(
                 slots = uiState.traineeSlots,
-                onAddClick = { showAssignDialog = true },
-                onEditClick = { slot ->
-                    editingWorkout = AssignedWorkout(
-                        name = slot.workoutName ?: "",
-                        startTime = slot.startTime.toString(),
-                        endTime = slot.endTime.toString(),
-                        tag = "",
-                        datetime = LocalDateTime.now()
-                    )
-                },
-                onDeleteClick = { /* Handle Delete */ }
+                workoutDetailsBySlotId = uiState.workoutDetailsBySlotId,
+                onAddClick = viewModel::showAssignDialog,
+                onEditClick = viewModel::showEditDialog,
+                onDeleteClick = { slot ->
+                    viewModel.deleteAssignedWorkout(slot, traineeId, selectedDate)
+                }
             )
         }
     }
 
-    if (showAssignDialog) {
+    if (uiState.showAssignDialog) {
         AssignWorkoutDialog(
-            onDismiss = { showAssignDialog = false },
-            onAssign = { showAssignDialog = false }
+            workoutOptions = uiState.workoutOptions,
+            onDismiss = viewModel::dismissAssignDialog,
+            onAssign = { assignedWorkout ->
+                viewModel.assignWorkout(assignedWorkout, traineeId, selectedDate)
+            }
         )
     }
-
-    if (editingWorkout != null) {
+    if (uiState.editingWorkout != null) {
         AssignWorkoutDialog(
-            initialWorkout = editingWorkout,
-            onDismiss = { editingWorkout = null },
-            onAssign = { editingWorkout = null }
+            initialWorkout = uiState.editingWorkout,
+            workoutOptions = uiState.workoutOptions,
+            onDismiss = viewModel::dismissEditDialog,
+            onAssign = { assignedWorkout ->
+                viewModel.updateAssignedWorkout(assignedWorkout, traineeId, selectedDate)
+            }
         )
     }
 }
@@ -118,8 +147,9 @@ fun TraineeCalendarHeader(onBackClick: () -> Unit) {
     ) {
         IconButton(onClick = onBackClick) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_back),
-                contentDescription = "Back"
+                painter = painterResource(id = R.drawable.back),
+                contentDescription = "Back",
+                modifier = Modifier.size(20.dp)
             )
         }
         Text(
@@ -135,24 +165,17 @@ fun TraineeCalendarHeader(onBackClick: () -> Unit) {
 @Composable
 fun AssignWorkoutDialog(
     initialWorkout: AssignedWorkout? = null,
+    workoutOptions: List<WorkoutOption> = emptyList(),
     onDismiss: () -> Unit,
-    onAssign: () -> Unit
+    onAssign: (AssignedWorkout) -> Unit
 ) {
-    var workoutName by remember { mutableStateOf(initialWorkout?.name ?: "Strength & Power") }
-    var startTime by remember { mutableStateOf(initialWorkout?.startTime ?: "08:00") }
-    var endTime by remember { mutableStateOf(initialWorkout?.endTime ?: "09:00") }
-    
-    var expandedWorkout by remember { mutableStateOf(false) }
-    var expandedStart by remember { mutableStateOf(false) }
-    var expandedEnd by remember { mutableStateOf(false) }
-
-    val workoutOptions = listOf("Strength & Power", "Yoga Flow", "HIIT Session", "Endurance Run")
-    val timeOptions = (5..22).flatMap { hour -> 
-        listOf(
-            String.format("%02d:00", hour),
-            String.format("%02d:30", hour)
-        )
+    val selectedInitialWorkout = workoutOptions.firstOrNull { it.id == initialWorkout?.workoutId }
+        ?: workoutOptions.firstOrNull { it.name == initialWorkout?.name }
+        ?: workoutOptions.firstOrNull()
+    var selectedWorkout by remember(initialWorkout, workoutOptions) {
+        mutableStateOf(selectedInitialWorkout)
     }
+    var expandedWorkout by remember { mutableStateOf(false) }
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
@@ -172,13 +195,6 @@ fun AssignWorkoutDialog(
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
                 )
-
-                Text(
-                    text = "Monday, May 12 • 08:00 Window",
-                    fontSize = 14.sp,
-                    color = Color.Gray
-                )
-
                 Column {
                     Text(
                         text = "Workout Library",
@@ -191,10 +207,13 @@ fun AssignWorkoutDialog(
                         onExpandedChange = { expandedWorkout = !expandedWorkout }
                     ) {
                         OutlinedTextField(
-                            value = workoutName,
+                            value = selectedWorkout?.name ?: "No workouts available",
                             onValueChange = {},
                             readOnly = true,
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedWorkout) },
+                            enabled = workoutOptions.isNotEmpty(),
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedWorkout)
+                            },
                             modifier = Modifier
                                 .menuAnchor()
                                 .fillMaxWidth(),
@@ -207,99 +226,18 @@ fun AssignWorkoutDialog(
                         ) {
                             workoutOptions.forEach { option ->
                                 DropdownMenuItem(
-                                    text = { Text(text = option) },
+                                    text = { Text(text = option.name) },
                                     onClick = {
-                                        workoutName = option
+                                        selectedWorkout = option
                                         expandedWorkout = false
                                     },
-                                    colors = MenuDefaults.itemColors(
-                                        textColor = Color.Black
-                                    )
+                                    colors = MenuDefaults.itemColors(textColor = Color.Black)
                                 )
                             }
                         }
                     }
                 }
-
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Start Time",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                        ExposedDropdownMenuBox(
-                            expanded = expandedStart,
-                            onExpandedChange = { expandedStart = !expandedStart }
-                        ) {
-                            OutlinedTextField(
-                                value = startTime,
-                                onValueChange = {},
-                                readOnly = true,
-                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedStart) },
-                                modifier = Modifier.menuAnchor().fillMaxWidth(),
-                                shape = RoundedCornerShape(12.dp)
-                            )
-                            ExposedDropdownMenu(
-                                expanded = expandedStart,
-                                onDismissRequest = { expandedStart = false },
-                                modifier = Modifier.background(Color.White)
-                            ) {
-                                timeOptions.forEach { time ->
-                                    DropdownMenuItem(
-                                        text = { Text(text = time) },
-                                        onClick = {
-                                            startTime = time
-                                            expandedStart = false
-                                        },
-                                        colors = MenuDefaults.itemColors(textColor = Color.Black)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "End Time",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                        ExposedDropdownMenuBox(
-                            expanded = expandedEnd,
-                            onExpandedChange = { expandedEnd = !expandedEnd }
-                        ) {
-                            OutlinedTextField(
-                                value = endTime,
-                                onValueChange = {},
-                                readOnly = true,
-                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedEnd) },
-                                modifier = Modifier.menuAnchor().fillMaxWidth(),
-                                shape = RoundedCornerShape(12.dp)
-                            )
-                            ExposedDropdownMenu(
-                                expanded = expandedEnd,
-                                onDismissRequest = { expandedEnd = false },
-                                modifier = Modifier.background(Color.White)
-                            ) {
-                                timeOptions.forEach { time ->
-                                    DropdownMenuItem(
-                                        text = { Text(text = time) },
-                                        onClick = {
-                                            endTime = time
-                                            expandedEnd = false
-                                        },
-                                        colors = MenuDefaults.itemColors(textColor = Color.Black)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
                 Spacer(modifier = Modifier.height(16.dp))
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -319,10 +257,19 @@ fun AssignWorkoutDialog(
                     }
 
                     Button(
-                        onClick = onAssign,
+                        onClick = {
+                            val workout = selectedWorkout ?: return@Button
+                            onAssign(
+                                AssignedWorkout(
+                                    workoutId = workout.id,
+                                    name = workout.name
+                                )
+                            )
+                        },
                         modifier = Modifier
                             .weight(1f)
                             .height(56.dp),
+                        enabled = selectedWorkout != null,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF0F172A),
                             contentColor = Color.White
@@ -340,4 +287,3 @@ fun AssignWorkoutDialog(
         }
     }
 }
-

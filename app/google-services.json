@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "709380998556",
+    "project_id": "mobile-application-bcdf2",
+    "storage_bucket": "mobile-application-bcdf2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:709380998556:android:ffdae21e3f44445d39b459",
+        "android_client_info": {
+          "package_name": "com.example.train"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFWDDg80M5Nw7QG0NwgS86nR5y1ZZwg0s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

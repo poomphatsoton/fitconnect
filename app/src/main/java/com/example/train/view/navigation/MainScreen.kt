@@ -12,15 +12,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import androidx.navigation.NavType
 import com.example.train.R
 import com.example.train.ui.components.BottomNavigationBar
+import com.example.train.view.trainer.trainee.dashboard.TraineeDashboardScreen
+import com.example.train.view.trainer.exercise.ExercisesScreen
+import com.example.train.view.trainer.workout.WorkoutsScreen
 
 object MainRoutes {
     const val HOME = "home"
     const val EXERCISES = "exercises"
     const val WORKOUTS = "workouts"
     const val TRAINEES = "trainees"
-    const val TRAINEE_CALENDAR = "trainee_calendar"
+    const val TRAINEE_DASHBOARD = "trainee_dashboard/{traineeId}"
+    const val TRAINEE_CALENDAR = "trainee_calendar/{traineeId}"
+
+    fun traineeDashboard(traineeId: Int): String = "trainee_dashboard/$traineeId"
+    fun traineeCalendar(traineeId: Int): String = "trainee_calendar/$traineeId"
 }
 
 data class BottomNavItem(
@@ -40,22 +49,22 @@ fun MainScreen(
         BottomNavItem(
             route = MainRoutes.HOME,
             label = "Home",
-            icon = R.drawable.ic_home
+            icon = R.drawable.home
         ),
         BottomNavItem(
             route = MainRoutes.EXERCISES,
             label = "Exercises",
-            icon = R.drawable.ic_fitness
+            icon = R.drawable.fitness
         ),
         BottomNavItem(
             route = MainRoutes.WORKOUTS,
             label = "Workouts",
-            icon = R.drawable.ic_list
+            icon = R.drawable.list
         ),
         BottomNavItem(
             route = MainRoutes.TRAINEES,
             label = "Trainees",
-            icon = R.drawable.ic_group
+            icon = R.drawable.group
         )
     )
 
@@ -92,14 +101,35 @@ fun MainScreen(
 
             composable(MainRoutes.TRAINEES) {
                 TraineesScreen(
+                    onDashboardClick = { traineeId ->
+                        navController.navigate(MainRoutes.traineeDashboard(traineeId))
+                    },
                     onCalendarClick = { traineeId ->
-                        navController.navigate(MainRoutes.TRAINEE_CALENDAR)
+                        navController.navigate(MainRoutes.traineeCalendar(traineeId))
                     }
                 )
             }
 
-            composable(MainRoutes.TRAINEE_CALENDAR) {
+            composable(
+                route = MainRoutes.TRAINEE_DASHBOARD,
+                arguments = listOf(navArgument("traineeId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val traineeId = backStackEntry.arguments?.getInt("traineeId") ?: -1
+                TraineeDashboardScreen(
+                    traineeId = traineeId,
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(
+                route = MainRoutes.TRAINEE_CALENDAR,
+                arguments = listOf(navArgument("traineeId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val traineeId = backStackEntry.arguments?.getInt("traineeId") ?: -1
                 TraineeCalendarScreen(
+                    traineeId = traineeId,
                     onBackClick = {
                         navController.popBackStack()
                     }

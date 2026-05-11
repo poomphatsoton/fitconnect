@@ -8,212 +8,171 @@ import com.example.train.model.trainer.Exercise
 import com.example.train.model.trainer.ExerciseSelectUiItem
 import com.example.train.model.trainer.Workout
 import com.example.train.model.trainer.WorkoutExerciseDetail
+import com.example.train.model.trainer.WorkoutTagPercent
 import com.example.train.model.trainer.WorkoutUiItem
+import kotlin.math.roundToInt
 
 class WorkoutsViewModel(
     application: Application
 ) : AndroidViewModel(application) {
 
     private val dbHelper = DatabaseHelper(application)
+    private val prefs = application.getSharedPreferences("FitConnect", android.content.Context.MODE_PRIVATE)
+    private val trainerId: Int
+        get() = prefs.getInt("userId", -1)
 
     val workouts = mutableStateListOf<WorkoutUiItem>()
 
     fun loadWorkouts() {
         workouts.clear()
 
-        val workoutCursor = dbHelper.readableDatabase.query(
-            DatabaseHelper.TABLE_WORKOUTS,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-        )
-
-        if (workoutCursor.moveToFirst()) {
-            do {
+        dbHelper.getWorkoutsByTrainer(trainerId).use { cursor ->
+            while (cursor.moveToNext()) {
                 val workout = Workout().apply {
-                    id = workoutCursor.getInt(
-                        workoutCursor.getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_ID)
+                    id = cursor.getInt(
+                        cursor.getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_ID)
                     )
-
-                    name = workoutCursor.getString(
-                        workoutCursor.getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_NAME)
+                    name = cursor.getString(
+                        cursor.getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_NAME)
                     )
-
-                    description = workoutCursor.getString(
-                        workoutCursor.getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_DESC)
+                    description = cursor.getString(
+                        cursor.getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_DESC)
                     )
-
-                    duration = workoutCursor.getInt(
-                        workoutCursor.getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_DURATION)
+                    duration = cursor.getInt(
+                        cursor.getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_DURATION)
                     )
                 }
-
-                val exercises = loadExercisesForWorkout(workout.id)
-                workout.exercises = exercises
-
+                workout.exercises = loadExercisesForWorkout(workout.id)
                 val exerciseDetails = loadWorkoutExerciseDetails(workout.id.toLong())
-
                 workouts.add(
                     WorkoutUiItem(
                         workout = workout,
                         exerciseDetails = exerciseDetails,
+                        tagPercents = calculateWorkoutTagPercents(workout.id.toLong(), exerciseDetails)
                     )
                 )
-
-            } while (workoutCursor.moveToNext())
+            }
         }
-
-        workoutCursor.close()
     }
 
-    private fun loadExercisesForWorkout(
-        workoutId: Int
-    ): List<Exercise> {
+    private fun loadExercisesForWorkout(workoutId: Int): List<Exercise> {
         val exercises = mutableListOf<Exercise>()
 
-        val selection = "${DatabaseHelper.COL_WE_WORKOUT_ID} = ?"
-        val args = arrayOf(workoutId.toString())
-
-        val workoutExerciseCursor = dbHelper.readableDatabase.query(
-            DatabaseHelper.TABLE_WORKOUT_EXERCISES,
-            null,
-            selection,
-            args,
-            null,
-            null,
-            null
-        )
-
-        if (workoutExerciseCursor.moveToFirst()) {
-            do {
-                val exerciseId = workoutExerciseCursor.getInt(
-                    workoutExerciseCursor.getColumnIndexOrThrow(
+        dbHelper.getWorkoutExercises(workoutId).use { cursor ->
+            while (cursor.moveToNext()) {
+                val exerciseId = cursor.getInt(
+                    cursor.getColumnIndexOrThrow(
                         DatabaseHelper.COL_WE_EXERCISE_ID
                     )
                 )
 
-                val exercise = loadExerciseById(exerciseId)
-
-                if (exercise != null) {
-                    exercises.add(exercise)
-                }
-
-            } while (workoutExerciseCursor.moveToNext())
+                loadExerciseById(exerciseId)?.let { exercises.add(it) }
+            }
         }
-
-        workoutExerciseCursor.close()
 
         return exercises
     }
 
-    private fun loadExerciseById(
-        exerciseId: Int
-    ): Exercise? {
-        val selection = "${DatabaseHelper.COL_EXERCISE_ID} = ?"
-        val args = arrayOf(exerciseId.toString())
+    private fun loadExerciseById(exerciseId: Int): Exercise? {
+        return dbHelper.getExerciseById(exerciseId).use { cursor ->
+            if (!cursor.moveToFirst()) return null
 
-        val cursor = dbHelper.readableDatabase.query(
-            DatabaseHelper.TABLE_EXERCISES,
-            null,
-            selection,
-            args,
-            null,
-            null,
-            null
-        )
-
-        var exercise: Exercise? = null
-
-        if (cursor.moveToFirst()) {
-            exercise = Exercise().apply {
-                id = cursor.getInt(
-                    cursor.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_ID)
-                )
-
+            Exercise().apply {
+                id = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_ID))
                 name = cursor.getString(
                     cursor.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_NAME)
                 )
-
                 description = cursor.getString(
                     cursor.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_DESC)
                 )
-
                 timePerRep = cursor.getInt(
                     cursor.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_TIME_PER_REP)
                 )
             }
         }
-
-        cursor.close()
-
-        return exercise
     }
 
-    private fun loadWorkoutExerciseDetails(
-        workoutId: Long
-    ): List<WorkoutExerciseDetail> {
+    private fun loadWorkoutExerciseDetails(workoutId: Long): List<WorkoutExerciseDetail> {
         val details = mutableListOf<WorkoutExerciseDetail>()
 
-        val cursor = dbHelper.getWorkoutExerciseDetails(workoutId)
-
-        if (cursor.moveToFirst()) {
-            do {
-                val detail = WorkoutExerciseDetail(
-                    name = cursor.getString(0),
-                    reps = cursor.getInt(1),
-                    timePerRep = cursor.getInt(2),
+        dbHelper.getWorkoutExerciseDetails(workoutId).use { cursor ->
+            while (cursor.moveToNext()) {
+                details.add(
+                    WorkoutExerciseDetail(
+                        exerciseId = cursor.getLong(0),
+                        name = cursor.getString(1),
+                        reps = cursor.getInt(2),
+                        timePerRep = cursor.getInt(3),
+                        description = cursor.getString(4),
+                        videoUrl = cursor.getString(5),
+                        videoName = cursor.getString(6)
+                    )
                 )
-
-                details.add(detail)
-
-            } while (cursor.moveToNext())
+            }
         }
-
-        cursor.close()
 
         return details
     }
 
-// ---------------------- For Workout Dialog ----------------------
-    val availableExercises = mutableStateListOf<ExerciseSelectUiItem>()
+    private fun calculateWorkoutTagPercents(
+        workoutId: Long,
+        exerciseDetails: List<WorkoutExerciseDetail>
+    ): List<WorkoutTagPercent> {
+        val totalTime = exerciseDetails.sumOf { it.reps * it.timePerRep }
+        if (totalTime <= 0) return emptyList()
 
+        val tagsByExercise = mutableMapOf<Long, MutableList<String>>()
+        dbHelper.getWorkoutExerciseTagTimes(workoutId).use { cursor ->
+            while (cursor.moveToNext()) {
+                val exerciseId = cursor.getLong(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_ID))
+                val tagName = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_TAG_NAME))
+                tagsByExercise.getOrPut(exerciseId) { mutableListOf() }.add(tagName)
+            }
+        }
+
+        val tagTimes = mutableMapOf<String, Double>()
+        exerciseDetails.forEach { detail ->
+            val tags = tagsByExercise[detail.exerciseId].orEmpty()
+            if (tags.isNotEmpty()) {
+                val sharedTime = (detail.reps * detail.timePerRep).toDouble() / tags.size
+                tags.forEach { tagName ->
+                    tagTimes[tagName] = (tagTimes[tagName] ?: 0.0) + sharedTime
+                }
+            }
+        }
+
+        return tagTimes.map { (tagName, tagTime) ->
+            WorkoutTagPercent(
+                tagName = tagName,
+                percent = (tagTime / totalTime * 100).roundToInt()
+            )
+        }.sortedByDescending { it.percent }
+    }
+
+    val availableExercises = mutableStateListOf<ExerciseSelectUiItem>()
     fun loadAvailableExercises() {
         availableExercises.clear()
 
-        val cursor = dbHelper.getAllExercises()
-
-        if (cursor.moveToFirst()) {
-            do {
+        dbHelper.getExercisesByTrainer(trainerId).use { cursor ->
+            while (cursor.moveToNext()) {
                 val id = cursor.getLong(
                     cursor.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_ID)
                 )
-
                 val name = cursor.getString(
                     cursor.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_NAME)
                 )
-
                 availableExercises.add(
                     ExerciseSelectUiItem(
                         id = id,
                         name = name
                     )
                 )
-
-            } while (cursor.moveToNext())
+            }
         }
-
-        cursor.close()
     }
 
-    fun updateExerciseSelected(
-        id: Long,
-        selected: Boolean
-    ) {
+    fun updateExerciseSelected(id: Long, selected: Boolean) {
         val index = availableExercises.indexOfFirst { it.id == id }
-
         if (index != -1) {
             availableExercises[index] = availableExercises[index].copy(
                 isSelected = selected
@@ -221,12 +180,8 @@ class WorkoutsViewModel(
         }
     }
 
-    fun updateExerciseReps(
-        id: Long,
-        reps: String
-    ) {
+    fun updateExerciseReps(id: Long, reps: String) {
         val index = availableExercises.indexOfFirst { it.id == id }
-
         if (index != -1) {
             availableExercises[index] = availableExercises[index].copy(
                 reps = reps
@@ -234,21 +189,14 @@ class WorkoutsViewModel(
         }
     }
 
-    fun createWorkout(
-        name: String,
-        description: String
-    ): String? {
+    fun createWorkout(name: String, description: String): String? {
         val trimmedName = name.trim()
         val trimmedDescription = description.trim()
-
         if (trimmedName.isEmpty()) {
             return "Please enter workout name"
         }
 
-        val selectedExercises = availableExercises.filter {
-            it.isSelected && (it.reps.toIntOrNull() ?: 0) > 0
-        }
-
+        val selectedExercises = selectedExercisesWithReps()
         if (selectedExercises.isEmpty()) {
             return "Please select at least one exercise"
         }
@@ -256,9 +204,9 @@ class WorkoutsViewModel(
         val workoutId = dbHelper.insertWorkout(
             name = trimmedName,
             desc = trimmedDescription,
-            duration = 0
+            duration = 0,
+            trainerId = trainerId
         )
-
         selectedExercises.forEach { item ->
             dbHelper.addExerciseToWorkout(
                 workoutId = workoutId,
@@ -268,14 +216,72 @@ class WorkoutsViewModel(
         }
 
         val totalDuration = dbHelper.calculateWorkoutTotalDuration(workoutId)
-
         dbHelper.updateWorkoutDuration(
             workoutId = workoutId,
             duration = totalDuration
         )
+        loadWorkouts()
+        return null
+    }
+
+    fun deleteWorkout(workoutId: Int) {
+        dbHelper.deleteWorkout(workoutId)
+        loadWorkouts()
+    }
+
+    fun loadWorkoutForEdit(workoutId: Int) {
+        loadAvailableExercises()
+
+        val workoutUiItem = workouts.find { it.workout.id == workoutId } ?: return
+        availableExercises.forEachIndexed { index, selectItem ->
+            val existingExercise = workoutUiItem.exerciseDetails.find {
+                it.exerciseId == selectItem.id
+            }
+            if (existingExercise != null) {
+                availableExercises[index] = selectItem.copy(
+                    isSelected = true,
+                    reps = existingExercise.reps.toString()
+                )
+            } else {
+                availableExercises[index] = selectItem.copy(
+                    isSelected = false,
+                    reps = ""
+                )
+            }
+        }
+    }
+
+    fun updateWorkout(workoutId: Int, name: String, description: String): String? {
+        val trimmedName = name.trim()
+        val trimmedDescription = description.trim()
+
+        if (trimmedName.isEmpty()) {
+            return "Please enter workout name"
+        }
+
+        val selectedExercises = selectedExercisesWithReps()
+        if (selectedExercises.isEmpty()) {
+            return "Please select at least one exercise"
+        }
+
+        dbHelper.replaceWorkoutExercises(
+            workoutId = workoutId,
+            name = trimmedName,
+            desc = trimmedDescription,
+            exercises = selectedExercises.map { item ->
+                item.id to (item.reps.toIntOrNull() ?: 0)
+            }
+        )
+        val totalDuration = dbHelper.calculateWorkoutTotalDuration(workoutId.toLong())
+        dbHelper.updateWorkoutDuration(workoutId.toLong(), totalDuration)
 
         loadWorkouts()
-
         return null
+    }
+
+    private fun selectedExercisesWithReps(): List<ExerciseSelectUiItem> {
+        return availableExercises.filter { item ->
+            item.isSelected && (item.reps.toIntOrNull() ?: 0) > 0
+        }
     }
 }

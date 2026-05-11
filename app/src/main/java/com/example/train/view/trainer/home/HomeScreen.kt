@@ -1,6 +1,6 @@
 package com.example.train.ui
 
-import com.example.train.ui.components.CreateExerciseDialog
+import com.example.train.view.trainer.exercise.CreateExerciseDialog
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -26,11 +26,10 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.train.ui.components.CreateButtons
-import com.example.train.ui.components.CreateWorkoutDialogHost
 import com.example.train.ui.components.NavigationBar
-import com.example.train.ui.components.NoTraineesCard
-import com.example.train.ui.components.OverviewCard
-import com.example.train.ui.components.TrainerProfileCard
+import com.example.train.view.reuseComponent.EditUserProfileScreen
+import com.example.train.view.reuseComponent.UserProfileCard
+import com.example.train.view.trainer.exercise.CreateWorkoutDialogHost
 import com.example.train.viewmodel.trainer.ExercisesViewModel
 import com.example.train.viewmodel.trainer.TrainerHomeViewModel
 import com.example.train.viewmodel.trainer.WorkoutsViewModel
@@ -46,6 +45,8 @@ fun HomeScreen(
     val uiState by viewModel.uiState
 
     var showCreateExerciseDialog by remember { mutableStateOf(false) }
+    var showEditProfile by remember { mutableStateOf(false) }
+    var isSavingExercise by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.loadHomeData()
@@ -66,7 +67,6 @@ fun HomeScreen(
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
-
     Scaffold(
         topBar = {
             NavigationBar(
@@ -76,83 +76,110 @@ fun HomeScreen(
         },
         containerColor = Color(0xFFF8F9FA)
     ) { innerPadding ->
+        if (showEditProfile) {
+            EditUserProfileScreen(
+                initialName = uiState.trainerName,
+                initialBio = uiState.trainerBio,
+                initialMaxTrainees = uiState.maxTrainees,
+                initialTags = uiState.trainerTags,
+                availableTags = uiState.availableTags,
+                isTrainer = true,
+                modifier = Modifier.padding(innerPadding),
+                onCancel = {
+                    showEditProfile = false
+                },
+                onSave = { name, bio, maxTrainees, password, tags ->
+                    val error = viewModel.updateTrainerProfile(
+                        name = name,
+                        bio = bio,
+                        maxTraineesText = maxTrainees,
+                        password = password,
+                        tags = tags
+                    )
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp)
-        ) {
-            TrainerProfileCard(
-                name = uiState.trainerName,
-                bio = uiState.trainerBio
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            CreateWorkoutDialogHost(
-                viewModel = workoutsViewModel,
-                onCreated = {
-                    viewModel.loadOverviewData()
+                    if (error == null) {
+                        Toast.makeText(context, "Profile updated successfully", Toast.LENGTH_SHORT).show()
+                        showEditProfile = false
+                    } else {
+                        Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+                    }
                 }
-            ) { openCreateWorkoutDialog ->
-
-                CreateButtons(
-                    onCreateExercise = {
-                        showCreateExerciseDialog = true
-                    },
-                    onCreateWorkout = {
-                        openCreateWorkoutDialog()
+            )
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
+            ) {
+                UserProfileCard(
+                    name = uiState.trainerName,
+                    bio = uiState.trainerBio,
+                    tags = uiState.trainerTags,
+                    isTrainer = true,
+                    activeTrainees = uiState.activeTrainees,
+                    maxTrainees = uiState.maxTrainees,
+                    onEditClick = {
+                        showEditProfile = true
                     }
                 )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OverviewCard(
-                activeTrainees = uiState.activeTrainees,
-                exercises = uiState.exercises,
-                workouts = uiState.workouts,
-                pendingRequests = uiState.pendingRequests,
-                onPendingClick = {
-                    Toast.makeText(
-                        context,
-                        "Pending Requests Clicked!",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                Spacer(modifier = Modifier.height(16.dp))
+                CreateWorkoutDialogHost(
+                    viewModel = workoutsViewModel,
+                    onCreated = {
+                        viewModel.loadOverviewData()
+                    }
+                ) { openCreateWorkoutDialog, _ ->
+                    CreateButtons(
+                        onCreateExercise = {
+                            showCreateExerciseDialog = true
+                        },
+                        onCreateWorkout = {
+                            openCreateWorkoutDialog()
+                        }
+                    )
                 }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            NoTraineesCard()
+                Spacer(modifier = Modifier.height(16.dp))
+            }
         }
     }
-
     if (showCreateExerciseDialog) {
         CreateExerciseDialog(
+            availableTags = uiState.availableTags,
+            isSaving = isSavingExercise,
             onDismiss = {
                 showCreateExerciseDialog = false
+                isSavingExercise = false
             },
-            onConfirm = { name, description, time, tags ->
+            onConfirm = { name, description, time, tags, videoUri ->
+                isSavingExercise = true
                 val error = exercisesViewModel.createExercise(
                     name = name,
                     description = description,
                     timePerRepText = time,
-                    tags = tags
+                    tags = tags,
+                    videoUri = videoUri,
+                    onFinished = { uploadSuccess ->
+                        val message = if (uploadSuccess) {
+                            "Created successfully"
+                        } else {
+                            "Exercise saved, but video upload failed"
+                        }
+
+                        Toast.makeText(
+                            context,
+                            message,
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        showCreateExerciseDialog = false
+                        isSavingExercise = false
+                        viewModel.loadOverviewData()
+                    }
                 )
-
-                if (error == null) {
-                    Toast.makeText(
-                        context,
-                        "Created successfully",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                    showCreateExerciseDialog = false
-                    viewModel.loadOverviewData()
-                } else {
+                if (error != null) {
+                    isSavingExercise = false
                     Toast.makeText(
                         context,
                         error,

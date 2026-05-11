@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -53,6 +54,9 @@ dependencies {
     implementation libs.navigation.ui
     implementation libs.core.ktx
     implementation 'org.mindrot:jbcrypt:0.4'
+    implementation platform(libs.firebase.bom)
+    implementation libs.firebase.storage
+    implementation libs.coroutines.play.services
 
     // Jetpack Compose
     implementation platform('androidx.compose:compose-bom:2024.06.00')

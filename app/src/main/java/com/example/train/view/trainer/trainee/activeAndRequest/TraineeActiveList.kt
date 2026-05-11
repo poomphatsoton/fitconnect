@@ -19,6 +19,7 @@ import com.example.train.view.trainer.trainee.activeAndRequest.TraineeBaseCard
 @Composable
 fun TraineeActiveList(
     trainees: List<Trainee>,
+    onDashboardClick: (Int) -> Unit,
     onCalendarClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -32,6 +33,7 @@ fun TraineeActiveList(
             items(trainees) { trainee ->
                 TraineeActiveCard(
                     trainee = trainee,
+                    onDashboardClick = { onDashboardClick(trainee.id) },
                     onCalendarClick = { onCalendarClick(trainee.id) }
                 )
             }

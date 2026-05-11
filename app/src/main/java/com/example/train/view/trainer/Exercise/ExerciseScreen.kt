@@ -1,7 +1,7 @@
-package com.example.train.ui
+package com.example.train.view.trainer.exercise
 
-import com.example.train.ui.components.CreateExerciseDialog
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -50,6 +52,8 @@ fun ExercisesScreen(
     val exercises = viewModel.exercises
 
     var showCreateDialog by remember { mutableStateOf(false) }
+    var editingExercise by remember { mutableStateOf<Exercise?>(null) }
+    var isSavingExercise by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.loadExercises()
@@ -62,10 +66,10 @@ fun ExercisesScreen(
     ) {
         ExerciseHeader(
             onCreateExerciseClick = {
+                editingExercise = null
                 showCreateDialog = true
             }
         )
-
         if (exercises.isEmpty()) {
             EmptyExerciseMessage()
         } else {
@@ -79,34 +83,79 @@ fun ExercisesScreen(
                     items = exercises,
                     key = { it.id }
                 ) { exercise ->
-                    ExerciseCard(exercise = exercise, tags = viewModel.exerciseTagsMap[exercise.id].orEmpty())
+                    ExerciseCard(
+                        exercise = exercise,
+                        tags = viewModel.exerciseTagsMap[exercise.id].orEmpty(),
+                        onEditClick = {
+                            editingExercise = exercise
+                            showCreateDialog = true
+                        },
+                        onDeleteClick = {
+                            viewModel.deleteExercise(exercise.id)
+                        }
+                    )
                 }
             }
         }
     }
-
     if (showCreateDialog) {
+        val exerciseToEdit = editingExercise
+
         CreateExerciseDialog(
+            initialExercise = exerciseToEdit,
+            initialTags = if (exerciseToEdit != null) viewModel.exerciseTagsMap[exerciseToEdit.id].orEmpty() else emptyList(),
+            availableTags = viewModel.availableTags,
+            isSaving = isSavingExercise,
             onDismiss = {
                 showCreateDialog = false
+                editingExercise = null
+                isSavingExercise = false
             },
-            onConfirm = { name, description, time, tags ->
-                val errorMessage = viewModel.createExercise(
-                    name = name,
-                    description = description,
-                    timePerRepText = time,
-                    tags = tags
-                )
+            onConfirm = { name, description, time, tags, videoUri ->
+                isSavingExercise = true
 
-                if (errorMessage == null) {
+                val afterSave: (Boolean) -> Unit = { uploadSuccess ->
+                    val message = when {
+                        !uploadSuccess -> "Exercise saved, but video upload failed"
+                        exerciseToEdit != null -> "Updated successfully"
+                        else -> "Created successfully"
+                    }
+
                     Toast.makeText(
                         context,
-                        "Created successfully",
+                        message,
                         Toast.LENGTH_SHORT
                     ).show()
 
                     showCreateDialog = false
+                    editingExercise = null
+                    isSavingExercise = false
+                }
+
+                val errorMessage = if (exerciseToEdit != null) {
+                    viewModel.updateExercise(
+                        id = exerciseToEdit.id,
+                        name = name,
+                        description = description,
+                        timePerRepText = time,
+                        tags = tags,
+                        videoUri = videoUri,
+                        onFinished = afterSave
+                    )
                 } else {
+                    viewModel.createExercise(
+                        name = name,
+                        description = description,
+                        timePerRepText = time,
+                        tags = tags,
+                        videoUri = videoUri,
+                        onFinished = afterSave
+                    )
+                }
+
+                if (errorMessage != null) {
+                    isSavingExercise = false
+
                     Toast.makeText(
                         context,
                         errorMessage,
@@ -135,7 +184,6 @@ fun ExerciseHeader(
             fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f)
         )
-
         Button(
             onClick = onCreateExerciseClick,
             modifier = Modifier.height(48.dp),
@@ -145,10 +193,10 @@ fun ExerciseHeader(
             ),
             shape = RoundedCornerShape(24.dp)
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_add),
-                contentDescription = "Create Exercise",
-                modifier = Modifier.size(18.dp)
+            Text(
+                text = "+",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
             )
 
             Spacer(modifier = Modifier.width(4.dp))
@@ -161,7 +209,9 @@ fun ExerciseHeader(
 @Composable
 fun ExerciseCard(
     exercise: Exercise,
-    tags: List<Tag>
+    tags: List<Tag>,
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -169,23 +219,48 @@ fun ExerciseCard(
             .background(Color.White)
             .padding(16.dp)
     ) {
-        Text(
-            text = exercise.name ?: "",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold
-        )
-
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = exercise.name ?: "",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f)
+            )
+            IconButton(
+                onClick = onEditClick,
+                modifier = Modifier.size(24.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.edit),
+                    contentDescription = "Edit Exercise",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            IconButton(
+                onClick = onDeleteClick,
+                modifier = Modifier.size(24.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.delete),
+                    contentDescription = "Delete Exercise",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit
+                )
+            }
+        }
         Spacer(modifier = Modifier.height(4.dp))
-
         Text(
             text = exercise.description ?: "",
             fontSize = 14.sp
         )
-
         Spacer(modifier = Modifier.height(8.dp))
         if (tags.isNotEmpty()) {
             Spacer(modifier = Modifier.height(8.dp))
-
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -207,13 +282,22 @@ fun ExerciseCard(
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
-
         Text(
-            text = "${exercise.timePerRep}s/rep",
+            text = "${exercise.timePerRep.toMinuteText()}/rep",
             fontSize = 12.sp,
             color = Color(0xFF757575)
         )
     }
+}
+
+private fun Int.toMinuteText(): String {
+    val minutes = this / 60.0
+    val value = if (minutes % 1.0 == 0.0) {
+        minutes.toInt().toString()
+    } else {
+        String.format("%.2f", minutes).trimEnd('0').trimEnd('.')
+    }
+    return "$value min"
 }
 
 @Composable
@@ -231,9 +315,7 @@ fun EmptyExerciseMessage() {
             fontWeight = FontWeight.Bold,
             color = Color(0xFF6C757D)
         )
-
         Spacer(modifier = Modifier.height(8.dp))
-
         Text(
             text = "Create your first exercise",
             fontSize = 14.sp,
