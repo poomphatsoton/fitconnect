@@ -243,7 +243,6 @@ private fun WorkoutSlotDetail(workout: WorkoutUiItem) {
                 lineHeight = 18.sp
             )
         }
-
         Text(
             text = "${workout.exerciseDetails.size} exercises - ${workout.workout.duration / 60}m ${workout.workout.duration % 60}s",
             fontSize = 13.sp,
@@ -261,7 +260,6 @@ private fun WorkoutSlotDetail(workout: WorkoutUiItem) {
                 }
             }
         }
-
         Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
             workout.exerciseDetails.forEach { detail ->
                 WorkoutExerciseLine(detail)

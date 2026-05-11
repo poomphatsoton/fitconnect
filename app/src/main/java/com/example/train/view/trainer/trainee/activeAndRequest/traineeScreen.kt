@@ -81,7 +81,6 @@ fun TraineesScreenContent(
             color = Color.Black,
             modifier = Modifier.padding(vertical = 16.dp)
         )
-
         TraineeTabSelector(
             selectedTab = selectedTab,
             onTabSelected = { selectedTab = it },
@@ -90,9 +89,7 @@ fun TraineesScreenContent(
                 "Requests ($requestCount)" to "Requests"
             )
         )
-
         Spacer(modifier = Modifier.height(24.dp))
-
         if (selectedTab == "Active") {
             TraineeActiveList(
                 trainees = activeTrainees,

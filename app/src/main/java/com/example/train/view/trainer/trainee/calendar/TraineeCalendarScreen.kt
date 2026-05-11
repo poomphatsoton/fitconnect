@@ -70,7 +70,6 @@ fun TraineeCalendarScreen(
             viewModel.loadTraineeSlots(traineeId, selectedDate)
         }
     }
-
     LaunchedEffect(uiState.errorMessage) {
         uiState.errorMessage?.let { message ->
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
@@ -84,7 +83,6 @@ fun TraineeCalendarScreen(
             .background(Color(0xFFF9FAFB))
     ) {
         TraineeCalendarHeader(onBackClick)
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -97,9 +95,7 @@ fun TraineeCalendarScreen(
                     selectedDate = newDate
                 }
             )
-
             Spacer(modifier = Modifier.height(24.dp))
-
             Text(
                 text = "Schedule",
                 fontSize = 20.sp,
@@ -107,7 +103,6 @@ fun TraineeCalendarScreen(
                 color = Color.Black,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
-
             DailyScheduleContent(
                 slots = uiState.traineeSlots,
                 workoutDetailsBySlotId = uiState.workoutDetailsBySlotId,
@@ -129,7 +124,6 @@ fun TraineeCalendarScreen(
             }
         )
     }
-
     if (uiState.editingWorkout != null) {
         AssignWorkoutDialog(
             initialWorkout = uiState.editingWorkout,
@@ -158,7 +152,6 @@ fun TraineeCalendarHeader(onBackClick: () -> Unit) {
                 modifier = Modifier.size(20.dp)
             )
         }
-
         Text(
             text = "Workout Calendar",
             fontSize = 20.sp,
@@ -202,7 +195,6 @@ fun AssignWorkoutDialog(
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
                 )
-
                 Column {
                     Text(
                         text = "Workout Library",
@@ -210,7 +202,6 @@ fun AssignWorkoutDialog(
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
-
                     ExposedDropdownMenuBox(
                         expanded = expandedWorkout,
                         onExpandedChange = { expandedWorkout = !expandedWorkout }
@@ -228,7 +219,6 @@ fun AssignWorkoutDialog(
                                 .fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp)
                         )
-
                         ExposedDropdownMenu(
                             expanded = expandedWorkout,
                             onDismissRequest = { expandedWorkout = false },
@@ -247,9 +237,7 @@ fun AssignWorkoutDialog(
                         }
                     }
                 }
-
                 Spacer(modifier = Modifier.height(16.dp))
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)

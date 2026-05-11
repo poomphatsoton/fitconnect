@@ -90,15 +90,12 @@ fun TraineeMainScreen(
             composable(TraineeRoutes.HOME) {
                 TraineeHomeScreen()
             }
-
             composable(TraineeRoutes.WORKOUT) {
                 TraineeWorkoutScreen()
             }
-
             composable(TraineeRoutes.CALENDAR) {
                 TraineeCalendarTabScreen()
             }
-
             composable(TraineeRoutes.TRAINER) {
                 TraineeTrainerScreen()
             }

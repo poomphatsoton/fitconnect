@@ -70,7 +70,6 @@ fun ExercisesScreen(
                 showCreateDialog = true
             }
         )
-
         if (exercises.isEmpty()) {
             EmptyExerciseMessage()
         } else {
@@ -99,7 +98,6 @@ fun ExercisesScreen(
             }
         }
     }
-
     if (showCreateDialog) {
         val exerciseToEdit = editingExercise
 
@@ -186,7 +184,6 @@ fun ExerciseHeader(
             fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f)
         )
-
         Button(
             onClick = onCreateExerciseClick,
             modifier = Modifier.height(48.dp),
@@ -232,7 +229,6 @@ fun ExerciseCard(
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f)
             )
-
             IconButton(
                 onClick = onEditClick,
                 modifier = Modifier.size(24.dp)
@@ -244,9 +240,7 @@ fun ExerciseCard(
                     contentScale = ContentScale.Fit
                 )
             }
-
             Spacer(modifier = Modifier.width(8.dp))
-
             IconButton(
                 onClick = onDeleteClick,
                 modifier = Modifier.size(24.dp)
@@ -259,18 +253,14 @@ fun ExerciseCard(
                 )
             }
         }
-
         Spacer(modifier = Modifier.height(4.dp))
-
         Text(
             text = exercise.description ?: "",
             fontSize = 14.sp
         )
-
         Spacer(modifier = Modifier.height(8.dp))
         if (tags.isNotEmpty()) {
             Spacer(modifier = Modifier.height(8.dp))
-
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -292,7 +282,6 @@ fun ExerciseCard(
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
-
         Text(
             text = "${exercise.timePerRep.toMinuteText()}/rep",
             fontSize = 12.sp,
@@ -326,9 +315,7 @@ fun EmptyExerciseMessage() {
             fontWeight = FontWeight.Bold,
             color = Color(0xFF6C757D)
         )
-
         Spacer(modifier = Modifier.height(8.dp))
-
         Text(
             text = "Create your first exercise",
             fontSize = 14.sp,

@@ -69,17 +69,13 @@ fun WorkoutDetailCard(
                 actions()
             }
         }
-
         Spacer(modifier = Modifier.height(4.dp))
-
         Text(
             text = workout.description ?: "",
             fontSize = 16.sp,
             color = Color(0xFF757575)
         )
-
         Spacer(modifier = Modifier.height(12.dp))
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -91,18 +87,14 @@ fun WorkoutDetailCard(
                     modifier = Modifier.size(20.dp),
                     tint = Color(0xFF757575)
                 )
-
                 Spacer(modifier = Modifier.width(4.dp))
-
                 Text(
                     text = "${workout.exercises.size} exercises",
                     fontSize = 16.sp,
                     color = Color(0xFF757575)
                 )
             }
-
             Spacer(modifier = Modifier.weight(1f))
-
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     painter = painterResource(id = R.drawable.time),
@@ -110,9 +102,7 @@ fun WorkoutDetailCard(
                     modifier = Modifier.size(20.dp),
                     tint = Color(0xFF757575)
                 )
-
                 Spacer(modifier = Modifier.width(4.dp))
-
                 Text(
                     text = "${totalSec / 60}m ${totalSec % 60}s",
                     fontSize = 16.sp,
@@ -123,7 +113,6 @@ fun WorkoutDetailCard(
 
         if (item.tagPercents.isNotEmpty()) {
             Spacer(modifier = Modifier.height(12.dp))
-
             FlowRow(
                 horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
                 verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
@@ -133,26 +122,20 @@ fun WorkoutDetailCard(
                 }
             }
         }
-
         Spacer(modifier = Modifier.height(12.dp))
-
         Spacer(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(1.dp)
                 .background(Color(0xFFEEEEEE))
         )
-
         Spacer(modifier = Modifier.height(12.dp))
-
         Text(
             text = "Exercises:",
             fontSize = 16.sp,
             color = Color(0xFF757575)
         )
-
         Spacer(modifier = Modifier.height(8.dp))
-
         Column {
             item.exerciseDetails.forEach { detail ->
                 WorkoutExerciseRow(detail = detail)
@@ -191,7 +174,6 @@ fun WorkoutExerciseRow(
             fontSize = 14.sp,
             modifier = Modifier.weight(1f)
         )
-
         Text(
             text = "${detail.reps} reps",
             fontSize = 14.sp

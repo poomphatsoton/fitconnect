@@ -141,9 +141,7 @@ private fun AssignedWorkoutSection(
             fontWeight = FontWeight.Bold,
             color = Color(0xFF0F172A)
         )
-
         WorkoutDetailCard(item = assignedWorkout.workoutItem)
-
         if (assignedWorkout.isComplete) {
             Text(
                 text = "Status: Complete",
@@ -152,7 +150,6 @@ private fun AssignedWorkoutSection(
                 color = Color(0xFF15803D)
             )
         }
-
         Button(
             onClick = onStartClick,
             enabled = canStart,
@@ -199,14 +196,12 @@ private fun WorkoutStartScreen(
         ) {
             Text(text = "Back to workouts")
         }
-
         Text(
             text = assignedWorkout.workoutItem.workout.name ?: "Workout",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF0F172A)
         )
-
         Text(
             text = "${assignedWorkout.startTime.toDisplayTime()} - ${assignedWorkout.endTime.toDisplayTime()}",
             fontSize = 16.sp,
@@ -229,7 +224,6 @@ private fun WorkoutStartScreen(
                 totalSteps = exerciseDetails.size,
                 isComplete = isCurrentComplete
             )
-
             Button(
                 onClick = {
                     val isSuccess = onMarkComplete(assignedWorkout.slotId, currentExercise.exerciseId)
@@ -255,7 +249,6 @@ private fun WorkoutStartScreen(
                     fontSize = 15.sp
                 )
             }
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -278,7 +271,6 @@ private fun WorkoutStartScreen(
                 ) {
                     Text(text = "Back")
                 }
-
                 Button(
                     onClick = {
                         if (currentIndex.intValue < exerciseDetails.lastIndex) {
@@ -323,34 +315,29 @@ private fun ExerciseStartDetail(
                 videoName = detail.videoName
             )
         }
-
         Text(
             text = "Exercise $currentStep / $totalSteps",
             fontSize = 14.sp,
             fontWeight = FontWeight.SemiBold,
             color = Color(0xFF6C757D)
         )
-
         Text(
             text = detail.name,
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF0F172A)
         )
-
         Text(
             text = "${detail.reps} reps",
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold,
             color = Color(0xFF212121)
         )
-
         Text(
             text = "${detail.timePerRep}s / rep",
             fontSize = 16.sp,
             color = Color(0xFF495057)
         )
-
         Text(
             text = detail.description,
             fontSize = 15.sp,
@@ -383,7 +370,6 @@ private fun ExerciseVideo(
             fontWeight = FontWeight.SemiBold,
             color = Color(0xFF495057)
         )
-
         AndroidView(
             modifier = Modifier
                 .fillMaxWidth()

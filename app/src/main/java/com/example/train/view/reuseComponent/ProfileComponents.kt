@@ -76,9 +76,7 @@ fun UserProfileCard(
                     contentDescription = if (isTrainer) "Trainer avatar" else "Trainee avatar",
                     modifier = Modifier.size(84.dp)
                 )
-
                 Spacer(modifier = Modifier.width(24.dp))
-
                 Card(
                     modifier = Modifier
                         .weight(1f)
@@ -105,17 +103,13 @@ fun UserProfileCard(
                     }
                 }
             }
-
             Spacer(modifier = Modifier.height(20.dp))
-
             Text(
                 text = "Bio",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold
             )
-
             Spacer(modifier = Modifier.height(8.dp))
-
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -130,9 +124,7 @@ fun UserProfileCard(
                     modifier = Modifier.padding(16.dp)
                 )
             }
-
             Spacer(modifier = Modifier.height(16.dp))
-
             Text(
                 text = "Tags",
                 fontSize = 16.sp,
@@ -187,10 +179,8 @@ fun UserProfileCard(
                         )
                     }
                 }
-
                 Spacer(modifier = Modifier.height(16.dp))
             }
-
             Button(
                 onClick = onEditClick,
                 modifier = Modifier
@@ -240,9 +230,7 @@ fun EditUserProfileScreen(
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold
         )
-
         Spacer(modifier = Modifier.height(20.dp))
-
         OutlinedTextField(
             value = name,
             onValueChange = { name = it },
@@ -251,9 +239,7 @@ fun EditUserProfileScreen(
             singleLine = true,
             shape = RoundedCornerShape(12.dp)
         )
-
         Spacer(modifier = Modifier.height(12.dp))
-
         OutlinedTextField(
             value = bio,
             onValueChange = { bio = it },
@@ -263,9 +249,7 @@ fun EditUserProfileScreen(
                 .height(120.dp),
             shape = RoundedCornerShape(12.dp)
         )
-
         Spacer(modifier = Modifier.height(12.dp))
-
         if (isTrainer) {
             OutlinedTextField(
                 value = maxTrainees,
@@ -277,18 +261,14 @@ fun EditUserProfileScreen(
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp)
             )
-
             Spacer(modifier = Modifier.height(12.dp))
         }
-
         Text(
             text = "Tags",
             fontSize = 14.sp,
             fontWeight = FontWeight.SemiBold
         )
-
         Spacer(modifier = Modifier.height(8.dp))
-
         TagDropdown(
             selectedTags = selectedTags,
             items = availableTags,
@@ -303,9 +283,7 @@ fun EditUserProfileScreen(
                 selectedTags = selectedTags.filterNot { it.tagId == tag.tagId }
             },
         )
-
         Spacer(modifier = Modifier.height(12.dp))
-
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -317,7 +295,6 @@ fun EditUserProfileScreen(
         )
 
         Spacer(modifier = Modifier.height(12.dp))
-
         OutlinedTextField(
             value = confirmPassword,
             onValueChange = { confirmPassword = it },
@@ -337,9 +314,7 @@ fun EditUserProfileScreen(
                 fontSize = 12.sp
             )
         }
-
         Spacer(modifier = Modifier.height(24.dp))
-
         Row(modifier = Modifier.fillMaxWidth()) {
             Button(
                 onClick = onCancel,
@@ -354,9 +329,7 @@ fun EditUserProfileScreen(
             ) {
                 Text(text = "Cancel")
             }
-
             Spacer(modifier = Modifier.width(12.dp))
-
             Button(
                 onClick = {
                     if (!passwordsDoNotMatch) {

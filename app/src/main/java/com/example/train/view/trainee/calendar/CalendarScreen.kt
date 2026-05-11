@@ -86,7 +86,6 @@ fun TraineeCalendarTabScreen(
                 showCreateSlotDialog = false
             }
         )
-
         Button(
             onClick = { showCreateSlotDialog = true },
             modifier = Modifier
@@ -100,14 +99,12 @@ fun TraineeCalendarTabScreen(
         ) {
             Text(text = "Create Slot", fontSize = 16.sp)
         }
-
         Text(
             text = "Slot Time",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF0F172A)
         )
-
         if (uiState.slots.isEmpty()) {
             Text(
                 text = "No slot time added",
@@ -255,7 +252,6 @@ private fun SlotEditor(
                     }
                 }
             }
-
             Button(
                 onClick = onSubmit,
                 enabled = selectedTime != null && selectedStatus != null,
@@ -305,7 +301,6 @@ private fun SlotDialog(
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF0F172A)
                 )
-
                 SlotEditor(
                     selectedTime = editTime,
                     selectedStatus = editStatus,
@@ -318,7 +313,6 @@ private fun SlotDialog(
                         onSubmit(time, status)
                     }
                 )
-
                 Button(
                     onClick = onDismiss,
                     modifier = Modifier.fillMaxWidth(),
@@ -340,7 +334,6 @@ private fun String.toSlotTimeRange(): Pair<String, String> {
     return parts[0] to parts[1]
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 private fun LocalTime.toDisplayTime(): String {
     return format(DateTimeFormatter.ofPattern("HH:mm"))
 }

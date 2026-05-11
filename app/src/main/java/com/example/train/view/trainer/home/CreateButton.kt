@@ -36,7 +36,6 @@ fun CreateButtons(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text("+")
-
                 Text("Create Exercise")
             }
         }

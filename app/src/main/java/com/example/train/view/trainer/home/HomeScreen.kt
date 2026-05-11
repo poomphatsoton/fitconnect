@@ -67,7 +67,6 @@ fun HomeScreen(
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
-
     Scaffold(
         topBar = {
             NavigationBar(
@@ -77,7 +76,6 @@ fun HomeScreen(
         },
         containerColor = Color(0xFFF8F9FA)
     ) { innerPadding ->
-
         if (showEditProfile) {
             EditUserProfileScreen(
                 initialName = uiState.trainerName,
@@ -126,16 +124,13 @@ fun HomeScreen(
                         showEditProfile = true
                     }
                 )
-
                 Spacer(modifier = Modifier.height(16.dp))
-
                 CreateWorkoutDialogHost(
                     viewModel = workoutsViewModel,
                     onCreated = {
                         viewModel.loadOverviewData()
                     }
                 ) { openCreateWorkoutDialog, _ ->
-
                     CreateButtons(
                         onCreateExercise = {
                             showCreateExerciseDialog = true
@@ -145,12 +140,10 @@ fun HomeScreen(
                         }
                     )
                 }
-
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
-
     if (showCreateExerciseDialog) {
         CreateExerciseDialog(
             availableTags = uiState.availableTags,
@@ -161,7 +154,6 @@ fun HomeScreen(
             },
             onConfirm = { name, description, time, tags, videoUri ->
                 isSavingExercise = true
-
                 val error = exercisesViewModel.createExercise(
                     name = name,
                     description = description,
@@ -186,10 +178,8 @@ fun HomeScreen(
                         viewModel.loadOverviewData()
                     }
                 )
-
                 if (error != null) {
                     isSavingExercise = false
-
                     Toast.makeText(
                         context,
                         error,

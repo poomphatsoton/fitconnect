@@ -91,17 +91,13 @@ fun CreateExerciseDialog(
                 onValueChange = { name = it },
                 placeholder = "Exercise name"
             )
-
             Spacer(modifier = Modifier.height(16.dp))
-
             DialogInputField(
                 value = description,
                 onValueChange = { description = it },
                 placeholder = "Description"
             )
-
             Spacer(modifier = Modifier.height(16.dp))
-
             TagDropdown(
                 selectedTags = selectedTags,
                 items = availableTags,
@@ -118,7 +114,6 @@ fun CreateExerciseDialog(
                 }
             )
             Spacer(modifier = Modifier.height(16.dp))
-
             Text(
                 text = "Time per rep",
                 fontSize = 13.sp,
@@ -126,7 +121,6 @@ fun CreateExerciseDialog(
                 color = Color(0xFF374151),
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
@@ -142,9 +136,7 @@ fun CreateExerciseDialog(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.weight(1f)
                 )
-
                 Spacer(modifier = Modifier.width(12.dp))
-
                 Text(
                     text = "mins",
                     fontSize = 15.sp,
@@ -152,9 +144,7 @@ fun CreateExerciseDialog(
                     color = Color(0xFF6B7280)
                 )
             }
-
             Spacer(modifier = Modifier.height(16.dp))
-
             VideoPickerField(
                 fileName = newVideoName ?: initialExercise?.videoName,
                 enabled = !isSaving,
@@ -163,19 +153,15 @@ fun CreateExerciseDialog(
                     newVideoName = uri?.getFileName(context)
                 }
             )
-
             if (isSaving) {
                 Spacer(modifier = Modifier.height(12.dp))
-
                 Text(
                     text = "Uploading video...",
                     fontSize = 13.sp,
                     color = Color.Gray
                 )
             }
-
             Spacer(modifier = Modifier.height(24.dp))
-
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -185,9 +171,7 @@ fun CreateExerciseDialog(
                     modifier = Modifier.weight(1f),
                     enabled = !isSaving
                 )
-
                 Spacer(modifier = Modifier.width(16.dp))
-
                 DialogBlackButton(
                     text = if (initialExercise != null) "Update" else "Create",
                     onClick = {
@@ -218,15 +202,12 @@ private fun VideoPickerField(
     ) { uri ->
         onVideoSelected(uri)
     }
-
     Text(
         text = fileName ?: "No video",
         fontSize = 13.sp,
         color = Color.Gray
     )
-
     Spacer(modifier = Modifier.height(8.dp))
-
     Button(
         onClick = {
             videoPicker.launch("video/*")
@@ -248,7 +229,6 @@ private fun Uri.getFileName(context: Context): String {
             return cursor.getString(nameIndex)
         }
     }
-
     return lastPathSegment ?: "video.mp4"
 }
 

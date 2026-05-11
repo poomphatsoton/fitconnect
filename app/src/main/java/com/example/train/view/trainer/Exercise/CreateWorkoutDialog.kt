@@ -169,30 +169,24 @@ fun CreateWorkoutDialog(
                 .padding(bottom = 28.dp),
             textAlign = TextAlign.Center
         )
-
         DialogInputField(
             value = name,
             onValueChange = { name = it },
             placeholder = "Workout Name"
         )
-
         Spacer(modifier = Modifier.height(16.dp))
-
         DialogInputField(
             value = description,
             onValueChange = { description = it },
             placeholder = "Description"
         )
-
         Spacer(modifier = Modifier.height(16.dp))
-
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
             val selectedExercises = selectedExerciseIds.mapNotNull { selectedId ->
                 exercises.firstOrNull { it.id == selectedId && it.isSelected }
             }
-
             Button(
                 onClick = {
                     exercises.firstOrNull { !it.isSelected && it.id !in selectedExerciseIds }?.let { exercise ->
@@ -217,7 +211,6 @@ fun CreateWorkoutDialog(
                     fontWeight = FontWeight.Bold
                 )
             }
-
             selectedExercises.forEach { exercise ->
                 ExerciseSelectRow(
                     exercise = exercise,
@@ -244,9 +237,7 @@ fun CreateWorkoutDialog(
                 )
             }
         }
-
         Spacer(modifier = Modifier.height(16.dp))
-
         Row(
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -255,9 +246,7 @@ fun CreateWorkoutDialog(
                 onClick = onDismiss,
                 modifier = Modifier.weight(1f)
             )
-
             Spacer(modifier = Modifier.width(16.dp))
-
             DialogBlackButton(
                 text = if (isEdit) "Update" else "Create",
                 onClick = {
@@ -312,7 +301,6 @@ fun ExerciseSelectRow(
                     unfocusedBorderColor = Color.Transparent
                 )
             )
-
             ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
@@ -330,7 +318,6 @@ fun ExerciseSelectRow(
                 }
             }
         }
-
         OutlinedTextField(
             value = exercise.reps,
             onValueChange = { value ->
@@ -358,7 +345,6 @@ fun ExerciseSelectRow(
                 unfocusedBorderColor = Color.Transparent
             )
         )
-
         IconButton(
             onClick = onRemoveClick,
             modifier = Modifier

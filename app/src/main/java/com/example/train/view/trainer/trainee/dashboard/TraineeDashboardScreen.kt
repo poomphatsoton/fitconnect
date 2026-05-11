@@ -66,7 +66,6 @@ fun TraineeDashboardScreen(
             .background(Color(0xFFF9FAFB))
     ) {
         DashboardHeader(onBackClick = onBackClick)
-
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -78,7 +77,6 @@ fun TraineeDashboardScreen(
                     TraineeDetailCard(trainee = trainee)
                 }
             }
-
             item {
                 Text(
                     text = "Workout Progress",
@@ -87,7 +85,6 @@ fun TraineeDashboardScreen(
                     color = Color(0xFF0F172A)
                 )
             }
-
             if (uiState.workouts.isEmpty()) {
                 item {
                     Text(
@@ -121,7 +118,6 @@ private fun DashboardHeader(onBackClick: () -> Unit) {
                 contentDescription = "Back"
             )
         }
-
         Text(
             text = "Dashboard",
             fontSize = 20.sp,
@@ -156,9 +152,7 @@ private fun TraineeDetailCard(trainee: TraineeDashboardProfile) {
                     .border(3.dp, Color.Black, CircleShape),
                 contentScale = ContentScale.Crop
             )
-
             Spacer(modifier = Modifier.width(16.dp))
-
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = trainee.name,
@@ -166,9 +160,7 @@ private fun TraineeDetailCard(trainee: TraineeDashboardProfile) {
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
                 )
-
                 Spacer(modifier = Modifier.height(8.dp))
-
                 Text(
                     text = trainee.bio,
                     fontSize = 15.sp,
@@ -223,7 +215,6 @@ private fun WorkoutProgressCard(workout: TraineeDashboardWorkout) {
                     color = Color(0xFF0F172A)
                 )
             }
-
             LinearProgressIndicator(
                 progress = { percent / 100f },
                 modifier = Modifier
@@ -233,7 +224,6 @@ private fun WorkoutProgressCard(workout: TraineeDashboardWorkout) {
                 color = Color(0xFF0F172A),
                 trackColor = Color(0xFFE5E7EB)
             )
-
             Text(
                 text = "${workout.completedExerciseTime}s / ${workout.totalExerciseTime}s",
                 fontSize = 13.sp,

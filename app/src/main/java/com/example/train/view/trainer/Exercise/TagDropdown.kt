@@ -84,7 +84,6 @@ fun TagDropdown(
                     color = if (selectedTags.isEmpty()) Color(0xFF555555) else Color.Black,
                     fontSize = 16.sp
                 )
-
                 DropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
@@ -96,7 +95,6 @@ fun TagDropdown(
                         val isSelected = selectedTags.any {
                             it.tagId == tag.tagId
                         }
-
                         DropdownMenuItem(
                             text = {
                                 Row(
@@ -115,7 +113,6 @@ fun TagDropdown(
                                 onTagSelected(tag)
                             }
                         )
-
                         HorizontalDivider(
                             thickness = 1.dp,
                             color = Color(0xFFE0E0E0)

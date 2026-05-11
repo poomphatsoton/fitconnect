@@ -86,7 +86,6 @@ fun TraineeTrainerScreen(
                 shape = RoundedCornerShape(12.dp)
             )
         }
-
         item {
             TrainerTagFilter(
                 tags = uiState.availableTags,
@@ -95,11 +94,9 @@ fun TraineeTrainerScreen(
                 onSelectAll = viewModel::onSelectAllTags
             )
         }
-
         item {
             SectionTitle(text = "My Trainer")
         }
-
         item {
             val trainer = uiState.myTrainer
             if (trainer == null) {
@@ -126,11 +123,9 @@ fun TraineeTrainerScreen(
                 thickness = 2.dp
             )
         }
-
         item {
             SectionTitle(text = "Other Trainers")
         }
-
         if (uiState.otherTrainers.isEmpty()) {
             item {
                 EmptyTrainerText(text = "No trainers found")

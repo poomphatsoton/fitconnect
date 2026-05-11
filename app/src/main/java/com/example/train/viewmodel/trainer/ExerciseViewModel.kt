@@ -131,11 +131,11 @@ class ExercisesViewModel(
         val trimmedTime = timePerRepText.trim()
 
         if (trimmedName.isEmpty() || trimmedTime.isEmpty()) {
-            return "Please fill required fields"
+            return "Please fill required field"
         }
 
         val timePerRep = parseMinutesToSeconds(trimmedTime)
-            ?: return "Time must be a whole number of minutes"
+            ?: return "Time must be a minutes"
 
         val exerciseId = dbHelper.insertExercise(
             name = trimmedName,
@@ -182,7 +182,7 @@ class ExercisesViewModel(
         }
 
         val timePerRep = parseMinutesToSeconds(trimmedTime)
-            ?: return "Time must be a whole number of minutes"
+            ?: return "Time must be a minutes"
 
         dbHelper.updateExercise(
             id = id,

@@ -32,23 +32,18 @@ class WorkoutsViewModel(
                     id = cursor.getInt(
                         cursor.getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_ID)
                     )
-
                     name = cursor.getString(
                         cursor.getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_NAME)
                     )
-
                     description = cursor.getString(
                         cursor.getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_DESC)
                     )
-
                     duration = cursor.getInt(
                         cursor.getColumnIndexOrThrow(DatabaseHelper.COL_WORKOUT_DURATION)
                     )
                 }
-
                 workout.exercises = loadExercisesForWorkout(workout.id)
                 val exerciseDetails = loadWorkoutExerciseDetails(workout.id.toLong())
-
                 workouts.add(
                     WorkoutUiItem(
                         workout = workout,
@@ -155,7 +150,6 @@ class WorkoutsViewModel(
     }
 
     val availableExercises = mutableStateListOf<ExerciseSelectUiItem>()
-
     fun loadAvailableExercises() {
         availableExercises.clear()
 
@@ -164,11 +158,9 @@ class WorkoutsViewModel(
                 val id = cursor.getLong(
                     cursor.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_ID)
                 )
-
                 val name = cursor.getString(
                     cursor.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_NAME)
                 )
-
                 availableExercises.add(
                     ExerciseSelectUiItem(
                         id = id,
@@ -181,7 +173,6 @@ class WorkoutsViewModel(
 
     fun updateExerciseSelected(id: Long, selected: Boolean) {
         val index = availableExercises.indexOfFirst { it.id == id }
-
         if (index != -1) {
             availableExercises[index] = availableExercises[index].copy(
                 isSelected = selected
@@ -191,7 +182,6 @@ class WorkoutsViewModel(
 
     fun updateExerciseReps(id: Long, reps: String) {
         val index = availableExercises.indexOfFirst { it.id == id }
-
         if (index != -1) {
             availableExercises[index] = availableExercises[index].copy(
                 reps = reps
@@ -202,7 +192,6 @@ class WorkoutsViewModel(
     fun createWorkout(name: String, description: String): String? {
         val trimmedName = name.trim()
         val trimmedDescription = description.trim()
-
         if (trimmedName.isEmpty()) {
             return "Please enter workout name"
         }
@@ -218,7 +207,6 @@ class WorkoutsViewModel(
             duration = 0,
             trainerId = trainerId
         )
-
         selectedExercises.forEach { item ->
             dbHelper.addExerciseToWorkout(
                 workoutId = workoutId,
@@ -228,14 +216,11 @@ class WorkoutsViewModel(
         }
 
         val totalDuration = dbHelper.calculateWorkoutTotalDuration(workoutId)
-
         dbHelper.updateWorkoutDuration(
             workoutId = workoutId,
             duration = totalDuration
         )
-
         loadWorkouts()
-
         return null
     }
 
@@ -287,7 +272,6 @@ class WorkoutsViewModel(
                 item.id to (item.reps.toIntOrNull() ?: 0)
             }
         )
-
         val totalDuration = dbHelper.calculateWorkoutTotalDuration(workoutId.toLong())
         dbHelper.updateWorkoutDuration(workoutId.toLong(), totalDuration)
 
