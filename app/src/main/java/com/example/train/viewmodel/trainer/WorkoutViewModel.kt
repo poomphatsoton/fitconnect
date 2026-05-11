@@ -106,6 +106,8 @@ class WorkoutsViewModel(
                         reps = cursor.getInt(2),
                         timePerRep = cursor.getInt(3),
                         description = cursor.getString(4),
+                        videoUrl = cursor.getString(5),
+                        videoName = cursor.getString(6)
                     )
                 )
             }

@@ -110,7 +110,7 @@ class WorkoutHelper(private val dbHelper: DatabaseHelper) {
     fun getWorkoutExerciseDetails(workoutId: Long): Cursor {
         val db = dbHelper.readableDatabase
         val query = """
-            SELECT e.${DatabaseHelper.COL_EXERCISE_ID}, e.${DatabaseHelper.COL_EXERCISE_NAME}, we.${DatabaseHelper.COL_WE_REPS}, e.${DatabaseHelper.COL_EXERCISE_TIME_PER_REP}, e.${DatabaseHelper.COL_EXERCISE_DESC}
+            SELECT e.${DatabaseHelper.COL_EXERCISE_ID}, e.${DatabaseHelper.COL_EXERCISE_NAME}, we.${DatabaseHelper.COL_WE_REPS}, e.${DatabaseHelper.COL_EXERCISE_TIME_PER_REP}, e.${DatabaseHelper.COL_EXERCISE_DESC}, e.${DatabaseHelper.COL_EXERCISE_VIDEO_URL}, e.${DatabaseHelper.COL_EXERCISE_VIDEO_NAME}
             FROM ${DatabaseHelper.TABLE_WORKOUT_EXERCISES} we
             JOIN ${DatabaseHelper.TABLE_EXERCISES} e ON we.${DatabaseHelper.COL_WE_EXERCISE_ID} = e.${DatabaseHelper.COL_EXERCISE_ID}
             WHERE we.${DatabaseHelper.COL_WE_WORKOUT_ID} = ?

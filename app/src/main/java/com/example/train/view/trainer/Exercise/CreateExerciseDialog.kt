@@ -1,6 +1,8 @@
 package com.example.train.view.trainer.exercise
 
+import android.content.Context
 import android.net.Uri
+import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -23,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -37,6 +40,7 @@ fun CreateExerciseDialog(
     initialExercise: Exercise? = null,
     initialTags: List<Tag> = emptyList(),
     availableTags: List<Tag> = emptyList(),
+    isSaving: Boolean = false,
     onDismiss: () -> Unit,
     onConfirm: (
         name: String,
@@ -46,16 +50,22 @@ fun CreateExerciseDialog(
         videoUri: Uri?
     ) -> Unit
 ) {
+    val context = LocalContext.current
     var name by remember { mutableStateOf(initialExercise?.name ?: "") }
     var description by remember { mutableStateOf(initialExercise?.description ?: "") }
     var timePerRep by remember {
         mutableStateOf(initialExercise?.timePerRep?.toMinuteText() ?: "")
     }
     var videoUri by remember { mutableStateOf<Uri?>(null) }
+    var selectedVideoName by remember { mutableStateOf<String?>(null) }
     var selectedTags by remember { mutableStateOf(initialTags) }
 
     Dialog(
-        onDismissRequest = onDismiss
+        onDismissRequest = {
+            if (!isSaving) {
+                onDismiss()
+            }
+        }
     ) {
         Column(
             modifier = Modifier
@@ -147,10 +157,23 @@ fun CreateExerciseDialog(
 
             VideoPickerField(
                 videoUri = videoUri,
+                videoName = selectedVideoName ?: initialExercise?.videoName,
+                enabled = !isSaving,
                 onVideoSelected = { uri ->
                     videoUri = uri
+                    selectedVideoName = uri?.getFileName(context)
                 }
             )
+
+            if (isSaving) {
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = "Uploading, please wait",
+                    fontSize = 13.sp,
+                    color = Color.Gray
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -160,7 +183,8 @@ fun CreateExerciseDialog(
                 DialogBlackButton(
                     text = "Cancel",
                     onClick = onDismiss,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    enabled = !isSaving
                 )
 
                 Spacer(modifier = Modifier.width(16.dp))
@@ -176,7 +200,8 @@ fun CreateExerciseDialog(
                             videoUri
                         )
                     },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    enabled = !isSaving
                 )
             }
         }
@@ -186,6 +211,8 @@ fun CreateExerciseDialog(
 @Composable
 private fun VideoPickerField(
     videoUri: Uri?,
+    videoName: String?,
+    enabled: Boolean,
     onVideoSelected: (Uri?) -> Unit
 ) {
     val videoPicker = rememberLauncherForActivityResult(
@@ -195,7 +222,11 @@ private fun VideoPickerField(
     }
 
     Text(
-        text = if (videoUri == null) "No video selected" else "Video selected",
+        text = when {
+            videoUri != null -> videoName ?: "Selected video"
+            !videoName.isNullOrBlank() -> videoName
+            else -> "No video selected"
+        },
         fontSize = 13.sp,
         color = Color.Gray
     )
@@ -206,6 +237,7 @@ private fun VideoPickerField(
         onClick = {
             videoPicker.launch("video/*")
         },
+        enabled = enabled,
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.Black,
             contentColor = Color.White
@@ -213,6 +245,17 @@ private fun VideoPickerField(
     ) {
         Text(text = "Upload Video")
     }
+}
+
+private fun Uri.getFileName(context: Context): String {
+    context.contentResolver.query(this, null, null, null, null)?.use { cursor ->
+        val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+        if (nameIndex != -1 && cursor.moveToFirst()) {
+            return cursor.getString(nameIndex)
+        }
+    }
+
+    return lastPathSegment ?: "video.mp4"
 }
 
 private fun Int.toMinuteText(): String {

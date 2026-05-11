@@ -18,7 +18,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     companion object {
         private const val DATABASE_NAME = "FitConnect.db"
-        private const val DATABASE_VERSION = 37
+        private const val DATABASE_VERSION = 39
 
         // Users
         const val TABLE_USERS = "users"
@@ -48,6 +48,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val COL_EXERCISE_DESC = "description"
         const val COL_EXERCISE_TIME_PER_REP = "time_per_rep"
         const val COL_EXERCISE_VIDEO_URL = "video_url"
+        const val COL_EXERCISE_VIDEO_NAME = "video_name"
 
         // Workouts
         const val TABLE_WORKOUTS = "workouts"
@@ -209,7 +210,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             $COL_EXERCISE_NAME TEXT NOT NULL,
             $COL_EXERCISE_DESC TEXT,
             $COL_EXERCISE_TIME_PER_REP INTEGER,
-            $COL_EXERCISE_VIDEO_URL TEXT
+            $COL_EXERCISE_VIDEO_URL TEXT,
+            $COL_EXERCISE_VIDEO_NAME TEXT
         )
     """.trimIndent()
 

@@ -46,6 +46,7 @@ fun HomeScreen(
 
     var showCreateExerciseDialog by remember { mutableStateOf(false) }
     var showEditProfile by remember { mutableStateOf(false) }
+    var isSavingExercise by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.loadHomeData()
@@ -153,33 +154,41 @@ fun HomeScreen(
     if (showCreateExerciseDialog) {
         CreateExerciseDialog(
             availableTags = uiState.availableTags,
+            isSaving = isSavingExercise,
             onDismiss = {
                 showCreateExerciseDialog = false
+                isSavingExercise = false
             },
             onConfirm = { name, description, time, tags, videoUri ->
+                isSavingExercise = true
+
                 val error = exercisesViewModel.createExercise(
                     name = name,
                     description = description,
                     timePerRepText = time,
                     tags = tags,
-                    videoUri = videoUri
+                    videoUri = videoUri,
+                    onFinished = { uploadSuccess ->
+                        Toast.makeText(
+                            context,
+                            if (uploadSuccess) "Created successfully" else "Exercise saved, but video upload failed",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        showCreateExerciseDialog = false
+                        isSavingExercise = false
+                        viewModel.loadOverviewData()
+                    }
                 )
 
                 if (error != null) {
+                    isSavingExercise = false
+
                     Toast.makeText(
                         context,
                         error,
                         Toast.LENGTH_SHORT
                     ).show()
-                } else {
-                    Toast.makeText(
-                        context,
-                        "Created successfully",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                    showCreateExerciseDialog = false
-                    viewModel.loadOverviewData()
                 }
             }
         )

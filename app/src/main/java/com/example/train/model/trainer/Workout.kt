@@ -16,6 +16,8 @@ data class WorkoutExerciseDetail(
     val reps: Int,
     val timePerRep: Int,
     val description: String = "",
+    val videoUrl: String? = null,
+    val videoName: String? = null
 )
 
 data class WorkoutTagPercent(

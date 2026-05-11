@@ -12,9 +12,9 @@ class VideoStorageHelper(
     private val storage: FirebaseStorage = FirebaseStorage.getInstance()
 ) {
 
-    suspend fun uploadExerciseVideo(exerciseId: Int, uri: Uri): String {
+    suspend fun uploadExerciseVideo(exerciseId: Int, uri: Uri, videoName: String): String {
         val url = uploadToStorage(exerciseId, uri)
-        saveExerciseVideoUrl(exerciseId, url)
+        saveExerciseVideo(exerciseId, url, videoName)
         return url
     }
 
@@ -30,10 +30,11 @@ class VideoStorageHelper(
         return ref.downloadUrl.await().toString()
     }
 
-    fun saveExerciseVideoUrl(exerciseId: Int, url: String) {
+    fun saveExerciseVideo(exerciseId: Int, url: String, videoName: String) {
         val db = dbHelper.writableDatabase
         val values = ContentValues().apply {
             put(DatabaseHelper.COL_EXERCISE_VIDEO_URL, url)
+            put(DatabaseHelper.COL_EXERCISE_VIDEO_NAME, videoName)
         }
 
         db.update(

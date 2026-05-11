@@ -117,7 +117,9 @@ fun Cursor.toWorkoutExerciseDetail(): WorkoutExerciseDetail {
         name = getString(getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_NAME)),
         reps = getInt(getColumnIndexOrThrow(DatabaseHelper.COL_WE_REPS)),
         timePerRep = getInt(getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_TIME_PER_REP)),
-        description = getString(getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_DESC))
+        description = getString(getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_DESC)),
+        videoUrl = getString(getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_VIDEO_URL)),
+        videoName = getString(getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_VIDEO_NAME))
     )
 }
 

@@ -53,6 +53,7 @@ fun ExercisesScreen(
 
     var showCreateDialog by remember { mutableStateOf(false) }
     var editingExercise by remember { mutableStateOf<Exercise?>(null) }
+    var isSavingExercise by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.loadExercises()
@@ -106,11 +107,31 @@ fun ExercisesScreen(
             initialExercise = exerciseToEdit,
             initialTags = if (exerciseToEdit != null) viewModel.exerciseTagsMap[exerciseToEdit.id].orEmpty() else emptyList(),
             availableTags = viewModel.availableTags,
+            isSaving = isSavingExercise,
             onDismiss = {
                 showCreateDialog = false
                 editingExercise = null
+                isSavingExercise = false
             },
             onConfirm = { name, description, time, tags, videoUri ->
+                isSavingExercise = true
+
+                val closeDialog: (Boolean) -> Unit = { uploadSuccess ->
+                    Toast.makeText(
+                        context,
+                        if (uploadSuccess) {
+                            if (exerciseToEdit != null) "Updated successfully" else "Created successfully"
+                        } else {
+                            "Exercise saved, but video upload failed"
+                        },
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    showCreateDialog = false
+                    editingExercise = null
+                    isSavingExercise = false
+                }
+
                 val errorMessage = if (exerciseToEdit != null) {
                     viewModel.updateExercise(
                         id = exerciseToEdit.id,
@@ -118,7 +139,8 @@ fun ExercisesScreen(
                         description = description,
                         timePerRepText = time,
                         tags = tags,
-                        videoUri = videoUri
+                        videoUri = videoUri,
+                        onFinished = closeDialog
                     )
                 } else {
                     viewModel.createExercise(
@@ -126,25 +148,19 @@ fun ExercisesScreen(
                         description = description,
                         timePerRepText = time,
                         tags = tags,
-                        videoUri = videoUri
+                        videoUri = videoUri,
+                        onFinished = closeDialog
                     )
                 }
 
                 if (errorMessage != null) {
+                    isSavingExercise = false
+
                     Toast.makeText(
                         context,
                         errorMessage,
                         Toast.LENGTH_SHORT
                     ).show()
-                } else {
-                    Toast.makeText(
-                        context,
-                        if (exerciseToEdit != null) "Updated successfully" else "Created successfully",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                    showCreateDialog = false
-                    editingExercise = null
                 }
             }
         )

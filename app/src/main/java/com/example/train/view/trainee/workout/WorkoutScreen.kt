@@ -1,6 +1,9 @@
 package com.example.train.view.trainee.workout
 
+import android.net.Uri
 import android.os.Build
+import android.widget.MediaController
+import android.widget.VideoView
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -29,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.train.model.trainer.WorkoutExerciseDetail
 import com.example.train.model.trainee.TraineeAssignedWorkout
@@ -313,6 +317,13 @@ private fun ExerciseStartDetail(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        if (!detail.videoUrl.isNullOrBlank()) {
+            ExerciseVideo(
+                videoUrl = detail.videoUrl,
+                videoName = detail.videoName
+            )
+        }
+
         Text(
             text = "Exercise $currentStep / $totalSteps",
             fontSize = 14.sp,
@@ -355,6 +366,37 @@ private fun ExerciseStartDetail(
                 color = Color(0xFF15803D)
             )
         }
+    }
+}
+
+@Composable
+private fun ExerciseVideo(
+    videoUrl: String,
+    videoName: String?
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = videoName ?: "Exercise video",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color(0xFF495057)
+        )
+
+        AndroidView(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(180.dp),
+            factory = { context ->
+                VideoView(context).apply {
+                    val controller = MediaController(context)
+                    controller.setAnchorView(this)
+                    setMediaController(controller)
+                    setVideoURI(Uri.parse(videoUrl))
+                }
+            }
+        )
     }
 }
 

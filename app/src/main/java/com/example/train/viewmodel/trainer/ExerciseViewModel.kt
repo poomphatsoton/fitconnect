@@ -2,6 +2,7 @@ package com.example.train.viewmodel.trainer
 
 import android.app.Application
 import android.net.Uri
+import android.provider.OpenableColumns
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -38,6 +39,13 @@ class ExercisesViewModel(
 
         dbHelper.getAllExercises().use { cursor ->
             while (cursor.moveToNext()) {
+                val videoUrl = cursor.getString(
+                    cursor.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_VIDEO_URL)
+                )
+                val videoName = cursor.getString(
+                    cursor.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_VIDEO_NAME)
+                )
+
                 val exercise = Exercise(
                     id = cursor.getInt(
                         cursor.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_ID)
@@ -50,7 +58,9 @@ class ExercisesViewModel(
                     ),
                     timePerRep = cursor.getInt(
                         cursor.getColumnIndexOrThrow(DatabaseHelper.COL_EXERCISE_TIME_PER_REP)
-                    )
+                    ),
+                    videoUrl = videoUrl,
+                    videoName = videoName.takeUnless { it.isNullOrBlank() } ?: videoNameFromUrl(videoUrl)
                 )
 
                 exercises.add(exercise)
@@ -110,7 +120,8 @@ class ExercisesViewModel(
         description: String,
         timePerRepText: String,
         tags: List<Tag>,
-        videoUri: Uri? = null
+        videoUri: Uri? = null,
+        onFinished: (Boolean) -> Unit = {}
     ): String? {
         val trimmedName = name.trim()
         val trimmedDescription = description.trim()
@@ -136,7 +147,9 @@ class ExercisesViewModel(
 
         saveVideoIfSelected(
             exerciseId = exerciseId.toInt(),
-            videoUri = videoUri
+            videoUri = videoUri,
+            videoName = videoUri?.getFileName(),
+            onFinished = onFinished
         )
 
         return null
@@ -153,7 +166,8 @@ class ExercisesViewModel(
         description: String,
         timePerRepText: String,
         tags: List<Tag>,
-        videoUri: Uri? = null
+        videoUri: Uri? = null,
+        onFinished: (Boolean) -> Unit = {}
     ): String? {
         val trimmedName = name.trim()
         val trimmedDescription = description.trim()
@@ -176,7 +190,9 @@ class ExercisesViewModel(
 
         saveVideoIfSelected(
             exerciseId = id,
-            videoUri = videoUri
+            videoUri = videoUri,
+            videoName = videoUri?.getFileName(),
+            onFinished = onFinished
         )
 
         return null
@@ -184,25 +200,48 @@ class ExercisesViewModel(
 
     private fun saveVideoIfSelected(
         exerciseId: Int,
-        videoUri: Uri?
+        videoUri: Uri?,
+        videoName: String?,
+        onFinished: (Boolean) -> Unit
     ) {
         loadExercises()
 
         if (videoUri == null) {
+            onFinished(true)
             return
         }
 
         isUploadingVideo = true
         viewModelScope.launch {
             try {
-                videoStorage.uploadExerciseVideo(exerciseId, videoUri)
+                videoStorage.uploadExerciseVideo(exerciseId, videoUri, videoName.orEmpty())
                 loadExercises()
+                onFinished(true)
             } catch (e: Exception) {
                 Log.e(logTag, "Video upload failed", e)
+                onFinished(false)
             } finally {
                 isUploadingVideo = false
             }
         }
+    }
+
+    private fun Uri.getFileName(): String {
+        val resolver = getApplication<Application>().contentResolver
+
+        resolver.query(this, null, null, null, null)?.use { cursor ->
+            val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+            if (nameIndex != -1 && cursor.moveToFirst()) {
+                return cursor.getString(nameIndex)
+            }
+        }
+
+        return lastPathSegment ?: "video.mp4"
+    }
+
+    private fun videoNameFromUrl(url: String?): String? {
+        if (url.isNullOrBlank()) return null
+        return url.substringAfterLast('/').substringBefore('?').ifBlank { null }
     }
 
     private fun parseMinutesToSeconds(value: String): Int? {

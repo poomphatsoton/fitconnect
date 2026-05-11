@@ -12,14 +12,18 @@ class CalendarHelper(private val dbHelper: DatabaseHelper) {
         val db = dbHelper.readableDatabase
         val query = """
             SELECT
-                ${DatabaseHelper.COL_SNAPSHOT_EXERCISE_ID} AS ${DatabaseHelper.COL_EXERCISE_ID},
-                ${DatabaseHelper.COL_SNAPSHOT_EXERCISE_NAME} AS ${DatabaseHelper.COL_EXERCISE_NAME},
-                ${DatabaseHelper.COL_SNAPSHOT_REPS} AS ${DatabaseHelper.COL_WE_REPS},
-                ${DatabaseHelper.COL_SNAPSHOT_TIME_PER_REP} AS ${DatabaseHelper.COL_EXERCISE_TIME_PER_REP},
-                ${DatabaseHelper.COL_SNAPSHOT_EXERCISE_DESC} AS ${DatabaseHelper.COL_EXERCISE_DESC}
-            FROM ${DatabaseHelper.TABLE_SNAPSHOT_WORKOUT}
+                sw.${DatabaseHelper.COL_SNAPSHOT_EXERCISE_ID} AS ${DatabaseHelper.COL_EXERCISE_ID},
+                sw.${DatabaseHelper.COL_SNAPSHOT_EXERCISE_NAME} AS ${DatabaseHelper.COL_EXERCISE_NAME},
+                sw.${DatabaseHelper.COL_SNAPSHOT_REPS} AS ${DatabaseHelper.COL_WE_REPS},
+                sw.${DatabaseHelper.COL_SNAPSHOT_TIME_PER_REP} AS ${DatabaseHelper.COL_EXERCISE_TIME_PER_REP},
+                sw.${DatabaseHelper.COL_SNAPSHOT_EXERCISE_DESC} AS ${DatabaseHelper.COL_EXERCISE_DESC},
+                e.${DatabaseHelper.COL_EXERCISE_VIDEO_URL},
+                e.${DatabaseHelper.COL_EXERCISE_VIDEO_NAME}
+            FROM ${DatabaseHelper.TABLE_SNAPSHOT_WORKOUT} sw
+            LEFT JOIN ${DatabaseHelper.TABLE_EXERCISES} e
+                ON sw.${DatabaseHelper.COL_SNAPSHOT_EXERCISE_ID} = e.${DatabaseHelper.COL_EXERCISE_ID}
             WHERE ${DatabaseHelper.COL_SNAPSHOT_ASSIGNMENT_ID} = ?
-            ORDER BY ${DatabaseHelper.COL_SNAPSHOT_ID} ASC
+            ORDER BY sw.${DatabaseHelper.COL_SNAPSHOT_ID} ASC
         """.trimIndent()
         return db.rawQuery(query, arrayOf(assignmentId.toString()))
     }
